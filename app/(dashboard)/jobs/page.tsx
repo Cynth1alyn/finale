@@ -8,10 +8,11 @@ import PriorityBadge from '@/app/components/PriorityBadge';
 import DataTable from '@/app/components/DataTable';
 import Modal from '@/app/components/Modal';
 import MapComponent from '@/app/components/MapComponent';
-import { Search, X, AlertTriangle } from 'lucide-react';
+import SearchableSelect from '@/app/components/SearchableSelect';
+import { Search, X, AlertTriangle, User, UserPlus, Pencil, Package } from 'lucide-react';
 
 export default function JobsPage() {
-  const { jobs, users, addJob, updateJob, deleteJob } = useAppContext();
+  const { jobs, users, equipment, addJob, updateJob, deleteJob, updateEquipment } = useAppContext();
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -34,6 +35,10 @@ export default function JobsPage() {
       job_priority: 'medium',
       job_status: 'pending',
       assigned_user_ids: [],
+      assigned_lead_id: '',
+      customer_name: '',
+      contact_number: '',
+      address: '',
       lat: 13.736717,
       lng: 100.523186
     });
@@ -54,6 +59,16 @@ export default function JobsPage() {
 
   const handleSave = () => {
     if (!formData.job_title) return alert('กรุณาระบุหัวข้องาน');
+    
+    if (formData.job_status === 'pending' && formData.equipment_requests && !editingJob) {
+      formData.equipment_requests.forEach(req => {
+        const item = equipment.find(e => e.equip_id === req.equip_id);
+        if (item) {
+          updateEquipment({ ...item, remain_qty: Math.max(0, item.remain_qty - req.qty) });
+        }
+      });
+    }
+
     if (editingJob) {
       updateJob(formData as Job);
     } else {
@@ -233,15 +248,190 @@ export default function JobsPage() {
               </select>
             </div>
           </div>
-          <div>
-            <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>ผู้รับผิดชอบ (เลือกหลายคนได้ด้วยปุ่ม Ctrl/Cmd)</label>
-            <select multiple className="input" value={formData.assigned_user_ids || []} onChange={e => {
-              const options = Array.from(e.target.selectedOptions);
-              setFormData({...formData, assigned_user_ids: options.map(o => o.value)});
-            }} style={{ width: '100%', padding: '8px 12px', minHeight: 80 }}>
-              {users.map(u => <option key={u.user_id} value={u.user_id}>{u.firstname} {u.lastname}</option>)}
-            </select>
+          {/* Customer Information */}
+          <div style={{ border: '1px solid var(--border-color)', borderRadius: 12, padding: '16px 20px', background: 'var(--bg-card)' }}>
+            <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <User size={18} color="var(--accent-blue)" /> ข้อมูลลูกค้า
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-primary)' }}>ชื่อลูกค้า</label>
+                <div style={{ position: 'relative' }}>
+                  <input type="text" className="input" value={formData.customer_name || ''} onChange={e => setFormData({...formData, customer_name: e.target.value})} style={{ paddingRight: 32 }} placeholder="กรอกชื่อลูกค้า..." />
+                  <Pencil size={14} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                </div>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-primary)' }}>เบอร์ติดต่อ</label>
+                <div style={{ position: 'relative' }}>
+                  <input type="text" className="input" value={formData.contact_number || ''} onChange={e => setFormData({...formData, contact_number: e.target.value})} style={{ paddingRight: 32 }} placeholder="08x-xxx-xxxx" />
+                  <Pencil size={14} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                </div>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-primary)' }}>ที่อยู่</label>
+                <div style={{ position: 'relative' }}>
+                  <input type="text" className="input" value={formData.address || ''} onChange={e => setFormData({...formData, address: e.target.value})} style={{ paddingRight: 32 }} placeholder="กรอกที่อยู่..." />
+                  <Pencil size={14} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                </div>
+              </div>
+            </div>
           </div>
+
+          {/* Job Ownership */}
+          <div style={{ border: '1px solid var(--border-color)', borderRadius: 12, padding: '16px 20px', background: 'var(--bg-card)' }}>
+            <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <UserPlus size={18} color="var(--accent-blue)" /> กำหนดผู้รับผิดชอบงาน
+            </h3>
+            
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <label style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>หัวหน้างาน</label>
+                <SearchableSelect 
+                  options={users.filter(u => u.role === 'admin' || u.role === 'manager').map(u => ({ value: u.user_id, label: `${u.firstname} ${u.lastname}` }))}
+                  placeholder="เลือกหัวหน้างาน..."
+                  value={formData.assigned_lead_id || ''}
+                  onSelect={val => setFormData({...formData, assigned_lead_id: val})}
+                />
+              </div>
+              <div style={{ border: '1px solid var(--border-color)', borderRadius: 8, overflow: 'hidden' }}>
+                <table className="data-table" style={{ width: '100%', background: 'var(--bg-secondary)', fontSize: 13 }}>
+                  <thead>
+                    <tr><th style={{ width: 60 }}>ลำดับ</th><th>รหัสพนักงาน</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th></tr>
+                  </thead>
+                  <tbody>
+                    {formData.assigned_lead_id ? (() => {
+                      const lead = users.find(u => u.user_id === formData.assigned_lead_id);
+                      return lead ? (
+                        <tr>
+                          <td>1</td>
+                          <td>{lead.user_id}</td>
+                          <td>{lead.firstname} {lead.lastname}</td>
+                          <td style={{ textTransform: 'capitalize' }}>{lead.role === 'admin' ? 'ผู้ดูแลระบบ' : lead.role === 'manager' ? 'ผู้จัดการ' : lead.role}</td>
+                        </tr>
+                      ) : null;
+                    })() : (
+                      <tr><td colSpan={4} style={{ textAlign: 'center', padding: '16px', color: 'var(--text-muted)' }}>— เลือกหัวหน้างาน —</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <label style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>พนักงานลูกทีม</label>
+                <SearchableSelect 
+                  options={users.filter(u => u.role !== 'admin' && u.role !== 'manager').map(u => ({ value: u.user_id, label: `${u.firstname} ${u.lastname}` }))}
+                  placeholder="เพิ่มพนักงาน..."
+                  value=""
+                  resetOnSelect={true}
+                  onSelect={val => {
+                    if (val && !formData.assigned_user_ids?.includes(val)) {
+                      setFormData({...formData, assigned_user_ids: [...(formData.assigned_user_ids || []), val]});
+                    }
+                  }}
+                />
+              </div>
+              <div style={{ border: '1px solid var(--border-color)', borderRadius: 8, overflow: 'hidden' }}>
+                <table className="data-table" style={{ width: '100%', background: 'var(--bg-secondary)', fontSize: 13 }}>
+                  <thead>
+                    <tr><th style={{ width: 60 }}>ลำดับ</th><th>รหัสพนักงาน</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th style={{ width: 40, textAlign: 'center' }}>ลบ</th></tr>
+                  </thead>
+                  <tbody>
+                    {(formData.assigned_user_ids || []).length > 0 ? (
+                      (formData.assigned_user_ids || []).map((uid, index) => {
+                        const u = users.find(x => x.user_id === uid);
+                        return u ? (
+                          <tr key={uid}>
+                            <td>{index + 1}</td>
+                            <td>{u.user_id}</td>
+                            <td>{u.firstname} {u.lastname}</td>
+                            <td style={{ textTransform: 'capitalize' }}>{u.role === 'technician' ? 'ช่างเทคนิค' : u.role === 'staff' ? 'พนักงานทั่วไป' : u.role}</td>
+                            <td style={{ textAlign: 'center' }}>
+                              <button onClick={() => setFormData({...formData, assigned_user_ids: formData.assigned_user_ids!.filter(id => id !== uid)})} style={{ background: 'var(--accent-rose)', color: '#fff', border: 'none', borderRadius: 4, width: 24, height: 24, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: 'auto' }}>
+                                <X size={14} strokeWidth={3} />
+                              </button>
+                            </td>
+                          </tr>
+                        ) : null;
+                      })
+                    ) : (
+                      <tr><td colSpan={5} style={{ textAlign: 'center', padding: '16px', color: 'var(--text-muted)' }}>— ยังไม่ได้เลือกพนักงาน —</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {/* Equipment Requests */}
+          {formData.job_status === 'pending' && (
+            <div style={{ border: '1px solid var(--border-color)', borderRadius: 12, padding: '16px 20px', background: 'var(--bg-card)' }}>
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Package size={18} color="var(--accent-blue)" /> เบิกอุปกรณ์สำหรับงานนี้
+              </h3>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                 <label style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>เลือกอุปกรณ์ (ที่มีในคลัง)</label>
+                 <SearchableSelect 
+                   options={equipment.filter(e => e.remain_qty > 0).map(e => ({ value: e.equip_id, label: `${e.name} (คงเหลือ: ${e.remain_qty})` }))}
+                   placeholder="ค้นหาอุปกรณ์..."
+                   value=""
+                   resetOnSelect={true}
+                   onSelect={val => {
+                     if (val) {
+                       const existing = formData.equipment_requests?.find(r => r.equip_id === val);
+                       if (!existing) {
+                         setFormData({
+                           ...formData, 
+                           equipment_requests: [...(formData.equipment_requests || []), { equip_id: val, qty: 1 }]
+                         });
+                       }
+                     }
+                   }}
+                 />
+              </div>
+
+              {formData.equipment_requests && formData.equipment_requests.length > 0 && (
+                <div style={{ border: '1px solid var(--border-color)', borderRadius: 8, overflow: 'hidden' }}>
+                  <table className="data-table" style={{ width: '100%', background: 'var(--bg-secondary)', fontSize: 13 }}>
+                    <thead>
+                      <tr><th style={{ width: 60 }}>ลำดับ</th><th>ชื่ออุปกรณ์</th><th style={{ width: 100, textAlign: 'center' }}>จำนวนเบิก</th><th style={{ width: 60, textAlign: 'center' }}>ลบ</th></tr>
+                    </thead>
+                    <tbody>
+                      {formData.equipment_requests.map((req, index) => {
+                        const item = equipment.find(e => e.equip_id === req.equip_id);
+                        return item ? (
+                          <tr key={req.equip_id}>
+                            <td>{index + 1}</td>
+                            <td>{item.name}</td>
+                            <td style={{ textAlign: 'center' }}>
+                              <input type="number" min="1" max={item.remain_qty} className="input" style={{ width: 60, padding: '4px 8px', textAlign: 'center' }} value={req.qty} onChange={e => {
+                                const newQty = parseInt(e.target.value) || 1;
+                                const maxQty = item.remain_qty;
+                                const finalQty = newQty > maxQty ? maxQty : newQty;
+                                setFormData({
+                                  ...formData,
+                                  equipment_requests: formData.equipment_requests!.map(r => r.equip_id === req.equip_id ? { ...r, qty: finalQty } : r)
+                                });
+                              }} />
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                              <button onClick={() => setFormData({...formData, equipment_requests: formData.equipment_requests!.filter(r => r.equip_id !== req.equip_id)})} style={{ background: 'var(--accent-rose)', color: '#fff', border: 'none', borderRadius: 4, width: 24, height: 24, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: 'auto' }}>
+                                <X size={14} strokeWidth={3} />
+                              </button>
+                            </td>
+                          </tr>
+                        ) : null;
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 10 }}>
             <button className="btn btn-ghost" onClick={() => setIsModalOpen(false)}>ยกเลิก</button>
             <button className="btn btn-primary" onClick={handleSave}>บันทึกข้อมูล</button>

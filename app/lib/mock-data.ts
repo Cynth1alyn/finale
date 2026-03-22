@@ -33,6 +33,11 @@ export interface Job {
   assigned_user_ids: string[];
   lat?: number;
   lng?: number;
+  customer_name?: string;
+  contact_number?: string;
+  address?: string;
+  assigned_lead_id?: string;
+  equipment_requests?: { equip_id: string; qty: number }[];
 }
 
 export interface Issue {
