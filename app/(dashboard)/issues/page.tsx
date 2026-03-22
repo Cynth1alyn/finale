@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useAppContext } from '@/app/lib/AppContext';
 import { Issue, IssueStatus } from '@/app/lib/mock-data';
 import StatusBadge from '@/app/components/StatusBadge';
 import DataTable from '@/app/components/DataTable';
 import Modal from '@/app/components/Modal';
 import MapComponent from '@/app/components/MapComponent';
+import { Check } from 'lucide-react';
 
 export default function IssuesPage() {
   const { issues, users, addIssue, updateIssue, deleteIssue } = useAppContext();
@@ -96,8 +96,8 @@ export default function IssuesPage() {
       key: 'solution',
       label: 'การแก้ไข',
       render: (row: typeof tableData[0]) => (
-        <span style={{ fontSize: 11, color: row.solution ? 'var(--accent-emerald)' : 'var(--text-muted)' }}>
-          {row.solution ? '✓ มีวิธีแก้ไข' : '— ยังไม่แก้ไข'}
+        <span style={{ fontSize: 11, color: row.solution ? 'var(--accent-emerald)' : 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+          {row.solution ? <><Check size={14} /> มีวิธีแก้ไข</> : '— ยังไม่แก้ไข'}
         </span>
       ),
     },

@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useAppContext } from '@/app/lib/AppContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Bell } from 'lucide-react';
+import ThemeToggle from './ThemeToggle';
 
 interface TopbarProps {
   title: string;
@@ -28,7 +30,7 @@ export default function Topbar({ title, subtitle }: TopbarProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleNotifClick = (notif: any) => {
+  const handleNotifClick = (notif: { id: string; related_link?: string; is_read: boolean; title: string; message: string; timestamp: string }) => {
     markNotificationAsRead(notif.id);
     setIsNotifOpen(false);
     if (notif.related_link) {
@@ -59,14 +61,14 @@ export default function Topbar({ title, subtitle }: TopbarProps) {
           border: '1px solid var(--border-color)',
           borderRadius: 10,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 17,
+          color: 'var(--text-secondary)',
           transition: 'background 0.15s',
           cursor: 'pointer'
         }}
           onClick={() => setIsNotifOpen(!isNotifOpen)}
           onMouseEnter={e => { if (!isNotifOpen) (e.currentTarget as HTMLElement).style.background = 'var(--border-light)' }}
           onMouseLeave={e => { if (!isNotifOpen) (e.currentTarget as HTMLElement).style.background = 'var(--bg-hover)' }}
-        >🔔</div>
+        ><Bell size={17} strokeWidth={2} /></div>
         
         {unreadCount > 0 && (
           <span style={{
@@ -134,6 +136,9 @@ export default function Topbar({ title, subtitle }: TopbarProps) {
           </div>
         )}
       </div>
+
+      {/* Theme Toggle */}
+      <ThemeToggle />
 
       {/* Date */}
       <div style={{

@@ -1,7 +1,9 @@
+import { ReactNode } from 'react';
+
 interface StatCardProps {
   label: string;
   value: string | number;
-  icon: string;
+  icon: ReactNode;
   color: string;
   trend?: string;
   trendUp?: boolean;
@@ -23,7 +25,7 @@ export default function StatCard({ label, value, icon, color, trend, trendUp, su
           border: `1px solid ${color}40`,
           borderRadius: 12,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 20, flexShrink: 0,
+          flexShrink: 0,
         }}>{icon}</div>
       </div>
       {trend && (

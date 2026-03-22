@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useAppContext } from '@/app/lib/AppContext';
 import { Request, RequestStatus } from '@/app/lib/mock-data';
 import StatusBadge from '@/app/components/StatusBadge';

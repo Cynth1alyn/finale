@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAppContext } from '@/app/lib/AppContext';
 import { Department } from '@/app/lib/mock-data';
 import Modal from '@/app/components/Modal';
+import { Building2, Edit2, X } from 'lucide-react';
 
 const deptColors = ['#3B82F6','#8B5CF6','#10B981','#F59E0B','#F43F5E'];
 const roleLabels: Record<string, string> = {
@@ -71,14 +72,14 @@ export default function DepartmentsPage() {
           return (
             <div key={dept.dept_id} className="card animate-fade-in" style={{ padding: 0, overflow: 'hidden', position: 'relative' }}>
               <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: 4, zIndex: 2 }}>
-                <button className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', fontSize: 12 }} onClick={() => openEditModal(dept)}>✎</button>
-                <button className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', fontSize: 12, color: 'var(--accent-rose)' }} onClick={() => handleDelete(dept.dept_id, members.length)}>✕</button>
+                <button className="btn btn-ghost btn-sm" style={{ padding: '6px' }} onClick={() => openEditModal(dept)}><Edit2 size={14}/></button>
+                <button className="btn btn-ghost btn-sm" style={{ padding: '6px', color: 'var(--accent-rose)' }} onClick={() => handleDelete(dept.dept_id, members.length)}><X size={14}/></button>
               </div>
 
               {/* Header */}
-              <div style={{ padding: '18px 20px', background: `${color}12`, borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: 12, paddingRight: 70 }}>
-                <div style={{ width: 40, height: 40, background: `${color}25`, border: `1px solid ${color}40`, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
-                  🏢
+              <div style={{ padding: '18px 20px', background: `${color}12`, borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: 12, paddingRight: 90 }}>
+                <div style={{ width: 40, height: 40, background: `${color}25`, border: `1px solid ${color}40`, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', color: color }}>
+                  <Building2 size={20} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>{dept.dept_name}</div>

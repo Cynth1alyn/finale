@@ -3,17 +3,30 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAppContext } from '@/app/lib/AppContext';
+import {
+  LayoutDashboard,
+  Map,
+  Settings,
+  Users,
+  Building2,
+  AlertTriangle,
+  ClipboardList,
+  Monitor,
+  LogOut,
+  type LucideIcon,
+} from 'lucide-react';
 
-const navItems = [
-  { href: '/dashboard',   label: 'Dashboard',    icon: '◈' },
-  { href: '/map',         label: 'แผนที่',        icon: '🗺' },
-  { href: '/jobs',        label: 'งาน (Jobs)',    icon: '⚙' },
-  { href: '/users',       label: 'ผู้ใช้งาน',    icon: '👤' },
-  { href: '/departments', label: 'แผนก',          icon: '🏢' },
-  { href: '/issues',      label: 'แจ้งปัญหา',    icon: '⚠' },
-  { href: '/requests',    label: 'คำขอ',          icon: '📋' },
-  { href: '/equipment',   label: 'อุปกรณ์',       icon: '🖥' },
+const navItems: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: '/dashboard',   label: 'Dashboard',    icon: LayoutDashboard },
+  { href: '/map',         label: 'แผนที่',        icon: Map },
+  { href: '/jobs',        label: 'งาน (Jobs)',    icon: Settings },
+  { href: '/users',       label: 'ผู้ใช้งาน',    icon: Users },
+  { href: '/departments', label: 'แผนก',          icon: Building2 },
+  { href: '/issues',      label: 'แจ้งปัญหา',    icon: AlertTriangle },
+  { href: '/requests',    label: 'คำขอ',          icon: ClipboardList },
+  { href: '/equipment',   label: 'อุปกรณ์',       icon: Monitor },
 ];
+
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -87,7 +100,7 @@ export default function Sidebar() {
                 }
               }}
             >
-              <span style={{ fontSize: 16, width: 20, textAlign: 'center', flexShrink: 0 }}>{item.icon}</span>
+              <item.icon size={17} strokeWidth={2} style={{ width: 20, flexShrink: 0 }} />
               {item.label}
             </Link>
           );
@@ -115,11 +128,11 @@ export default function Sidebar() {
           </Link>
           <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'capitalize' }}>{currentUser?.role || 'Administrator'}</div>
         </div>
-        <Link href="/login" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: 16, transition: 'color 0.15s' }}
+        <Link href="/login" style={{ color: 'var(--text-muted)', textDecoration: 'none', transition: 'color 0.15s', display: 'flex', alignItems: 'center' }}
           onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--accent-rose)'}
           onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'}
           title="ออกจากระบบ"
-        >⏻</Link>
+        ><LogOut size={16} strokeWidth={2} /></Link>
       </div>
     </aside>
   );

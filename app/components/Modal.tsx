@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
+import { X } from 'lucide-react';
 
 interface ModalProps {
   isOpen: boolean;
@@ -49,9 +50,9 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
           <button 
             onClick={onClose}
             className="btn btn-ghost btn-sm"
-            style={{ padding: '4px 8px', fontSize: 16 }}
+            style={{ padding: '6px' }}
           >
-            ✕
+            <X size={18} strokeWidth={2.5} />
           </button>
         </div>
         

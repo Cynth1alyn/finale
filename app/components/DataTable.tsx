@@ -2,12 +2,15 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { Search as SearchIcon, X } from 'lucide-react';
 
 interface Column<T> {
   key: string;
   label: string;
   render?: (row: T) => React.ReactNode;
   sortable?: boolean;
+  align?: 'left' | 'center' | 'right';
+  width?: string | number;
 }
 
 interface DataTableProps<T> {
@@ -64,14 +67,14 @@ export default function DataTable<T extends Record<string, unknown>>({
       {searchKeys.length > 0 && (
         <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
           <div className="search-box" style={{ maxWidth: 320 }}>
-            <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>🔍</span>
+            <span style={{ color: 'var(--text-muted)', display: 'flex' }}><SearchIcon size={16} /></span>
             <input
               placeholder="ค้นหา..."
               value={search}
               onChange={e => { setSearch(e.target.value); setPage(1); }}
             />
             {search && (
-              <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 14, padding: 0 }}>✕</button>
+              <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', padding: 0 }}><X size={16} /></button>
             )}
           </div>
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{filtered.length} รายการ</span>
@@ -84,7 +87,15 @@ export default function DataTable<T extends Record<string, unknown>>({
           <thead>
             <tr>
               {columns.map(col => (
-                <th key={col.key} onClick={() => col.sortable !== false && handleSort(col.key)}>
+                <th 
+                  key={col.key} 
+                  onClick={() => col.sortable !== false && handleSort(col.key)}
+                  style={{ 
+                    textAlign: col.align || 'left', 
+                    width: col.width,
+                    cursor: col.sortable !== false ? 'pointer' : 'default'
+                  }}
+                >
                   {col.label}
                   {sortKey === col.key && (
                     <span style={{ marginLeft: 4, opacity: 0.7 }}>{sortDir === 'asc' ? '↑' : '↓'}</span>
@@ -104,7 +115,7 @@ export default function DataTable<T extends Record<string, unknown>>({
             ) : paged.map((row, i) => (
               <tr key={i}>
                 {columns.map(col => (
-                  <td key={col.key}>
+                  <td key={col.key} style={{ textAlign: col.align || 'left' }}>
                     {col.render ? col.render(row) : String(row[col.key] ?? '—')}
                   </td>
                 ))}

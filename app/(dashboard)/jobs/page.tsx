@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useAppContext } from '@/app/lib/AppContext';
 import { Job, JobPriority, JobStatus } from '@/app/lib/mock-data';
 import StatusBadge from '@/app/components/StatusBadge';
@@ -9,6 +8,7 @@ import PriorityBadge from '@/app/components/PriorityBadge';
 import DataTable from '@/app/components/DataTable';
 import Modal from '@/app/components/Modal';
 import MapComponent from '@/app/components/MapComponent';
+import { Search, X, AlertTriangle } from 'lucide-react';
 
 export default function JobsPage() {
   const { jobs, users, addJob, updateJob, deleteJob } = useAppContext();
@@ -103,7 +103,7 @@ export default function JobsPage() {
     { key: 'start_date', label: 'วันเริ่ม', render: (row: typeof tableData[0]) => <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{row.start_date}</span> },
     { key: '_due', label: 'กำหนดเสร็จ', render: (row: typeof tableData[0]) => {
       const overdue = new Date(row._due) < new Date() && row.job_status !== 'done' && row.job_status !== 'cancelled';
-      return <span style={{ fontSize: 12, color: overdue ? 'var(--accent-rose)' : 'var(--text-muted)', fontWeight: overdue ? 600 : 400 }}>{row._due}{overdue ? ' ⚠' : ''}</span>;
+      return <span style={{ fontSize: 12, color: overdue ? 'var(--accent-rose)' : 'var(--text-muted)', fontWeight: overdue ? 600 : 400, display: 'flex', alignItems: 'center', gap: 4 }}>{row._due}{overdue ? <AlertTriangle size={14} /> : ''}</span>;
     }},
     {
       key: 'actions',
@@ -134,7 +134,7 @@ export default function JobsPage() {
         </div>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <div className="search-box" style={{ width: '300px', maxWidth: '100%' }}>
-            <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>🔍</span>
+            <span style={{ color: 'var(--text-muted)', display: 'flex' }}><Search size={16} /></span>
             <input 
               type="text" 
               placeholder="ค้นหาชื่อ, รายละเอียด, พนักงาน..." 
@@ -142,7 +142,7 @@ export default function JobsPage() {
               onChange={e => setSearchQuery(e.target.value)}
             />
             {searchQuery && (
-              <button onClick={() => setSearchQuery('')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 14, padding: 0 }}>✕</button>
+              <button onClick={() => setSearchQuery('')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', padding: 0 }}><X size={16} /></button>
             )}
           </div>
           <button className="btn btn-primary" onClick={openAddModal}>+ มอบหมายงานใหม่</button>

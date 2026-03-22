@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAppContext } from '@/app/lib/AppContext';
 import { User, UserRole } from '@/app/lib/mock-data';
 import Modal from '@/app/components/Modal';
+import { Search, X, Edit2, Building2, Phone, Fingerprint } from 'lucide-react';
 
 const roleColors: Record<string, string> = {
   admin: '#F43F5E', manager: '#8B5CF6', technician: '#3B82F6', staff: '#10B981',
@@ -94,9 +95,9 @@ export default function UsersPage() {
       </div>
 
       <div className="search-box" style={{ maxWidth: 340, marginBottom: 20 }}>
-        <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>🔍</span>
+        <span style={{ color: 'var(--text-muted)', display: 'flex' }}><Search size={16} /></span>
         <input placeholder="ค้นหาชื่อ อีเมล เบอร์โทร..." value={search} onChange={e => setSearch(e.target.value)} />
-        {search && <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>✕</button>}
+        {search && <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex' }}><X size={16} /></button>}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
@@ -105,8 +106,8 @@ export default function UsersPage() {
           return (
             <div key={u.user_id} className="card animate-fade-in" style={{ padding: '18px 20px', position: 'relative' }}>
               <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: 4 }}>
-                <button className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', fontSize: 12 }} onClick={() => openEditModal(u)}>✎</button>
-                <button className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', fontSize: 12, color: 'var(--accent-rose)' }} onClick={() => handleDelete(u.user_id)}>✕</button>
+                <button className="btn btn-ghost btn-sm" style={{ padding: '6px' }} onClick={() => openEditModal(u)}><Edit2 size={14} /></button>
+                <button className="btn btn-ghost btn-sm" style={{ padding: '6px', color: 'var(--accent-rose)' }} onClick={() => handleDelete(u.user_id)}><X size={14} /></button>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
                 <div className="avatar avatar-lg" style={{ background: u.avatar_color || avatarColors[i % avatarColors.length] }}>
@@ -125,13 +126,13 @@ export default function UsersPage() {
               <div className="divider" style={{ marginBottom: 12 }} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
-                  <span>🏢</span> {dept?.dept_name ?? '—'}
+                  <Building2 size={14} /> {dept?.dept_name ?? '—'}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
-                  <span>📞</span> {u.tel}
+                  <Phone size={14} /> {u.tel}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
-                  <span style={{ fontSize: 10 }}>ID:</span> <span style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>{u.user_id}</span>
+                  <Fingerprint size={14} /> <span style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>{u.user_id}</span>
                 </div>
               </div>
             </div>

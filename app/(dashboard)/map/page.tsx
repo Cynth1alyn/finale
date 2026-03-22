@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAppContext } from '@/app/lib/AppContext';
 import MapComponent, { MarkerData } from '@/app/components/MapComponent';
+import { Search, X } from 'lucide-react';
 
 export default function MapDashboard() {
   const { jobs, issues } = useAppContext();
@@ -86,14 +87,18 @@ export default function MapDashboard() {
         {/* Search Panel */}
         <div className="card" style={{ width: 320, display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
           <div style={{ padding: 16, borderBottom: '1px solid var(--border-color)' }}>
-            <input 
-              type="text" 
-              className="input" 
-              placeholder="🔍 ค้นหางาน หรือ ปัญหา..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ width: '100%', padding: '10px 14px' }}
-            />
+            <div className="search-box" style={{ width: '100%' }}>
+              <span style={{ color: 'var(--text-muted)', display: 'flex' }}><Search size={16} /></span>
+              <input 
+                type="text" 
+                placeholder="ค้นหางาน หรือ ปัญหา..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery('')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', padding: 0 }}><X size={16} /></button>
+              )}
+            </div>
           </div>
           <div style={{ flex: 1, overflowY: 'auto' }}>
             {filteredMarkers.length === 0 ? (

@@ -5,6 +5,14 @@ import StatusBadge from '@/app/components/StatusBadge';
 import PriorityBadge from '@/app/components/PriorityBadge';
 import Link from 'next/link';
 import { useAppContext } from '@/app/lib/AppContext';
+import {
+  Settings,
+  RefreshCw,
+  AlertTriangle,
+  ClipboardList,
+  Monitor,
+  Map
+} from 'lucide-react';
 
 export default function DashboardPage() {
   const { jobs, issues, users, requests, equipment, units } = useAppContext();
@@ -51,10 +59,10 @@ export default function DashboardPage() {
 
       {/* Stats */}
       <div className="stats-grid">
-        <StatCard label="งานทั้งหมด"       value={totalJobs}       icon="⚙" color="#3B82F6" trend="12%" trendUp />
-        <StatCard label="งานที่ดำเนินการ"  value={activeJobs}      icon="🔄" color="#F59E0B" trend="5%"  trendUp />
-        <StatCard label="ปัญหาที่เปิดอยู่" value={openIssues}      icon="⚠" color="#F43F5E" trend="3%"  trendUp={false} />
-        <StatCard label="คำขอที่รอ"         value={pendingRequests} icon="📋" color="#8B5CF6" sub={`${totalUsers} ผู้ใช้งานในระบบ`} />
+        <StatCard label="งานทั้งหมด"       value={totalJobs}       icon={<Settings size={22} color="#3B82F6" />} color="#3B82F6" trend="12%" trendUp />
+        <StatCard label="งานที่ดำเนินการ"  value={activeJobs}      icon={<RefreshCw size={22} color="#F59E0B" />} color="#F59E0B" trend="5%"  trendUp />
+        <StatCard label="ปัญหาที่เปิดอยู่" value={openIssues}      icon={<AlertTriangle size={22} color="#F43F5E" />} color="#F43F5E" trend="3%"  trendUp={false} />
+        <StatCard label="คำขอที่รอ"         value={pendingRequests} icon={<ClipboardList size={22} color="#8B5CF6" />} color="#8B5CF6" sub={`${totalUsers} ผู้ใช้งานในระบบ`} />
       </div>
 
       {/* Content grid */}
@@ -186,14 +194,14 @@ export default function DashboardPage() {
         <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: 15, marginBottom: 14 }}>การดำเนินการด่วน</div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           {[
-            { href: '/jobs',        label: '+ มอบหมายงานใหม่', icon: '⚙', color: '#3B82F6' },
-            { href: '/issues',      label: '+ แจ้งปัญหา',       icon: '⚠', color: '#F43F5E' },
-            { href: '/requests',    label: '+ สร้างคำขอ',        icon: '📋', color: '#8B5CF6' },
-            { href: '/equipment',   label: 'ตรวจสอบอุปกรณ์',    icon: '🖥', color: '#10B981' },
-            { href: '/map',         label: 'ดูแผนที่ภาพรวม',    icon: '🗺', color: '#3B82F6' },
+            { href: '/jobs',        label: 'มอบหมายงานใหม่', icon: Settings, color: '#3B82F6' },
+            { href: '/issues',      label: 'แจ้งปัญหา',       icon: AlertTriangle, color: '#F43F5E' },
+            { href: '/requests',    label: 'สร้างคำขอ',        icon: ClipboardList, color: '#8B5CF6' },
+            { href: '/equipment',   label: 'ตรวจสอบอุปกรณ์',    icon: Monitor, color: '#10B981' },
+            { href: '/map',         label: 'ดูแผนที่ภาพรวม',    icon: Map, color: '#3B82F6' },
           ].map(a => (
             <Link key={a.href} href={a.href} className="btn btn-secondary" style={{ borderColor: `${a.color}40`, gap: 8 }}>
-              <span>{a.icon}</span> {a.label}
+              <a.icon size={16} strokeWidth={2} color={a.color} /> {a.label}
             </Link>
           ))}
         </div>
