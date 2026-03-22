@@ -83,6 +83,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setEquipment(loadState('app_equipment', initialEquipment));
     setUnits(loadState('app_units', initialUnits));
     setNotifications(loadState('app_notifications', initialNotifications));
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (!e.newValue) return;
+      try {
+        const data = JSON.parse(e.newValue);
+        switch (e.key) {
+          case 'app_jobs': setJobs(data); break;
+          case 'app_users': setUsers(data); break;
+          case 'app_departments': setDepartments(data); break;
+          case 'app_issues': setIssues(data); break;
+          case 'app_requests': setRequests(data); break;
+          case 'app_equipment': setEquipment(data); break;
+          case 'app_units': setUnits(data); break;
+          case 'app_notifications': setNotifications(data); break;
+        }
+      } catch (err) {
+        // ignore JSON parse errors
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const saveState = (key: string, value: any) => {

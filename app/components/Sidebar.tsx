@@ -13,16 +13,20 @@ import {
   ClipboardList,
   Monitor,
   LogOut,
+  FileText,
+  Briefcase,
   type LucideIcon,
 } from 'lucide-react';
 
 const navItems: { href: string; label: string; icon: LucideIcon }[] = [
   { href: '/dashboard',   label: 'Dashboard',    icon: LayoutDashboard },
   { href: '/map',         label: 'แผนที่',        icon: Map },
-  { href: '/jobs',        label: 'งาน (Jobs)',    icon: Settings },
+  { href: '/jobs-view',   label: 'ติดตามงาน',     icon: Briefcase },
+  { href: '/jobs',        label: 'จัดการงาน',     icon: Settings },
   { href: '/users',       label: 'ผู้ใช้งาน',    icon: Users },
   { href: '/departments', label: 'แผนก',          icon: Building2 },
-  { href: '/issues',      label: 'แจ้งปัญหา',    icon: AlertTriangle },
+  { href: '/issues',      label: 'รายงานปัญหา',    icon: FileText },
+  { href: '/issues/new',  label: 'แจ้งปัญหา',    icon: AlertTriangle },
   { href: '/requests',    label: 'คำขอ',          icon: ClipboardList },
   { href: '/equipment',   label: 'อุปกรณ์',       icon: Monitor },
 ];
@@ -30,8 +34,23 @@ const navItems: { href: string; label: string; icon: LucideIcon }[] = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { users } = useAppContext();
+  const { users, jobs, issues, requests, equipment } = useAppContext();
   
+  const pendingJobs = jobs.filter(j => j.job_status === 'pending').length;
+  const openIssues = issues.filter(i => i.status === 'open' || i.status === 'in-progress').length;
+  const pendingRequests = requests.filter(r => r.req_status === 'pending').length;
+  const lowStockEquip = equipment.filter(e => e.remain_qty <= 3).length;
+
+  const getBadgeCount = (href: string) => {
+    switch(href) {
+      case '/jobs': return pendingJobs;
+      case '/issues': return openIssues;
+      case '/requests': return pendingRequests;
+      case '/equipment': return lowStockEquip;
+      default: return 0;
+    }
+  };
+
   // Mock logged in user is U001
   const currentUser = users.find(u => u.user_id === 'U001') || users[0];
 
@@ -68,6 +87,8 @@ export default function Sidebar() {
         </div>
         {navItems.map((item) => {
           const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+          const badgeCount = getBadgeCount(item.href);
+          
           return (
             <Link
               key={item.href}
@@ -75,7 +96,7 @@ export default function Sidebar() {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 10,
+                justifyContent: 'space-between',
                 padding: '10px 12px',
                 borderRadius: 8,
                 marginBottom: 2,
@@ -100,8 +121,25 @@ export default function Sidebar() {
                 }
               }}
             >
-              <item.icon size={17} strokeWidth={2} style={{ width: 20, flexShrink: 0 }} />
-              {item.label}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <item.icon size={17} strokeWidth={2} style={{ width: 20, flexShrink: 0 }} />
+                {item.label}
+              </div>
+              {badgeCount > 0 && (
+                <div style={{
+                  background: item.href === '/equipment' ? 'var(--accent-amber)' : 'var(--accent-rose)',
+                  color: '#fff',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  padding: '2px 6px',
+                  borderRadius: 10,
+                  minWidth: 18,
+                  textAlign: 'center',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                }}>
+                  {badgeCount}
+                </div>
+              )}
             </Link>
           );
         })}

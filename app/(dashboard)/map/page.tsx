@@ -9,6 +9,8 @@ export default function MapDashboard() {
   const { jobs, issues } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeMarkerId, setActiveMarkerId] = useState<string | null>(null);
+  const [listPage, setListPage] = useState(1);
+  const LIST_PER_PAGE = 5;
 
   const getJobColor = (priority: string) => {
     switch(priority) {
@@ -59,6 +61,12 @@ export default function MapDashboard() {
     (m.subtitle && m.subtitle.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
+  const totalListPages = Math.max(1, Math.ceil(filteredMarkers.length / LIST_PER_PAGE));
+  const activeListPage = Math.min(listPage, totalListPages);
+  const pagedMarkers = filteredMarkers.slice((activeListPage - 1) * LIST_PER_PAGE, activeListPage * LIST_PER_PAGE);
+
+  const handleSearch = (q: string) => { setSearchQuery(q); setListPage(1); };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div className="page-header" style={{ marginBottom: 20 }}>
@@ -93,10 +101,10 @@ export default function MapDashboard() {
                 type="text" 
                 placeholder="ค้นหางาน หรือ ปัญหา..." 
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearch(e.target.value)}
               />
               {searchQuery && (
-                <button onClick={() => setSearchQuery('')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', padding: 0 }}><X size={16} /></button>
+                <button onClick={() => handleSearch('')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', padding: 0 }}><X size={16} /></button>
               )}
             </div>
           </div>
@@ -106,7 +114,7 @@ export default function MapDashboard() {
                 ไม่พบรายการที่ค้นหา
               </div>
             ) : (
-              filteredMarkers.map(m => (
+              pagedMarkers.map(m => (
                 <div 
                   key={m.id}
                   className="hover-bg"
@@ -115,7 +123,8 @@ export default function MapDashboard() {
                     padding: '16px', 
                     borderBottom: '1px solid var(--border-color)', 
                     cursor: 'pointer',
-                    display: 'flex', gap: 12, alignItems: 'flex-start'
+                    display: 'flex', gap: 12, alignItems: 'flex-start',
+                    background: activeMarkerId === m.id ? 'var(--bg-hover)' : undefined
                   }}
                 >
                   <div style={{ width: 12, height: 12, borderRadius: '50%', background: m.color, marginTop: 4, flexShrink: 0 }} />
@@ -127,6 +136,13 @@ export default function MapDashboard() {
               ))
             )}
           </div>
+          {totalListPages > 1 && (
+            <div style={{ padding: '10px 16px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12 }}>
+              <button className="btn btn-ghost btn-sm" style={{ padding: '4px 10px' }} onClick={() => setListPage(p => Math.max(1, p - 1))} disabled={activeListPage === 1}>‹ ก่อน</button>
+              <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>{activeListPage} / {totalListPages} ({filteredMarkers.length} รายการ)</span>
+              <button className="btn btn-ghost btn-sm" style={{ padding: '4px 10px' }} onClick={() => setListPage(p => Math.min(totalListPages, p + 1))} disabled={activeListPage === totalListPages}>ถัดไป ›</button>
+            </div>
+          )}
         </div>
 
         {/* Map Container */}

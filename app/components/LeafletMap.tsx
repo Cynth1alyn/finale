@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import { useEffect, useRef, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -37,6 +37,84 @@ function MapController({ onSelect, readOnly, activeMarkerId, markerRefs }: { onS
   }, [activeMarkerId, map, markerRefs]);
 
   return null;
+}
+
+function SearchControl({ onSelect }: { onSelect?: (lat: number, lng: number) => void }) {
+  const map = useMap();
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const controlRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (controlRef.current) {
+      L.DomEvent.disableClickPropagation(controlRef.current);
+      L.DomEvent.disableScrollPropagation(controlRef.current);
+    }
+  }, []);
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!query) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=6&countrycodes=th&accept-language=th`);
+      const data = await res.json();
+      setResults(data);
+      setShowResults(true);
+    } catch (err) {
+      console.error(err);
+    }
+    setLoading(false);
+  };
+
+  const handleSelect = (item: any) => {
+    const lat = parseFloat(item.lat);
+    const lng = parseFloat(item.lon); // Nominatim outputs lon
+    map.flyTo([lat, lng], 16, { animate: true });
+    if (onSelect) onSelect(lat, lng);
+    setShowResults(false);
+  };
+
+  return (
+    <div 
+      className="leaflet-top leaflet-right" 
+      style={{ pointerEvents: 'auto', marginRight: 10, marginTop: 10 }}
+      ref={controlRef}
+    >
+      <div className="leaflet-control" style={{ background: 'var(--bg-card)', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)', width: 280, overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+        <form onSubmit={handleSearch} style={{ display: 'flex', padding: 4 }}>
+          <input 
+            type="text" 
+            value={query} 
+            onChange={e => { setQuery(e.target.value); setShowResults(true); }} 
+            placeholder="ค้นหาสถานที่..." 
+            style={{ flex: 1, border: 'none', outline: 'none', padding: '8px 12px', fontSize: 13, background: 'transparent', color: 'var(--text-primary)' }} 
+          />
+          <button type="submit" style={{ background: 'var(--accent-blue)', color: 'white', border: 'none', padding: '6px 14px', borderRadius: 6, cursor: 'pointer', fontSize: 13, fontWeight: 500 }} disabled={loading}>
+            {loading ? '...' : 'ค้นหา'}
+          </button>
+        </form>
+        {showResults && results.length > 0 && (
+          <div style={{ borderTop: '1px solid var(--border-color)', maxHeight: 220, overflowY: 'auto', background: 'var(--bg-card)' }}>
+            {results.map((r, i) => (
+              <div 
+                key={i} 
+                onClick={() => handleSelect(r)} 
+                style={{ padding: '10px 12px', borderBottom: i < results.length - 1 ? '1px solid var(--border-color)' : 'none', fontSize: 12, cursor: 'pointer', color: 'var(--text-primary)', lineHeight: 1.4, transition: 'background 0.2s' }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-hover)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                title={r.display_name}
+              >
+                {r.display_name}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default function LeafletMap({ 
@@ -113,6 +191,9 @@ export default function LeafletMap({
         )}
 
         <MapController onSelect={onPositionSelect} readOnly={readOnly} activeMarkerId={activeMarkerId} markerRefs={markerRefs} />
+        
+        {/* Render Search inside container but explicitly top right */}
+        {!readOnly && <SearchControl onSelect={onPositionSelect} />}
       </MapContainer>
     </div>
   );

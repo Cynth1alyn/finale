@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAppContext } from '@/app/lib/AppContext';
 import { Job, JobPriority, JobStatus } from '@/app/lib/mock-data';
 import StatusBadge from '@/app/components/StatusBadge';
@@ -12,7 +13,8 @@ import SearchableSelect from '@/app/components/SearchableSelect';
 import { Search, X, AlertTriangle, User, UserPlus, Pencil, Package } from 'lucide-react';
 
 export default function JobsPage() {
-  const { jobs, users, equipment, addJob, updateJob, deleteJob, updateEquipment } = useAppContext();
+  const router = useRouter();
+  const { jobs, users, equipment, updateJob, deleteJob, updateEquipment } = useAppContext();
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -25,24 +27,7 @@ export default function JobsPage() {
   const [formData, setFormData] = useState<Partial<Job>>({});
 
   const openAddModal = () => {
-    setEditingJob(null);
-    setFormData({
-      job_id: `J${String((jobs.length > 0 ? Math.max(...jobs.map(x => parseInt(x.job_id.replace(/\\D/g, ''), 10) || 0)) : 0) + 1).padStart(3, '0')}`,
-      job_title: '',
-      description: '',
-      start_date: new Date().toISOString().split('T')[0],
-      due_date: new Date().toISOString().split('T')[0],
-      job_priority: 'medium',
-      job_status: 'pending',
-      assigned_user_ids: [],
-      assigned_lead_id: '',
-      customer_name: '',
-      contact_number: '',
-      address: '',
-      lat: 13.736717,
-      lng: 100.523186
-    });
-    setIsModalOpen(true);
+    router.push('/jobs/new');
   };
 
   const openEditModal = (job: Job) => {
@@ -59,20 +44,9 @@ export default function JobsPage() {
 
   const handleSave = () => {
     if (!formData.job_title) return alert('กรุณาระบุหัวข้องาน');
-    
-    if (formData.job_status === 'pending' && formData.equipment_requests && !editingJob) {
-      formData.equipment_requests.forEach(req => {
-        const item = equipment.find(e => e.equip_id === req.equip_id);
-        if (item) {
-          updateEquipment({ ...item, remain_qty: Math.max(0, item.remain_qty - req.qty) });
-        }
-      });
-    }
 
     if (editingJob) {
       updateJob(formData as Job);
-    } else {
-      addJob(formData as Job);
     }
     setIsModalOpen(false);
   };
@@ -197,7 +171,7 @@ export default function JobsPage() {
         />
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingJob ? 'แก้ไขงาน' : 'มอบหมายงานใหม่'}>
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="แก้ไขงาน">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
             <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>หัวข้องาน</label>

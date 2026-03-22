@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAppContext } from '@/app/lib/AppContext';
 import { Issue, IssueStatus } from '@/app/lib/mock-data';
 import StatusBadge from '@/app/components/StatusBadge';
@@ -10,7 +11,7 @@ import MapComponent from '@/app/components/MapComponent';
 import { Check } from 'lucide-react';
 
 export default function IssuesPage() {
-  const { issues, users, addIssue, updateIssue, deleteIssue } = useAppContext();
+  const { issues, users, updateIssue, deleteIssue } = useAppContext();
   const [statusFilter, setStatusFilter] = useState('all');
 
   // Modal State
@@ -19,22 +20,6 @@ export default function IssuesPage() {
   
   // Form State
   const [formData, setFormData] = useState<Partial<Issue>>({});
-
-  const openAddModal = () => {
-    setEditingIssue(null);
-    setFormData({
-      issue_id: `I${String((issues.length > 0 ? Math.max(...issues.map(x => parseInt(x.issue_id.replace(/\\D/g, ''), 10) || 0)) : 0) + 1).padStart(3, '0')}`,
-      topic: '',
-      detail: '',
-      solution: '',
-      status: 'open',
-      report_date: new Date().toISOString().split('T')[0],
-      reporter_id: users[0]?.user_id || 'U001',
-      lat: 13.736717,
-      lng: 100.523186
-    });
-    setIsModalOpen(true);
-  };
 
   const openEditModal = (issue: Issue) => {
     setEditingIssue(issue);
@@ -52,8 +37,6 @@ export default function IssuesPage() {
     if (!formData.topic) return alert('กรุณาระบุหัวข้อปัญหา');
     if (editingIssue) {
       updateIssue(formData as Issue);
-    } else {
-      addIssue(formData as Issue);
     }
     setIsModalOpen(false);
   };
@@ -120,7 +103,6 @@ export default function IssuesPage() {
           <div className="page-title">รายงานปัญหา</div>
           <div className="page-subtitle">ทั้งหมด {issues.length} รายการ · เปิดอยู่ {statusCounts.open + statusCounts['in-progress']} รายการ</div>
         </div>
-        <button className="btn btn-primary" onClick={openAddModal}>+ แจ้งปัญหาใหม่</button>
       </div>
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 20, flexWrap: 'wrap' }}>
@@ -144,7 +126,7 @@ export default function IssuesPage() {
         />
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingIssue ? 'แก้ไขปัญหา' : 'แจ้งปัญหาใหม่'}>
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="แก้ไขปัญหา">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
             <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>หัวข้อปัญหา</label>
