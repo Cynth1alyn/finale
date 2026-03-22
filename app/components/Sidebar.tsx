@@ -82,14 +82,14 @@ export default function Sidebar() {
                 textDecoration: 'none',
                 fontSize: 14,
                 fontWeight: active ? 600 : 500,
-                color: active ? '#fff' : 'var(--text-secondary)',
+                color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
                 background: active ? 'linear-gradient(90deg,rgba(59,130,246,0.25),rgba(139,92,246,0.15))' : 'transparent',
                 borderLeft: active ? '2px solid var(--accent-blue)' : '2px solid transparent',
                 transition: 'all 0.15s ease',
               }}
               onMouseEnter={e => {
                 if (!active) {
-                  (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)';
+                  (e.currentTarget as HTMLElement).style.background = 'var(--bg-hover)';
                   (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)';
                 }
               }}

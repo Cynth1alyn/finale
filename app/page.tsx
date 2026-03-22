@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Zap, Package, AlertTriangle } from "lucide-react";
+import ThemeToggle from "./components/ThemeToggle";
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
@@ -42,8 +44,9 @@ export default function Home() {
             TechJob
           </div>
         </div>
-        <div>
-          <Link href="/login" className="btn btn-ghost" style={{ marginRight: 16 }}>เข้าสู่ระบบ</Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <ThemeToggle />
+          <Link href="/login" className="btn btn-ghost">เข้าสู่ระบบ</Link>
           <Link href="/dashboard" className="btn btn-primary" style={{
             background: 'linear-gradient(135deg, #3B82F6, #8B5CF6)',
             border: 'none',
@@ -124,22 +127,16 @@ export default function Home() {
           zIndex: 1
         }}>
           {[
-            { tag: 'Jobs', title: 'จัดการงานแบบเรียลไทม์', icon: '⚡' },
-            { tag: 'Assets', title: 'ควบคุมสต็อกอุปกรณ์แม่นยำ', icon: '📦' },
-            { tag: 'Issues', title: 'ติดตามการแจ้งปัญหาได้ทันที', icon: '🚨' }
+            { tag: 'Jobs', title: 'จัดการงานแบบเรียลไทม์', icon: <Zap size={32} /> },
+            { tag: 'Assets', title: 'ควบคุมสต็อกอุปกรณ์แม่นยำ', icon: <Package size={32} /> },
+            { tag: 'Issues', title: 'ติดตามการแจ้งปัญหาได้ทันที', icon: <AlertTriangle size={32} /> }
           ].map((feature, i) => (
             <div key={i} className="card" style={{
               padding: 32,
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.05)',
-              backdropFilter: 'blur(20px)',
-              transition: 'transform 0.2s',
               cursor: 'default'
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-4px)')}
-            onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
             >
-              <div style={{ fontSize: 32, marginBottom: 16 }}>{feature.icon}</div>
+              <div style={{ marginBottom: 16, color: 'var(--text-primary)' }}>{feature.icon}</div>
               <div style={{ fontSize: 13, color: 'var(--accent-blue)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>{feature.tag}</div>
               <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>{feature.title}</h3>
             </div>

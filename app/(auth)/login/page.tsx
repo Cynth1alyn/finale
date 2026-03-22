@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Mail, Lock, AlertCircle, Lightbulb, ArrowLeft } from 'lucide-react';
+import ThemeToggle from '../../components/ThemeToggle';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -31,10 +34,22 @@ export default function LoginPage() {
       position: 'relative',
       overflow: 'hidden',
     }}>
+      {/* Back Button */}
+      <div style={{ position: 'absolute', top: 24, left: 24, zIndex: 10 }}>
+        <Link href="/" className="btn btn-ghost" style={{ borderRadius: '99px', padding: '8px 16px', gap: 6 }}>
+          <ArrowLeft size={16} /> กลับหน้าหลัก
+        </Link>
+      </div>
+
+      {/* Theme Toggle */}
+      <div style={{ position: 'absolute', top: 24, right: 24, zIndex: 10 }}>
+        <ThemeToggle />
+      </div>
+
       {/* Background grid */}
       <div style={{
         position: 'absolute', inset: 0, backgroundImage:
-          'linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px)',
+          'linear-gradient(var(--grid-pattern) 1px,transparent 1px),linear-gradient(90deg,var(--grid-pattern) 1px,transparent 1px)',
         backgroundSize: '48px 48px',
         pointerEvents: 'none',
       }} />
@@ -60,14 +75,14 @@ export default function LoginPage() {
         </div>
 
         {/* Card */}
-        <div className="glass" style={{ borderRadius: 20, padding: '32px 28px', boxShadow: '0 24px 64px rgba(0,0,0,0.4)' }}>
+        <div className="card" style={{ borderRadius: 20, padding: '32px 28px', boxShadow: 'var(--shadow-card)' }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 24, textAlign: 'center' }}>เข้าสู่ระบบ</h2>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             <div className="input-group">
               <label className="input-label">อีเมล</label>
               <div style={{ position: 'relative' }}>
-                <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: 15 }}>✉</span>
+                <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}><Mail size={15} /></span>
                 <input
                   className="input"
                   type="email"
@@ -82,7 +97,7 @@ export default function LoginPage() {
             <div className="input-group">
               <label className="input-label">รหัสผ่าน</label>
               <div style={{ position: 'relative' }}>
-                <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: 15 }}>🔒</span>
+                <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}><Lock size={15} /></span>
                 <input
                   className="input"
                   type="password"
@@ -95,8 +110,8 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <div style={{ background: 'rgba(244,63,94,0.12)', border: '1px solid rgba(244,63,94,0.25)', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#FB7185' }}>
-                ⚠ {error}
+              <div style={{ background: 'rgba(244,63,94,0.12)', border: '1px solid rgba(244,63,94,0.25)', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#FB7185', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <AlertCircle size={15} /> {error}
               </div>
             )}
 
@@ -117,7 +132,7 @@ export default function LoginPage() {
 
           {/* Demo hint */}
           <div style={{ marginTop: 20, padding: '12px 14px', background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 10 }}>
-            <div style={{ fontSize: 11, color: 'var(--accent-blue-light)', fontWeight: 600, marginBottom: 4 }}>💡 Demo</div>
+            <div style={{ fontSize: 11, color: 'var(--accent-blue-light)', fontWeight: 600, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}><Lightbulb size={12} /> Demo</div>
             <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>กรอกอีเมลและรหัสผ่านใดก็ได้เพื่อเข้าสู่ระบบ</div>
           </div>
         </div>

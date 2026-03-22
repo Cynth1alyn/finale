@@ -26,6 +26,7 @@
   --radius-lg: 16px;
   --shadow-card: 0 4px 24px rgba(0,0,0,0.3);
   --shadow-glow: 0 0 20px rgba(59,130,246,0.15);
+  --grid-pattern: rgba(255,255,255,0.02);
 }
 
 /* Light Theme Overrides */
@@ -41,12 +42,14 @@
   --text-muted: #94A3B8;
   --shadow-card: 0 4px 24px rgba(0,0,0,0.08);
   --shadow-glow: 0 0 20px rgba(59,130,246,0.10);
+  --grid-pattern: rgba(0,0,0,0.04);
 }
 
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, fill 0.3s ease, stroke 0.3s ease, box-shadow 0.3s ease;
 }
 
 html {
@@ -65,7 +68,7 @@ body {
   line-height: 1.6;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Scrollbar */
@@ -107,9 +110,15 @@ body {
 /* Glassmorphism */
 .glass {
   background: rgba(30,41,59,0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+[data-theme='light'] .glass {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.04);
 }
 
 /* Card base */
@@ -118,7 +127,7 @@ body {
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
 }
 .card:hover {
   transform: translateY(-2px);
@@ -152,7 +161,7 @@ body {
   color: var(--text-primary);
   border: 1px solid var(--border-light);
 }
-.btn-secondary:hover { background: #475569; }
+.btn-secondary:hover { background: var(--border-light); }
 .btn-ghost {
   background: transparent;
   color: var(--text-secondary);
@@ -178,7 +187,7 @@ body {
   font-size: 14px;
   font-family: inherit;
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease, color 0.3s ease;
 }
 .input::placeholder { color: var(--text-muted); }
 .input:focus {
@@ -238,10 +247,10 @@ body {
 }
 .data-table tr:last-child td { border-bottom: none; }
 .data-table tbody tr {
-  transition: background 0.15s ease;
+  transition: background-color 0.15s ease, color 0.3s ease;
 }
-.data-table tbody tr:hover { background: rgba(51,65,85,0.5); }
-.hover-bg:hover { background: rgba(255,255,255,0.03) !important; }
+.data-table tbody tr:hover { background: var(--bg-hover); }
+.hover-bg:hover { background: var(--bg-hover) !important; }
 
 /* Progress bar */
 .progress-bar-track {
@@ -431,7 +440,7 @@ body {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   padding: 8px 12px;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, background-color 0.3s ease, color 0.3s ease;
 }
 .search-box:focus-within { border-color: var(--accent-blue); }
 .search-box input {
