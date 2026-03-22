@@ -2,14 +2,61 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { jobs, users } from '@/app/lib/mock-data';
+import { useAppContext } from '@/app/lib/AppContext';
+import { Job, JobPriority, JobStatus } from '@/app/lib/mock-data';
 import StatusBadge from '@/app/components/StatusBadge';
 import PriorityBadge from '@/app/components/PriorityBadge';
 import DataTable from '@/app/components/DataTable';
+import Modal from '@/app/components/Modal';
 
 export default function JobsPage() {
+  const { jobs, users, addJob, updateJob, deleteJob } = useAppContext();
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingJob, setEditingJob] = useState<Job | null>(null);
+  
+  // Form State
+  const [formData, setFormData] = useState<Partial<Job>>({});
+
+  const openAddModal = () => {
+    setEditingJob(null);
+    setFormData({
+      job_id: `J${String(jobs.length + 1).padStart(3, '0')}`,
+      job_title: '',
+      description: '',
+      start_date: new Date().toISOString().split('T')[0],
+      due_date: new Date().toISOString().split('T')[0],
+      job_priority: 'medium',
+      job_status: 'pending',
+      assigned_user_ids: []
+    });
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (job: Job) => {
+    setEditingJob(job);
+    setFormData(job);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm('คุณต้องการลบงานนี้ใช่หรือไม่?')) {
+      deleteJob(id);
+    }
+  };
+
+  const handleSave = () => {
+    if (!formData.job_title) return alert('กรุณาระบุหัวข้องาน');
+    if (editingJob) {
+      updateJob(formData as Job);
+    } else {
+      addJob(formData as Job);
+    }
+    setIsModalOpen(false);
+  };
 
   const filtered = jobs.filter(j => {
     if (statusFilter !== 'all' && j.job_status !== statusFilter) return false;
@@ -47,6 +94,16 @@ export default function JobsPage() {
       const overdue = new Date(row._due) < new Date() && row.job_status !== 'done' && row.job_status !== 'cancelled';
       return <span style={{ fontSize: 12, color: overdue ? 'var(--accent-rose)' : 'var(--text-muted)', fontWeight: overdue ? 600 : 400 }}>{row._due}{overdue ? ' ⚠' : ''}</span>;
     }},
+    {
+      key: 'actions',
+      label: 'จัดการ',
+      render: (row: typeof tableData[0]) => (
+        <div style={{ display: 'flex', gap: 8 }} onClick={e => e.stopPropagation()}>
+          <button className="btn btn-ghost btn-sm" onClick={() => openEditModal(row as Job)}>แก้ไข</button>
+          <button className="btn btn-ghost btn-sm" style={{ color: 'var(--accent-rose)' }} onClick={() => handleDelete(row.job_id)}>ลบ</button>
+        </div>
+      )
+    }
   ];
 
   const statusCounts = {
@@ -64,10 +121,9 @@ export default function JobsPage() {
           <div className="page-title">จัดการงาน</div>
           <div className="page-subtitle">ทั้งหมด {jobs.length} รายการ</div>
         </div>
-        <button className="btn btn-primary">+ มอบหมายงานใหม่</button>
+        <button className="btn btn-primary" onClick={openAddModal}>+ มอบหมายงานใหม่</button>
       </div>
 
-      {/* Status Tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 18, flexWrap: 'wrap' }}>
         {Object.entries(statusCounts).map(([s, count]) => {
           const labels: Record<string, string> = { all: 'ทั้งหมด', pending: 'รอดำเนินการ', 'in-progress': 'กำลังทำ', done: 'เสร็จสิ้น', cancelled: 'ยกเลิก' };
@@ -80,7 +136,6 @@ export default function JobsPage() {
         })}
       </div>
 
-      {/* Priority filter */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 20, alignItems: 'center' }}>
         <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>ความสำคัญ:</span>
         {['all', 'urgent', 'high', 'medium', 'low'].map(p => {
@@ -102,6 +157,62 @@ export default function JobsPage() {
           searchKeys={['job_title', '_assignees']}
         />
       </div>
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingJob ? 'แก้ไขงาน' : 'มอบหมายงานใหม่'}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>หัวข้องาน</label>
+            <input type="text" className="input" value={formData.job_title || ''} onChange={e => setFormData({...formData, job_title: e.target.value})} style={{ width: '100%', padding: '8px 12px' }} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>รายละเอียด</label>
+            <textarea className="input" rows={3} value={formData.description || ''} onChange={e => setFormData({...formData, description: e.target.value})} style={{ width: '100%', padding: '8px 12px' }} />
+          </div>
+          <div style={{ display: 'flex', gap: 16 }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>วันเริ่ม</label>
+              <input type="date" className="input" value={formData.start_date || ''} onChange={e => setFormData({...formData, start_date: e.target.value})} style={{ width: '100%', padding: '8px 12px' }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>กำหนดเสร็จ</label>
+              <input type="date" className="input" value={formData.due_date || ''} onChange={e => setFormData({...formData, due_date: e.target.value})} style={{ width: '100%', padding: '8px 12px' }} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 16 }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>ความสำคัญ</label>
+              <select className="input" value={formData.job_priority || 'medium'} onChange={e => setFormData({...formData, job_priority: e.target.value as JobPriority})} style={{ width: '100%', padding: '8px 12px' }}>
+                <option value="low">ต่ำ</option>
+                <option value="medium">ปานกลาง</option>
+                <option value="high">สูง</option>
+                <option value="urgent">เร่งด่วน</option>
+              </select>
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>สถานะ</label>
+              <select className="input" value={formData.job_status || 'pending'} onChange={e => setFormData({...formData, job_status: e.target.value as JobStatus})} style={{ width: '100%', padding: '8px 12px' }}>
+                <option value="pending">รอดำเนินการ</option>
+                <option value="in-progress">กำลังทำ</option>
+                <option value="done">เสร็จสิ้น</option>
+                <option value="cancelled">ยกเลิก</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>ผู้รับผิดชอบ (เลือกหลายคนได้ด้วยปุ่ม Ctrl/Cmd)</label>
+            <select multiple className="input" value={formData.assigned_user_ids || []} onChange={e => {
+              const options = Array.from(e.target.selectedOptions);
+              setFormData({...formData, assigned_user_ids: options.map(o => o.value)});
+            }} style={{ width: '100%', padding: '8px 12px', minHeight: 80 }}>
+              {users.map(u => <option key={u.user_id} value={u.user_id}>{u.firstname} {u.lastname}</option>)}
+            </select>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 10 }}>
+            <button className="btn btn-ghost" onClick={() => setIsModalOpen(false)}>ยกเลิก</button>
+            <button className="btn btn-primary" onClick={handleSave}>บันทึกข้อมูล</button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }

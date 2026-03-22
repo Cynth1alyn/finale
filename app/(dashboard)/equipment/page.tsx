@@ -1,17 +1,62 @@
 'use client';
 
 import { useState } from 'react';
-import { equipment, units, getUnitById } from '@/app/lib/mock-data';
+import { useAppContext } from '@/app/lib/AppContext';
+import { Equipment } from '@/app/lib/mock-data';
+import Modal from '@/app/components/Modal';
 
 const categoryColors: Record<string, string> = {
   Network: '#3B82F6', Hardware: '#8B5CF6', Consumable: '#F59E0B', Storage: '#10B981', Security: '#F43F5E',
 };
 
 export default function EquipmentPage() {
+  const { equipment, units, addEquipment, updateEquipment, deleteEquipment } = useAppContext();
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
 
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingEquipment, setEditingEquipment] = useState<Equipment | null>(null);
+  
+  // Form State
+  const [formData, setFormData] = useState<Partial<Equipment>>({});
+
   const categories = ['all', ...Array.from(new Set(equipment.map(e => e.type_category)))];
+
+  const openAddModal = () => {
+    setEditingEquipment(null);
+    setFormData({
+      equip_id: `E${String(equipment.length + 1).padStart(3, '0')}`,
+      name: '',
+      type_category: 'Hardware',
+      remain_qty: 0,
+      total_qty: 0,
+      unit_id: units[0]?.unit_id || 'UN01',
+    });
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (equip: Equipment) => {
+    setEditingEquipment(equip);
+    setFormData(equip);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm('คุณต้องการลบอุปกรณ์นี้ใช่หรือไม่?')) {
+      deleteEquipment(id);
+    }
+  };
+
+  const handleSave = () => {
+    if (!formData.name) return alert('กรุณาระบุชื่ออุปกรณ์');
+    if (editingEquipment) {
+      updateEquipment(formData as Equipment);
+    } else {
+      addEquipment(formData as Equipment);
+    }
+    setIsModalOpen(false);
+  };
 
   const filtered = equipment.filter(e => {
     if (categoryFilter !== 'all' && e.type_category !== categoryFilter) return false;
@@ -32,11 +77,10 @@ export default function EquipmentPage() {
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-secondary">📥 นำเข้า</button>
-          <button className="btn btn-primary">+ เพิ่มอุปกรณ์</button>
+          <button className="btn btn-primary" onClick={openAddModal}>+ เพิ่มอุปกรณ์</button>
         </div>
       </div>
 
-      {/* Summary cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 22 }}>
         {[
           { label: 'รายการทั้งหมด', value: totalItems, color: '#3B82F6', icon: '📦' },
@@ -53,7 +97,6 @@ export default function EquipmentPage() {
         ))}
       </div>
 
-      {/* Filters */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 18, flexWrap: 'wrap', alignItems: 'center' }}>
         <div className="search-box" style={{ maxWidth: 280 }}>
           <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>🔍</span>
@@ -71,7 +114,6 @@ export default function EquipmentPage() {
         </div>
       </div>
 
-      {/* Equipment table */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <table className="data-table">
           <thead>
@@ -83,11 +125,12 @@ export default function EquipmentPage() {
               <th style={{ textAlign: 'right' }}>คงเหลือ</th>
               <th style={{ minWidth: 160 }}>สต็อก</th>
               <th>สถานะ</th>
+              <th style={{ textAlign: 'right' }}>จัดการ</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map(e => {
-              const unit = getUnitById(e.unit_id);
+              const unit = units.find(u => u.unit_id === e.unit_id);
               const ratio = e.total_qty > 0 ? e.remain_qty / e.total_qty : 0;
               const pct = Math.round(ratio * 100);
               const color = e.remain_qty === 0 ? '#F43F5E' : ratio <= 0.2 ? '#F59E0B' : '#10B981';
@@ -128,15 +171,66 @@ export default function EquipmentPage() {
                       {e.remain_qty === 0 ? 'หมดสต็อก' : ratio <= 0.2 ? 'สต็อกต่ำ' : 'ปกติ'}
                     </span>
                   </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
+                      <button className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', fontSize: 12 }} onClick={() => openEditModal(e)}>✎</button>
+                      <button className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', fontSize: 12, color: 'var(--accent-rose)' }} onClick={() => handleDelete(e.equip_id)}>✕</button>
+                    </div>
+                  </td>
                 </tr>
               );
             })}
             {filtered.length === 0 && (
-              <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)' }}>ไม่พบอุปกรณ์</td></tr>
+              <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)' }}>ไม่พบอุปกรณ์</td></tr>
             )}
           </tbody>
         </table>
       </div>
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingEquipment ? 'แก้ไขอุปกรณ์' : 'เพิ่มอุปกรณ์ใหม่'}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>รหัสอุปกรณ์</label>
+            <input type="text" className="input" value={formData.equip_id || ''} disabled style={{ width: '100%', padding: '8px 12px', background: 'var(--bg-hover)' }} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>ชื่ออุปกรณ์</label>
+            <input type="text" className="input" value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} style={{ width: '100%', padding: '8px 12px' }} />
+          </div>
+          <div style={{ display: 'flex', gap: 16 }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>ประเภท</label>
+              <select className="input" value={formData.type_category || 'Hardware'} onChange={e => setFormData({...formData, type_category: e.target.value})} style={{ width: '100%', padding: '8px 12px' }}>
+                <option value="Network">Network</option>
+                <option value="Hardware">Hardware</option>
+                <option value="Consumable">Consumable</option>
+                <option value="Storage">Storage</option>
+                <option value="Security">Security</option>
+              </select>
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>หน่วยนับ</label>
+              <select className="input" value={formData.unit_id || ''} onChange={e => setFormData({...formData, unit_id: e.target.value})} style={{ width: '100%', padding: '8px 12px' }}>
+                {units.map(u => <option key={u.unit_id} value={u.unit_id}>{u.unit_name}</option>)}
+              </select>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 16 }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>จำนวนทั้งหมด</label>
+              <input type="number" className="input" value={formData.total_qty || 0} onChange={e => setFormData({...formData, total_qty: Number(e.target.value)})} style={{ width: '100%', padding: '8px 12px' }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>จำนวนคงเหลือ</label>
+              <input type="number" className="input" value={formData.remain_qty || 0} onChange={e => setFormData({...formData, remain_qty: Number(e.target.value)})} style={{ width: '100%', padding: '8px 12px' }} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 10 }}>
+            <button className="btn btn-ghost" onClick={() => setIsModalOpen(false)}>ยกเลิก</button>
+            <button className="btn btn-primary" onClick={handleSave}>บันทึกข้อมูล</button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }

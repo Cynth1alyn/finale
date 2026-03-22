@@ -2,12 +2,58 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { issues, users } from '@/app/lib/mock-data';
+import { useAppContext } from '@/app/lib/AppContext';
+import { Issue, IssueStatus } from '@/app/lib/mock-data';
 import StatusBadge from '@/app/components/StatusBadge';
 import DataTable from '@/app/components/DataTable';
+import Modal from '@/app/components/Modal';
 
 export default function IssuesPage() {
+  const { issues, users, addIssue, updateIssue, deleteIssue } = useAppContext();
   const [statusFilter, setStatusFilter] = useState('all');
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingIssue, setEditingIssue] = useState<Issue | null>(null);
+  
+  // Form State
+  const [formData, setFormData] = useState<Partial<Issue>>({});
+
+  const openAddModal = () => {
+    setEditingIssue(null);
+    setFormData({
+      issue_id: `I${String(issues.length + 1).padStart(3, '0')}`,
+      topic: '',
+      detail: '',
+      solution: '',
+      status: 'open',
+      report_date: new Date().toISOString().split('T')[0],
+      reporter_id: users[0]?.user_id || 'U001',
+    });
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (issue: Issue) => {
+    setEditingIssue(issue);
+    setFormData(issue);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm('คุณต้องการลบรายงานปัญหานี้ใช่หรือไม่?')) {
+      deleteIssue(id);
+    }
+  };
+
+  const handleSave = () => {
+    if (!formData.topic) return alert('กรุณาระบุหัวข้อปัญหา');
+    if (editingIssue) {
+      updateIssue(formData as Issue);
+    } else {
+      addIssue(formData as Issue);
+    }
+    setIsModalOpen(false);
+  };
 
   const filtered = issues.filter(i => statusFilter === 'all' || i.status === statusFilter);
 
@@ -45,13 +91,23 @@ export default function IssuesPage() {
     { key: 'report_date', label: 'วันที่แจ้ง', render: (row: typeof tableData[0]) => <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{row.report_date}</span> },
     {
       key: 'solution',
-      label: 'แก้ไข',
+      label: 'การแก้ไข',
       render: (row: typeof tableData[0]) => (
         <span style={{ fontSize: 11, color: row.solution ? 'var(--accent-emerald)' : 'var(--text-muted)' }}>
           {row.solution ? '✓ มีวิธีแก้ไข' : '— ยังไม่แก้ไข'}
         </span>
       ),
     },
+    {
+      key: 'actions',
+      label: 'จัดการ',
+      render: (row: typeof tableData[0]) => (
+        <div style={{ display: 'flex', gap: 8 }} onClick={e => e.stopPropagation()}>
+          <button className="btn btn-ghost btn-sm" onClick={() => openEditModal(row as Issue)}>แก้ไข</button>
+          <button className="btn btn-ghost btn-sm" style={{ color: 'var(--accent-rose)' }} onClick={() => handleDelete(row.issue_id)}>ลบ</button>
+        </div>
+      )
+    }
   ];
 
   return (
@@ -61,10 +117,9 @@ export default function IssuesPage() {
           <div className="page-title">รายงานปัญหา</div>
           <div className="page-subtitle">ทั้งหมด {issues.length} รายการ · เปิดอยู่ {statusCounts.open + statusCounts['in-progress']} รายการ</div>
         </div>
-        <button className="btn btn-primary">+ แจ้งปัญหาใหม่</button>
+        <button className="btn btn-primary" onClick={openAddModal}>+ แจ้งปัญหาใหม่</button>
       </div>
 
-      {/* Status tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 20, flexWrap: 'wrap' }}>
         {Object.entries(statusCounts).map(([s, count]) => {
           const labels: Record<string, string> = { all: 'ทั้งหมด', open: 'เปิด', 'in-progress': 'กำลังแก้ไข', resolved: 'แก้ไขแล้ว', closed: 'ปิด' };
@@ -85,6 +140,48 @@ export default function IssuesPage() {
           searchKeys={['topic', '_reporter']}
         />
       </div>
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingIssue ? 'แก้ไขปัญหา' : 'แจ้งปัญหาใหม่'}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>หัวข้อปัญหา</label>
+            <input type="text" className="input" value={formData.topic || ''} onChange={e => setFormData({...formData, topic: e.target.value})} style={{ width: '100%', padding: '8px 12px' }} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>รายละเอียด</label>
+            <textarea className="input" rows={3} value={formData.detail || ''} onChange={e => setFormData({...formData, detail: e.target.value})} style={{ width: '100%', padding: '8px 12px' }} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>วิธีแก้ไข (ถ้ามี)</label>
+            <textarea className="input" rows={2} value={formData.solution || ''} onChange={e => setFormData({...formData, solution: e.target.value})} style={{ width: '100%', padding: '8px 12px' }} />
+          </div>
+          <div style={{ display: 'flex', gap: 16 }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>วันที่แจ้ง</label>
+              <input type="date" className="input" value={formData.report_date || ''} onChange={e => setFormData({...formData, report_date: e.target.value})} style={{ width: '100%', padding: '8px 12px' }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>สถานะ</label>
+              <select className="input" value={formData.status || 'open'} onChange={e => setFormData({...formData, status: e.target.value as IssueStatus})} style={{ width: '100%', padding: '8px 12px' }}>
+                <option value="open">เปิด</option>
+                <option value="in-progress">กำลังแก้ไข</option>
+                <option value="resolved">แก้ไขแล้ว</option>
+                <option value="closed">ปิด</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>ผู้แจ้ง</label>
+            <select className="input" value={formData.reporter_id || ''} onChange={e => setFormData({...formData, reporter_id: e.target.value})} style={{ width: '100%', padding: '8px 12px' }}>
+              {users.map(u => <option key={u.user_id} value={u.user_id}>{u.firstname} {u.lastname}</option>)}
+            </select>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 10 }}>
+            <button className="btn btn-ghost" onClick={() => setIsModalOpen(false)}>ยกเลิก</button>
+            <button className="btn btn-primary" onClick={handleSave}>บันทึกข้อมูล</button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }
