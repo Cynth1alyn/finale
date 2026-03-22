@@ -22,7 +22,7 @@ export default function RequestsPage() {
   const openAddModal = () => {
     setEditingRequest(null);
     setFormData({
-      req_id: `R${String(requests.length + 1).padStart(3, '0')}`,
+      req_id: `R${String((requests.length > 0 ? Math.max(...requests.map(x => parseInt(x.req_id.replace(/\\D/g, ''), 10) || 0)) : 0) + 1).padStart(3, '0')}`,
       req_date: new Date().toISOString().split('T')[0],
       req_status: 'pending',
       user_id: users[0]?.user_id || 'U001',

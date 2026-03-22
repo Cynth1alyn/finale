@@ -31,6 +31,8 @@ export interface Job {
   job_priority: JobPriority;
   job_status: JobStatus;
   assigned_user_ids: string[];
+  lat?: number;
+  lng?: number;
 }
 
 export interface Issue {
@@ -41,6 +43,8 @@ export interface Issue {
   status: IssueStatus;
   report_date: string;
   reporter_id: string;
+  lat?: number;
+  lng?: number;
 }
 
 export interface Unit {
@@ -72,6 +76,15 @@ export interface Request {
   items?: RequestItem[];
 }
 
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  timestamp: string;
+  is_read: boolean;
+  related_link?: string;
+}
+
 // ─── Departments ─────────────────────────────────────────────────────────────
 export const departments: Department[] = [
   { dept_id: "D001", dept_name: "IT Infrastructure" },
@@ -97,8 +110,8 @@ export const users: User[] = [
 
 // ─── Jobs ────────────────────────────────────────────────────────────────────
 export const jobs: Job[] = [
-  { job_id: "J001", job_title: "ติดตั้งระบบ Network ชั้น 3",         description: "วางสาย LAN และตั้งค่า Switch สำหรับชั้น 3 อาคาร A", start_date: "2026-03-01", due_date: "2026-03-15", job_priority: "high",   job_status: "done",        assigned_user_ids: ["U003", "U009"] },
-  { job_id: "J002", job_title: "อัปเกรด Server หลัก",                description: "เพิ่ม RAM และเปลี่ยน HDD เป็น SSD สำหรับ Server Production", start_date: "2026-03-10", due_date: "2026-03-20", job_priority: "urgent", job_status: "in-progress", assigned_user_ids: ["U003", "U007"] },
+  { job_id: "J001", job_title: "ติดตั้งระบบ Network ชั้น 3",         description: "วางสาย LAN และตั้งค่า Switch สำหรับชั้น 3 อาคาร A", start_date: "2026-03-01", due_date: "2026-03-15", job_priority: "high",   job_status: "done",        assigned_user_ids: ["U003", "U009"], lat: 13.7380, lng: 100.5280 },
+  { job_id: "J002", job_title: "อัปเกรด Server หลัก",                description: "เพิ่ม RAM และเปลี่ยน HDD เป็น SSD สำหรับ Server Production", start_date: "2026-03-10", due_date: "2026-03-20", job_priority: "urgent", job_status: "in-progress", assigned_user_ids: ["U003", "U007"], lat: 13.7360, lng: 100.5260 },
   { job_id: "J003", job_title: "ตรวจสอบ Firewall Rules",              description: "รีวิวและอัปเดต Firewall rules ตาม Security Policy ล่าสุด", start_date: "2026-03-12", due_date: "2026-03-25", job_priority: "high",   job_status: "in-progress", assigned_user_ids: ["U006"] },
   { job_id: "J004", job_title: "สำรองข้อมูล Database ประจำเดือน",    description: "Backup Database ทั้งหมดและทดสอบการ Restore", start_date: "2026-03-20", due_date: "2026-03-21", job_priority: "medium", job_status: "pending",     assigned_user_ids: ["U007"] },
   { job_id: "J005", job_title: "พัฒนาระบบแจ้งเตือน Email",           description: "สร้าง Email notification service สำหรับแจ้งสถานะงาน", start_date: "2026-02-15", due_date: "2026-03-30", job_priority: "medium", job_status: "in-progress", assigned_user_ids: ["U002", "U008"] },
@@ -116,8 +129,8 @@ export const jobs: Job[] = [
 
 // ─── Issues ──────────────────────────────────────────────────────────────────
 export const issues: Issue[] = [
-  { issue_id: "I001", topic: "Internet ขัดข้องชั้น 4",       detail: "Internet ไม่สามารถใช้งานได้บริเวณชั้น 4 ทั้งชั้น ตั้งแต่ 09:00 น.",                     solution: "พบ Switch ชั้น 4 Hang ทำการ Restart แก้ไขได้",              status: "resolved",    report_date: "2026-03-18", reporter_id: "U005" },
-  { issue_id: "I002", topic: "Printer พิมพ์ไม่ได้",           detail: "Printer HP LaserJet M404 ชั้น 2 พิมพ์ไม่ออก แสดง Error Paper Jam",                       solution: "",                                                           status: "open",        report_date: "2026-03-19", reporter_id: "U010" },
+  { issue_id: "I001", topic: "Internet ขัดข้องชั้น 4",       detail: "Internet ไม่สามารถใช้งานได้บริเวณชั้น 4 ทั้งชั้น ตั้งแต่ 09:00 น.",                     solution: "พบ Switch ชั้น 4 Hang ทำการ Restart แก้ไขได้",              status: "resolved",    report_date: "2026-03-18", reporter_id: "U005", lat: 13.7400, lng: 100.5290 },
+  { issue_id: "I002", topic: "Printer พิมพ์ไม่ได้",           detail: "Printer HP LaserJet M404 ชั้น 2 พิมพ์ไม่ออก แสดง Error Paper Jam",                       solution: "",                                                           status: "open",        report_date: "2026-03-19", reporter_id: "U010", lat: 13.7350, lng: 100.5250 },
   { issue_id: "I003", topic: "Email ส่งไม่ออก",              detail: "ไม่สามารถส่ง Email ออกไปยัง Domain ภายนอกได้ แต่ส่งภายในองค์กรได้ปกติ",                   solution: "แก้ไข DNS Record MX และ SPF ให้ถูกต้อง",                  status: "resolved",    report_date: "2026-03-15", reporter_id: "U008" },
   { issue_id: "I004", topic: "PC ค้างบ่อย",                  detail: "คอมพิวเตอร์ของฝ่าย HR ค้างทุก 30 นาที ต้อง Restart บ่อยมาก",                             solution: "",                                                           status: "in-progress", report_date: "2026-03-20", reporter_id: "U005" },
   { issue_id: "I005", topic: "ไฟล์ Server เข้าไม่ได้",        detail: "ไม่สามารถ Access File Server \\\\fileserver01 ได้ แสดง Access Denied",                   solution: "แก้ไข Permission ของ AD Group ให้ถูกต้อง",                 status: "resolved",    report_date: "2026-03-14", reporter_id: "U002" },
@@ -180,6 +193,13 @@ export const requests: Request[] = [
   { req_id: "R006", req_date: "2026-03-18", req_status: "pending",    user_id: "U003" },
   { req_id: "R007", req_date: "2026-03-19", req_status: "rejected",   user_id: "U005" },
   { req_id: "R008", req_date: "2026-03-20", req_status: "pending",    user_id: "U004" },
+];
+
+// ─── Notifications ─────────────────────────────────────────────────────────────
+export const notifications: Notification[] = [
+  { id: "N001", title: "มอบหมายงานใหม่", message: "คุณได้รับมอบหมายงาน J015: จัดทำ IT Asset Register", timestamp: new Date().toISOString(), is_read: false, related_link: "/jobs" },
+  { id: "N002", title: "ปัญหาได้รับการแก้ไข", message: "ปัญหา I005: ไฟล์ Server เข้าไม่ได้ ได้รับการแก้ไขแล้ว", timestamp: new Date(Date.now() - 3600000).toISOString(), is_read: false, related_link: "/issues/I005" },
+  { id: "N003", title: "คำขอถูกอนุมัติ", message: "คำขอเบิกอุปกรณ์ R001 ของคุณได้รับการอนุมัติ", timestamp: new Date(Date.now() - 86400000).toISOString(), is_read: true, related_link: "/requests/R001" },
 ];
 
 // ─── Helper functions ─────────────────────────────────────────────────────────

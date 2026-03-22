@@ -22,7 +22,7 @@ export default function DepartmentsPage() {
   const openAddModal = () => {
     setEditingDept(null);
     setFormData({
-      dept_id: `D${String(departments.length + 1).padStart(3, '0')}`,
+      dept_id: `D${String((departments.length > 0 ? Math.max(...departments.map(x => parseInt(x.dept_id.replace(/\\D/g, ''), 10) || 0)) : 0) + 1).padStart(3, '0')}`,
       dept_name: '',
     });
     setIsModalOpen(true);

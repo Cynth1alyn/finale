@@ -8,11 +8,13 @@ import StatusBadge from '@/app/components/StatusBadge';
 import PriorityBadge from '@/app/components/PriorityBadge';
 import DataTable from '@/app/components/DataTable';
 import Modal from '@/app/components/Modal';
+import MapComponent from '@/app/components/MapComponent';
 
 export default function JobsPage() {
   const { jobs, users, addJob, updateJob, deleteJob } = useAppContext();
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -24,14 +26,16 @@ export default function JobsPage() {
   const openAddModal = () => {
     setEditingJob(null);
     setFormData({
-      job_id: `J${String(jobs.length + 1).padStart(3, '0')}`,
+      job_id: `J${String((jobs.length > 0 ? Math.max(...jobs.map(x => parseInt(x.job_id.replace(/\\D/g, ''), 10) || 0)) : 0) + 1).padStart(3, '0')}`,
       job_title: '',
       description: '',
       start_date: new Date().toISOString().split('T')[0],
       due_date: new Date().toISOString().split('T')[0],
       job_priority: 'medium',
       job_status: 'pending',
-      assigned_user_ids: []
+      assigned_user_ids: [],
+      lat: 13.736717,
+      lng: 100.523186
     });
     setIsModalOpen(true);
   };
@@ -58,16 +62,23 @@ export default function JobsPage() {
     setIsModalOpen(false);
   };
 
-  const filtered = jobs.filter(j => {
-    if (statusFilter !== 'all' && j.job_status !== statusFilter) return false;
-    if (priorityFilter !== 'all' && j.job_priority !== priorityFilter) return false;
-    return true;
-  });
-
   const getUserName = (ids: string[]) => ids.map(id => {
     const u = users.find(u => u.user_id === id);
     return u ? `${u.firstname}` : '—';
   }).join(', ');
+
+  const filtered = jobs.filter(j => {
+    if (statusFilter !== 'all' && j.job_status !== statusFilter) return false;
+    if (priorityFilter !== 'all' && j.job_priority !== priorityFilter) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const titleMatch = j.job_title.toLowerCase().includes(q);
+      const descMatch = (j.description || '').toLowerCase().includes(q);
+      const assignMatch = getUserName(j.assigned_user_ids).toLowerCase().includes(q);
+      if (!titleMatch && !descMatch && !assignMatch) return false;
+    }
+    return true;
+  });
 
   const tableData = filtered.map(j => ({
     ...j,
@@ -116,12 +127,26 @@ export default function JobsPage() {
 
   return (
     <>
-      <div className="page-header">
+      <div className="page-header" style={{ alignItems: 'flex-start' }}>
         <div>
           <div className="page-title">จัดการงาน</div>
           <div className="page-subtitle">ทั้งหมด {jobs.length} รายการ</div>
         </div>
-        <button className="btn btn-primary" onClick={openAddModal}>+ มอบหมายงานใหม่</button>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <div className="search-box" style={{ width: '300px', maxWidth: '100%' }}>
+            <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>🔍</span>
+            <input 
+              type="text" 
+              placeholder="ค้นหาชื่อ, รายละเอียด, พนักงาน..." 
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 14, padding: 0 }}>✕</button>
+            )}
+          </div>
+          <button className="btn btn-primary" onClick={openAddModal}>+ มอบหมายงานใหม่</button>
+        </div>
       </div>
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 18, flexWrap: 'wrap' }}>
@@ -154,7 +179,6 @@ export default function JobsPage() {
           data={tableData as unknown as Record<string, unknown>[]}
           columns={columns as Parameters<typeof DataTable>[0]['columns']}
           rowHref={(row) => `/jobs/${(row as typeof tableData[0]).job_id}`}
-          searchKeys={['job_title', '_assignees']}
         />
       </div>
 
@@ -168,6 +192,17 @@ export default function JobsPage() {
             <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>รายละเอียด</label>
             <textarea className="input" rows={3} value={formData.description || ''} onChange={e => setFormData({...formData, description: e.target.value})} style={{ width: '100%', padding: '8px 12px' }} />
           </div>
+          
+          <div>
+            <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>พิกัดสถานที่จัดการงาน (คลิกบนแผนที่เพื่อปักหมุด)</label>
+            <MapComponent 
+              height="200px" 
+              selectedPos={formData.lat && formData.lng ? { lat: formData.lat, lng: formData.lng } : null}
+              onPositionSelect={(lat, lng) => setFormData({...formData, lat, lng})}
+            />
+            {formData.lat && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>ละติจูด: {formData.lat.toFixed(6)}, ลองจิจูด: {formData.lng!.toFixed(6)}</div>}
+          </div>
+
           <div style={{ display: 'flex', gap: 16 }}>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>วันเริ่ม</label>

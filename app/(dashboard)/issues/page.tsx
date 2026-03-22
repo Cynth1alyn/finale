@@ -7,6 +7,7 @@ import { Issue, IssueStatus } from '@/app/lib/mock-data';
 import StatusBadge from '@/app/components/StatusBadge';
 import DataTable from '@/app/components/DataTable';
 import Modal from '@/app/components/Modal';
+import MapComponent from '@/app/components/MapComponent';
 
 export default function IssuesPage() {
   const { issues, users, addIssue, updateIssue, deleteIssue } = useAppContext();
@@ -22,13 +23,15 @@ export default function IssuesPage() {
   const openAddModal = () => {
     setEditingIssue(null);
     setFormData({
-      issue_id: `I${String(issues.length + 1).padStart(3, '0')}`,
+      issue_id: `I${String((issues.length > 0 ? Math.max(...issues.map(x => parseInt(x.issue_id.replace(/\\D/g, ''), 10) || 0)) : 0) + 1).padStart(3, '0')}`,
       topic: '',
       detail: '',
       solution: '',
       status: 'open',
       report_date: new Date().toISOString().split('T')[0],
       reporter_id: users[0]?.user_id || 'U001',
+      lat: 13.736717,
+      lng: 100.523186
     });
     setIsModalOpen(true);
   };
@@ -151,6 +154,17 @@ export default function IssuesPage() {
             <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>รายละเอียด</label>
             <textarea className="input" rows={3} value={formData.detail || ''} onChange={e => setFormData({...formData, detail: e.target.value})} style={{ width: '100%', padding: '8px 12px' }} />
           </div>
+          
+          <div>
+            <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>พิกัดจุดเกิดเหตุ (คลิกบนแผนที่เพื่อปักหมุด)</label>
+            <MapComponent 
+              height="200px" 
+              selectedPos={formData.lat && formData.lng ? { lat: formData.lat, lng: formData.lng } : null}
+              onPositionSelect={(lat, lng) => setFormData({...formData, lat, lng})}
+            />
+            {formData.lat && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>ละติจูด: {formData.lat.toFixed(6)}, ลองจิจูด: {formData.lng!.toFixed(6)}</div>}
+          </div>
+
           <div>
             <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>วิธีแก้ไข (ถ้ามี)</label>
             <textarea className="input" rows={2} value={formData.solution || ''} onChange={e => setFormData({...formData, solution: e.target.value})} style={{ width: '100%', padding: '8px 12px' }} />

@@ -28,7 +28,7 @@ export default function UsersPage() {
   const openAddModal = () => {
     setEditingUser(null);
     setFormData({
-      user_id: `U${String(users.length + 1).padStart(3, '0')}`,
+      user_id: `U${String((users.length > 0 ? Math.max(...users.map(x => parseInt(x.user_id.replace(/\\D/g, ''), 10) || 0)) : 0) + 1).padStart(3, '0')}`,
       firstname: '',
       lastname: '',
       email: '',

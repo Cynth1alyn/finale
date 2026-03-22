@@ -26,7 +26,7 @@ export default function EquipmentPage() {
   const openAddModal = () => {
     setEditingEquipment(null);
     setFormData({
-      equip_id: `E${String(equipment.length + 1).padStart(3, '0')}`,
+      equip_id: `E${String((equipment.length > 0 ? Math.max(...equipment.map(x => parseInt(x.equip_id.replace(/\\D/g, ''), 10) || 0)) : 0) + 1).padStart(3, '0')}`,
       name: '',
       type_category: 'Hardware',
       remain_qty: 0,
@@ -76,7 +76,6 @@ export default function EquipmentPage() {
           <div className="page-subtitle">ทั้งหมด {totalItems} รายการ · สต็อกต่ำ {lowStock} · หมด {outOfStock}</div>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button className="btn btn-secondary">📥 นำเข้า</button>
           <button className="btn btn-primary" onClick={openAddModal}>+ เพิ่มอุปกรณ์</button>
         </div>
       </div>

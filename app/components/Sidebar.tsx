@@ -2,9 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAppContext } from '@/app/lib/AppContext';
 
 const navItems = [
   { href: '/dashboard',   label: 'Dashboard',    icon: '◈' },
+  { href: '/map',         label: 'แผนที่',        icon: '🗺' },
   { href: '/jobs',        label: 'งาน (Jobs)',    icon: '⚙' },
   { href: '/users',       label: 'ผู้ใช้งาน',    icon: '👤' },
   { href: '/departments', label: 'แผนก',          icon: '🏢' },
@@ -15,6 +17,12 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { users } = useAppContext();
+  
+  // Mock logged in user is U001
+  const currentUser = users.find(u => u.user_id === 'U001') || users[0];
+
+  const initials = currentUser ? `${currentUser.firstname[0]}${currentUser.lastname[0]}` : '?';
 
   return (
     <aside className="sidebar animate-slide-left">
@@ -92,10 +100,20 @@ export default function Sidebar() {
         borderTop: '1px solid var(--border-color)',
         display: 'flex', alignItems: 'center', gap: 10,
       }}>
-        <div className="avatar avatar-md" style={{ background: 'linear-gradient(135deg,#3B82F6,#8B5CF6)', fontSize: 13 }}>ธน</div>
+        <Link href="/profile" style={{ textDecoration: 'none' }}>
+          <div className="avatar avatar-md" style={{ background: currentUser?.avatar_color || 'linear-gradient(135deg,#3B82F6,#8B5CF6)', fontSize: 13, color: '#fff' }}>
+            {initials}
+          </div>
+        </Link>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>ธนาวุฒิ แสงจันทร์</div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Administrator</div>
+          <Link href="/profile" style={{ textDecoration: 'none' }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', transition: 'color 0.15s' }}
+                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--accent-blue)'}
+                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'}>
+              {currentUser?.firstname} {currentUser?.lastname}
+            </div>
+          </Link>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'capitalize' }}>{currentUser?.role || 'Administrator'}</div>
         </div>
         <Link href="/login" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: 16, transition: 'color 0.15s' }}
           onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--accent-rose)'}

@@ -9,7 +9,8 @@ import {
   requests as initialRequests, 
   equipment as initialEquipment, 
   units as initialUnits,
-  Job, User, Department, Issue, Request, Equipment, Unit 
+  notifications as initialNotifications,
+  Job, User, Department, Issue, Request, Equipment, Unit, Notification
 } from './mock-data';
 
 interface AppContextType {
@@ -20,6 +21,7 @@ interface AppContextType {
   requests: Request[];
   equipment: Equipment[];
   units: Unit[];
+  notifications: Notification[];
 
   addJob: (job: Job) => void;
   updateJob: (job: Job) => void;
@@ -44,6 +46,10 @@ interface AppContextType {
   addEquipment: (equip: Equipment) => void;
   updateEquipment: (equip: Equipment) => void;
   deleteEquipment: (id: string) => void;
+
+  addNotification: (notif: Notification) => void;
+  markNotificationAsRead: (id: string) => void;
+  markAllNotificationsAsRead: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -56,6 +62,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [requests, setRequests] = useState<Request[]>(initialRequests);
   const [equipment, setEquipment] = useState<Equipment[]>(initialEquipment);
   const [units, setUnits] = useState<Unit[]>(initialUnits);
+  const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
 
   useEffect(() => {
     // Initialize from localStorage or mock data
@@ -75,6 +82,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setRequests(loadState('app_requests', initialRequests));
     setEquipment(loadState('app_equipment', initialEquipment));
     setUnits(loadState('app_units', initialUnits));
+    setNotifications(loadState('app_notifications', initialNotifications));
   }, []);
 
   const saveState = (key: string, value: any) => {
@@ -183,15 +191,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
     saveState('app_equipment', next);
   };
 
+  // Notifications
+  const addNotification = (notif: Notification) => {
+    const next = [notif, ...notifications];
+    setNotifications(next);
+    saveState('app_notifications', next);
+  };
+  const markNotificationAsRead = (id: string) => {
+    const next = notifications.map(n => n.id === id ? { ...n, is_read: true } : n);
+    setNotifications(next);
+    saveState('app_notifications', next);
+  };
+  const markAllNotificationsAsRead = () => {
+    const next = notifications.map(n => ({ ...n, is_read: true }));
+    setNotifications(next);
+    saveState('app_notifications', next);
+  };
+
   return (
     <AppContext.Provider value={{
-      jobs, users, departments, issues, requests, equipment, units,
+      jobs, users, departments, issues, requests, equipment, units, notifications,
       addJob, updateJob, deleteJob,
       addUser, updateUser, deleteUser,
       addDepartment, updateDepartment, deleteDepartment,
       addIssue, updateIssue, deleteIssue,
       addRequest, updateRequest, deleteRequest,
-      addEquipment, updateEquipment, deleteEquipment
+      addEquipment, updateEquipment, deleteEquipment,
+      addNotification, markNotificationAsRead, markAllNotificationsAsRead
     }}>
       {children}
     </AppContext.Provider>
