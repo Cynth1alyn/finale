@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useAppContext } from '@/app/lib/AppContext';
-import { Request, RequestStatus } from '@/app/lib/mock-data';
+import { Request, RequestStatus } from '@/app/lib/types';
 import StatusBadge from '@/app/components/StatusBadge';
 import DataTable from '@/app/components/DataTable';
 import Modal from '@/app/components/Modal';
@@ -23,7 +23,7 @@ export default function RequestsPage() {
     setFormData({
       req_id: `R${String((requests.length > 0 ? Math.max(...requests.map(x => parseInt(x.req_id.replace(/\\D/g, ''), 10) || 0)) : 0) + 1).padStart(3, '0')}`,
       req_date: new Date().toISOString().split('T')[0],
-      req_status: 'pending',
+      req_status: RequestStatus.PENDING,
       user_id: users[0]?.user_id || 'U001',
     });
     setIsModalOpen(true);

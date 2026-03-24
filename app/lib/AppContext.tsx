@@ -96,105 +96,159 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   // Jobs
-  const addJob = (job: Job) => {
-    const next = [...jobs, job];
-    setJobs(next);
-    saveState('app_jobs', next);
+  const addJob = async (job: Job) => {
+    try {
+      const newJob = await api.jobs.createJob(job);
+      setJobs(prev => [...prev, newJob]);
+    } catch (error) {
+      console.error('Failed to add job:', error);
+    }
   };
-  const updateJob = (job: Job) => {
-    const next = jobs.map(j => (j.job_id === job.job_id ? job : j));
-    setJobs(next);
-    saveState('app_jobs', next);
+  const updateJob = async (job: Job) => {
+    try {
+      const updated = await api.jobs.updateJob(job.job_id, job);
+      setJobs(prev => prev.map(j => (j.job_id === updated.job_id ? updated : j)));
+    } catch (error) {
+      console.error('Failed to update job:', error);
+    }
   };
-  const deleteJob = (id: string) => {
-    const next = jobs.filter(j => j.job_id !== id);
-    setJobs(next);
-    saveState('app_jobs', next);
+  const deleteJob = async (id: string) => {
+    try {
+      await api.jobs.deleteJob(id);
+      setJobs(prev => prev.filter(j => j.job_id !== id));
+    } catch (error) {
+      console.error('Failed to delete job:', error);
+    }
   };
 
   // Users
-  const addUser = (user: User) => {
-    const next = [...users, user];
-    setUsers(next);
-    saveState('app_users', next);
+  const addUser = async (user: User) => {
+    try {
+      const newUser = await api.users.createUser(user);
+      setUsers(prev => [...prev, newUser]);
+    } catch (error) {
+      console.error('Failed to add user:', error);
+    }
   };
-  const updateUser = (user: User) => {
-    const next = users.map(u => (u.user_id === user.user_id ? user : u));
-    setUsers(next);
-    saveState('app_users', next);
+  const updateUser = async (user: User) => {
+    try {
+      const updated = await api.users.updateUser(user.user_id, user);
+      setUsers(prev => prev.map(u => (u.user_id === updated.user_id ? updated : u)));
+    } catch (error) {
+      console.error('Failed to update user:', error);
+    }
   };
-  const deleteUser = (id: string) => {
-    const next = users.filter(u => u.user_id !== id);
-    setUsers(next);
-    saveState('app_users', next);
+  const deleteUser = async (id: string) => {
+    try {
+      await api.users.deleteUser(id);
+      setUsers(prev => prev.filter(u => u.user_id !== id));
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+    }
   };
 
   // Departments
-  const addDepartment = (dept: Department) => {
-    const next = [...departments, dept];
-    setDepartments(next);
-    saveState('app_departments', next);
+  const addDepartment = async (dept: Department) => {
+    try {
+      const newDept = await api.departments.createDepartment(dept);
+      setDepartments(prev => [...prev, newDept]);
+    } catch (error) {
+      console.error('Failed to add department:', error);
+    }
   };
-  const updateDepartment = (dept: Department) => {
-    const next = departments.map(d => (d.dept_id === dept.dept_id ? dept : d));
-    setDepartments(next);
-    saveState('app_departments', next);
+  const updateDepartment = async (dept: Department) => {
+    try {
+      const updated = await api.departments.updateDepartment(dept.dept_id, dept);
+      setDepartments(prev => prev.map(d => (d.dept_id === updated.dept_id ? updated : d)));
+    } catch (error) {
+      console.error('Failed to update department:', error);
+    }
   };
-  const deleteDepartment = (id: string) => {
-    const next = departments.filter(d => d.dept_id !== id);
-    setDepartments(next);
-    saveState('app_departments', next);
+  const deleteDepartment = async (id: string) => {
+    try {
+      await api.departments.deleteDepartment(id);
+      setDepartments(prev => prev.filter(d => d.dept_id !== id));
+    } catch (error) {
+      console.error('Failed to delete department:', error);
+    }
   };
 
   // Issues
-  const addIssue = (issue: Issue) => {
-    const next = [...issues, issue];
-    setIssues(next);
-    saveState('app_issues', next);
+  const addIssue = async (issue: Issue) => {
+    try {
+      const newIssue = await api.issues.createIssue(issue);
+      setIssues(prev => [...prev, newIssue]);
+    } catch (error) {
+      console.error('Failed to add issue:', error);
+    }
   };
-  const updateIssue = (issue: Issue) => {
-    const next = issues.map(i => (i.issue_id === issue.issue_id ? issue : i));
-    setIssues(next);
-    saveState('app_issues', next);
+  const updateIssue = async (issue: Issue) => {
+    try {
+      const updated = await api.issues.updateIssue(issue.issue_id, issue);
+      setIssues(prev => prev.map(i => (i.issue_id === updated.issue_id ? updated : i)));
+    } catch (error) {
+      console.error('Failed to update issue:', error);
+    }
   };
-  const deleteIssue = (id: string) => {
-    const next = issues.filter(i => i.issue_id !== id);
-    setIssues(next);
-    saveState('app_issues', next);
+  const deleteIssue = async (id: string) => {
+    try {
+      await api.issues.deleteIssue(id);
+      setIssues(prev => prev.filter(i => i.issue_id !== id));
+    } catch (error) {
+      console.error('Failed to delete issue:', error);
+    }
   };
 
   // Requests
-  const addRequest = (req: Request) => {
-    const next = [...requests, req];
-    setRequests(next);
-    saveState('app_requests', next);
+  const addRequest = async (req: Request) => {
+    try {
+      const newReq = await api.requests.createRequest(req);
+      setRequests(prev => [...prev, newReq]);
+    } catch (error) {
+      console.error('Failed to add request:', error);
+    }
   };
-  const updateRequest = (req: Request) => {
-    const next = requests.map(r => (r.req_id === req.req_id ? req : r));
-    setRequests(next);
-    saveState('app_requests', next);
+  const updateRequest = async (req: Request) => {
+    try {
+      const updated = await api.requests.updateRequest(req.req_id, req);
+      setRequests(prev => prev.map(r => (r.req_id === updated.req_id ? updated : r)));
+    } catch (error) {
+      console.error('Failed to update request:', error);
+    }
   };
-  const deleteRequest = (id: string) => {
-    const next = requests.filter(r => r.req_id !== id);
-    setRequests(next);
-    saveState('app_requests', next);
+  const deleteRequest = async (id: string) => {
+    try {
+      await api.requests.deleteRequest(id);
+      setRequests(prev => prev.filter(r => r.req_id !== id));
+    } catch (error) {
+      console.error('Failed to delete request:', error);
+    }
   };
 
   // Equipment
-  const addEquipment = (equip: Equipment) => {
-    const next = [...equipment, equip];
-    setEquipment(next);
-    saveState('app_equipment', next);
+  const addEquipment = async (equip: Equipment) => {
+    try {
+      const newEquip = await api.equipment.createEquipment(equip);
+      setEquipment(prev => [...prev, newEquip]);
+    } catch (error) {
+      console.error('Failed to add equipment:', error);
+    }
   };
-  const updateEquipment = (equip: Equipment) => {
-    const next = equipment.map(e => (e.equip_id === equip.equip_id ? equip : e));
-    setEquipment(next);
-    saveState('app_equipment', next);
+  const updateEquipment = async (equip: Equipment) => {
+    try {
+      const updated = await api.equipment.updateEquipment(equip.equip_id, equip);
+      setEquipment(prev => prev.map(e => (e.equip_id === updated.equip_id ? updated : e)));
+    } catch (error) {
+      console.error('Failed to update equipment:', error);
+    }
   };
-  const deleteEquipment = (id: string) => {
-    const next = equipment.filter(e => e.equip_id !== id);
-    setEquipment(next);
-    saveState('app_equipment', next);
+  const deleteEquipment = async (id: string) => {
+    try {
+      await api.equipment.deleteEquipment(id);
+      setEquipment(prev => prev.filter(e => e.equip_id !== id));
+    } catch (error) {
+      console.error('Failed to delete equipment:', error);
+    }
   };
 
   // Notifications

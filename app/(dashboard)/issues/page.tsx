@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppContext } from '@/app/lib/AppContext';
-import { Issue, IssueStatus } from '@/app/lib/mock-data';
+import { Issue, IssueStatus } from '@/app/lib/types';
 import StatusBadge from '@/app/components/StatusBadge';
 import DataTable from '@/app/components/DataTable';
 import Modal from '@/app/components/Modal';

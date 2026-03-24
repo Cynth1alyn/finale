@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useAppContext } from '@/app/lib/AppContext';
-import { User, UserRole } from '@/app/lib/mock-data';
+import { User, Role } from '@/app/lib/types';
 import Modal from '@/app/components/Modal';
 import { Search, X, Edit2, Building2, Phone, Fingerprint } from 'lucide-react';
 
@@ -34,7 +34,7 @@ export default function UsersPage() {
       lastname: '',
       email: '',
       tel: '',
-      role: 'staff',
+      role: Role.STAFF,
       dept_id: departments[0]?.dept_id || 'D001',
       avatar_color: avatarColors[Math.floor(Math.random() * avatarColors.length)]
     });
@@ -168,7 +168,7 @@ export default function UsersPage() {
           <div style={{ display: 'flex', gap: 16 }}>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>บทบาท</label>
-              <select className="input" value={formData.role || 'staff'} onChange={e => setFormData({...formData, role: e.target.value as UserRole})} style={{ width: '100%', padding: '8px 12px' }}>
+              <select className="input" value={formData.role || 'staff'} onChange={e => setFormData({...formData, role: e.target.value as Role})} style={{ width: '100%', padding: '8px 12px' }}>
                 <option value="staff">พนักงาน</option>
                 <option value="technician">ช่างเทคนิค</option>
                 <option value="manager">ผู้จัดการ</option>

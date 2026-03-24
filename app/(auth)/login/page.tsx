@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { Mail, Lock, AlertCircle, Lightbulb, ArrowLeft } from 'lucide-react';
 import ThemeToggle from '../../components/ThemeToggle';
 
+import { api } from '@/app/lib/api';
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -17,10 +19,22 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     if (!email || !password) { setError('กรุณากรอกอีเมลและรหัสผ่าน'); return; }
+    
     setLoading(true);
-    await new Promise(r => setTimeout(r, 900));
-    setLoading(false);
-    router.push('/dashboard');
+    try {
+      const response = await api.auth.login({ email, password });
+      if (response.success) {
+        localStorage.setItem('auth_token', response.data.token);
+        localStorage.setItem('user_data', JSON.stringify(response.data.user));
+        router.push('/dashboard');
+      } else {
+        setError('การเข้าสู่ระบบล้มเหลว');
+      }
+    } catch (err: any) {
+      setError(err.message || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

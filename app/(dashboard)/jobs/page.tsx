@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppContext } from '@/app/lib/AppContext';
-import { Job, JobPriority, JobStatus } from '@/app/lib/mock-data';
+import { Job, Priority, JobStatus } from '@/app/lib/types';
 import StatusBadge from '@/app/components/StatusBadge';
 import PriorityBadge from '@/app/components/PriorityBadge';
 import DataTable from '@/app/components/DataTable';
@@ -205,7 +205,7 @@ export default function JobsPage() {
           <div style={{ display: 'flex', gap: 16 }}>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>ความสำคัญ</label>
-              <select className="input" value={formData.job_priority || 'medium'} onChange={e => setFormData({...formData, job_priority: e.target.value as JobPriority})} style={{ width: '100%', padding: '8px 12px' }}>
+              <select className="input" value={formData.job_priority || 'medium'} onChange={e => setFormData({...formData, job_priority: e.target.value as Priority})} style={{ width: '100%', padding: '8px 12px' }}>
                 <option value="low">ต่ำ</option>
                 <option value="medium">ปานกลาง</option>
                 <option value="high">สูง</option>
@@ -214,7 +214,7 @@ export default function JobsPage() {
             </div>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>สถานะ</label>
-              <select className="input" value={formData.job_status || 'pending'} onChange={e => setFormData({...formData, job_status: e.target.value as JobStatus})} style={{ width: '100%', padding: '8px 12px' }}>
+              <select className="input" value={formData.job_status || JobStatus.PENDING} onChange={e => setFormData({...formData, job_status: e.target.value as JobStatus})} style={{ width: '100%', padding: '8px 12px' }}>
                 <option value="pending">รอดำเนินการ</option>
                 <option value="in-progress">กำลังทำ</option>
                 <option value="done">เสร็จสิ้น</option>

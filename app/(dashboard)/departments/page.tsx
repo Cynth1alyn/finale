@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useAppContext } from '@/app/lib/AppContext';
-import { Department } from '@/app/lib/mock-data';
+import { Department } from '@/app/lib/types';
 import Modal from '@/app/components/Modal';
 import { Building2, Edit2, X } from 'lucide-react';
 
