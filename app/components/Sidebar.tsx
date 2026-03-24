@@ -19,30 +19,30 @@ import {
 } from 'lucide-react';
 
 const navItems: { href: string; label: string; icon: LucideIcon }[] = [
-  { href: '/dashboard',   label: 'Dashboard',    icon: LayoutDashboard },
-  { href: '/map',         label: 'แผนที่',        icon: Map },
-  { href: '/jobs-view',   label: 'ติดตามงาน',     icon: Briefcase },
-  { href: '/jobs',        label: 'จัดการงาน',     icon: Settings },
-  { href: '/users',       label: 'ผู้ใช้งาน',    icon: Users },
-  { href: '/departments', label: 'แผนก',          icon: Building2 },
-  { href: '/issues',      label: 'รายงานปัญหา',    icon: FileText },
-  { href: '/issues/new',  label: 'แจ้งปัญหา',    icon: AlertTriangle },
-  { href: '/requests',    label: 'คำขอ',          icon: ClipboardList },
-  { href: '/equipment',   label: 'อุปกรณ์',       icon: Monitor },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/map', label: 'แผนที่', icon: Map },
+  { href: '/jobs-view', label: 'ติดตามงาน', icon: Briefcase },
+  { href: '/jobs', label: 'จัดการงาน', icon: Settings },
+  { href: '/users', label: 'ผู้ใช้งาน', icon: Users },
+  { href: '/departments', label: 'แผนก', icon: Building2 },
+  { href: '/issues', label: 'รายงานปัญหา', icon: FileText },
+  { href: '/issues/new', label: 'แจ้งปัญหา', icon: AlertTriangle },
+  { href: '/requests', label: 'คำขอ', icon: ClipboardList },
+  { href: '/equipment', label: 'อุปกรณ์', icon: Monitor },
 ];
 
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { users, jobs, issues, requests, equipment } = useAppContext();
-  
+
   const pendingJobs = jobs.filter(j => j.job_status === 'pending').length;
   const openIssues = issues.filter(i => i.status === 'open' || i.status === 'in-progress').length;
   const pendingRequests = requests.filter(r => r.req_status === 'pending').length;
   const lowStockEquip = equipment.filter(e => e.remain_qty <= 3).length;
 
   const getBadgeCount = (href: string) => {
-    switch(href) {
+    switch (href) {
       case '/jobs': return pendingJobs;
       case '/issues': return openIssues;
       case '/requests': return pendingRequests;
@@ -88,7 +88,7 @@ export default function Sidebar() {
         {navItems.map((item) => {
           const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
           const badgeCount = getBadgeCount(item.href);
-          
+
           return (
             <Link
               key={item.href}
@@ -159,8 +159,8 @@ export default function Sidebar() {
         <div style={{ flex: 1, minWidth: 0 }}>
           <Link href="/profile" style={{ textDecoration: 'none' }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', transition: 'color 0.15s' }}
-                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--accent-blue)'}
-                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'}>
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--accent-blue)'}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'}>
               {currentUser?.firstname} {currentUser?.lastname}
             </div>
           </Link>
