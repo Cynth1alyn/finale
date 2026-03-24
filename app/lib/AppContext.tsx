@@ -1,17 +1,10 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { api } from './api';
 import { 
-  jobs as initialJobs, 
-  users as initialUsers, 
-  departments as initialDepartments, 
-  issues as initialIssues, 
-  requests as initialRequests, 
-  equipment as initialEquipment, 
-  units as initialUnits,
-  notifications as initialNotifications,
-  Job, User, Department, Issue, Request, Equipment, Unit, Notification
-} from './mock-data';
+  Job, User, Department, Issue, Request, Equipment, Unit, Notification, Role
+} from './types';
 
 interface AppContextType {
   jobs: Job[];
@@ -55,57 +48,48 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [jobs, setJobs] = useState<Job[]>(initialJobs);
-  const [users, setUsers] = useState<User[]>(initialUsers);
-  const [departments, setDepartments] = useState<Department[]>(initialDepartments);
-  const [issues, setIssues] = useState<Issue[]>(initialIssues);
-  const [requests, setRequests] = useState<Request[]>(initialRequests);
-  const [equipment, setEquipment] = useState<Equipment[]>(initialEquipment);
-  const [units, setUnits] = useState<Unit[]>(initialUnits);
-  const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [issues, setIssues] = useState<Issue[]>([]);
+  const [requests, setRequests] = useState<Request[]>([]);
+  const [equipment, setEquipment] = useState<Equipment[]>([]);
+  const [units, setUnits] = useState<Unit[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  useEffect(() => {
-    // Initialize from localStorage or mock data
-    const loadState = <T,>(key: string, fallback: T): T => {
+    const loadInitialData = async () => {
       try {
-        const item = localStorage.getItem(key);
-        return item ? JSON.parse(item) : fallback;
-      } catch {
-        return fallback;
+        const [
+          fetchedJobs, 
+          fetchedUsers, 
+          fetchedDepts, 
+          fetchedIssues, 
+          fetchedRequests, 
+          fetchedEquip,
+          fetchedNotifs
+        ] = await Promise.all([
+          api.jobs.getJobs(),
+          api.users.getUsers(),
+          api.departments.getDepartments(),
+          api.issues.getIssues(),
+          api.requests.getRequests(),
+          api.equipment.getEquipment(),
+          api.notifications.getNotifications()
+        ]);
+
+        setJobs(fetchedJobs);
+        setUsers(fetchedUsers);
+        setDepartments(fetchedDepts);
+        setIssues(fetchedIssues);
+        setRequests(fetchedRequests);
+        setEquipment(fetchedEquip);
+        setNotifications(fetchedNotifs);
+      } catch (error) {
+        console.error('Failed to load initial data:', error);
       }
     };
 
-    setJobs(loadState('app_jobs', initialJobs));
-    setUsers(loadState('app_users', initialUsers));
-    setDepartments(loadState('app_departments', initialDepartments));
-    setIssues(loadState('app_issues', initialIssues));
-    setRequests(loadState('app_requests', initialRequests));
-    setEquipment(loadState('app_equipment', initialEquipment));
-    setUnits(loadState('app_units', initialUnits));
-    setNotifications(loadState('app_notifications', initialNotifications));
-
-    const handleStorageChange = (e: StorageEvent) => {
-      if (!e.newValue) return;
-      try {
-        const data = JSON.parse(e.newValue);
-        switch (e.key) {
-          case 'app_jobs': setJobs(data); break;
-          case 'app_users': setUsers(data); break;
-          case 'app_departments': setDepartments(data); break;
-          case 'app_issues': setIssues(data); break;
-          case 'app_requests': setRequests(data); break;
-          case 'app_equipment': setEquipment(data); break;
-          case 'app_units': setUnits(data); break;
-          case 'app_notifications': setNotifications(data); break;
-        }
-      } catch (err) {
-        // ignore JSON parse errors
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+    loadInitialData();
 
   const saveState = (key: string, value: any) => {
     localStorage.setItem(key, JSON.stringify(value));

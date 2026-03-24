@@ -1,151 +1,122 @@
 // API Types for TechJob Application
 
 export enum Role {
-  ADMIN = 'ADMIN',
-  MANAGER = 'MANAGER',
-  TECHNICIAN = 'TECHNICIAN',
-  EMPLOYEE = 'EMPLOYEE'
+  ADMIN = 'admin',
+  MANAGER = 'manager',
+  TECHNICIAN = 'technician',
+  STAFF = 'staff'
 }
 
 export enum JobStatus {
-  PENDING = 'PENDING',
-  IN_PROGRESS = 'IN_PROGRESS',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED'
+  PENDING = 'pending',
+  IN_PROGRESS = 'in-progress',
+  DONE = 'done',
+  CANCELLED = 'cancelled'
 }
 
 export enum IssueStatus {
-  OPEN = 'OPEN',
-  IN_PROGRESS = 'IN_PROGRESS',
-  RESOLVED = 'RESOLVED',
-  CLOSED = 'CLOSED'
+  OPEN = 'open',
+  IN_PROGRESS = 'in-progress',
+  RESOLVED = 'resolved',
+  CLOSED = 'closed'
 }
 
 export enum EquipmentStatus {
-  OPERATIONAL = 'OPERATIONAL',
-  MAINTENANCE = 'MAINTENANCE',
-  OUT_OF_ORDER = 'OUT_OF_ORDER',
-  DECOMMISSIONED = 'DECOMMISSIONED'
+  OPERATIONAL = 'operational',
+  MAINTENANCE = 'maintenance',
+  OUT_OF_ORDER = 'out-of-order',
+  DECOMMISSIONED = 'decommissioned'
 }
 
 export enum RequestStatus {
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED',
-  COMPLETED = 'COMPLETED'
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+  FULFILLED = 'fulfilled'
 }
 
 export enum Priority {
-  LOW = 'LOW',
-  MEDIUM = 'MEDIUM',
-  HIGH = 'HIGH'
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+  URGENT = 'urgent'
 }
 
 // User Types
 export interface User {
-  id: string
-  code: string
-  name: string
+  user_id: string
+  firstname: string
+  lastname: string
   email: string
+  tel: string
   role: Role
-  isActive: boolean
-  departmentId?: string
-  department?: Department
-  createdAt: string
-  updatedAt: string
+  dept_id: string
+  avatar_color: string
 }
 
 // Department Types
 export interface Department {
-  id: string
-  code: string
-  name: string
+  dept_id: string
+  dept_name: string
   description?: string
-  createdAt: string
-  updatedAt: string
-  _count?: {
-    users: number
-    equipment: number
-    jobs: number
-    issues: number
-  }
-  users?: User[]
-  equipment?: Equipment[]
 }
 
 // Equipment Types
 export interface Equipment {
-  id: string
-  code: string
+  equip_id: string
   name: string
-  type: string
-  status: EquipmentStatus
-  location?: string
-  departmentId?: string
-  department?: Department
-  createdAt: string
-  updatedAt: string
+  type_category: string
+  remain_qty: number
+  total_qty: number
+  unit_id: string
+  dept_id?: string
 }
 
 // Issue Types
 export interface Issue {
-  id: string
-  code: string
-  title: string
-  description?: string
+  issue_id: string
+  topic: string
+  detail: string
+  solution: string
   status: IssueStatus
-  priority: Priority
-  equipmentId?: string
-  equipment?: Equipment
-  technicianId?: string
-  technician?: User
-  creatorId: string
-  creator: User
-  departmentId?: string
-  department?: Department
-  createdAt: string
-  updatedAt: string
+  report_date: string
+  reporter_id: string
+  lat?: number
+  lng?: number
 }
 
 // Job Types
 export interface Job {
-  id: string
-  code: string
-  title: string
-  description?: string
-  status: JobStatus
-  priority: Priority
-  equipmentId?: string
-  equipment?: Equipment
-  technicianId?: string
-  technician?: User
-  creatorId: string
-  creator: User
-  departmentId?: string
-  department?: Department
-  scheduledDate?: string
-  completedDate?: string
-  createdAt: string
-  updatedAt: string
+  job_id: string
+  job_title: string
+  description: string
+  start_date: string
+  due_date: string
+  job_priority: Priority
+  job_status: JobStatus
+  assigned_user_ids: string[]
+  lat?: number
+  lng?: number
+  customer_name?: string
+  contact_number?: string
+  address?: string
+  landmark?: string
+  assigned_lead_id?: string
+  equipment_requests?: { equip_id: string; qty: number }[]
 }
 
 // Request Types
 export interface Request {
-  id: string
-  code: string
-  title: string
-  description?: string
-  type: string
-  status: RequestStatus
-  priority: Priority
-  requesterId: string
-  requester: User
-  approverId?: string
-  approver?: User
-  departmentId?: string
-  department?: Department
-  createdAt: string
-  updatedAt: string
+  req_id: string
+  req_date: string
+  req_status: RequestStatus
+  user_id: string
+}
+
+// Unit Types
+export interface Unit {
+  unit_id: string
+  unit_name: string
 }
 
 // Notification Types
@@ -153,14 +124,9 @@ export interface Notification {
   id: string
   title: string
   message: string
-  type: string
-  isRead: boolean
-  userId: string
-  user: User
-  relatedId?: string
-  relatedType?: string
-  createdAt: string
-  updatedAt: string
+  timestamp: string
+  is_read: boolean
+  related_link?: string
 }
 
 // Dashboard Stats

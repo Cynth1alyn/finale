@@ -59,16 +59,16 @@ export default function DashboardPage() {
 
       {/* Stats */}
       <div className="stats-grid">
-        <StatCard label="งานทั้งหมด"       value={totalJobs}       icon={<Settings size={22} color="#3B82F6" />} color="#3B82F6" trend="12%" trendUp />
-        <StatCard label="งานที่ดำเนินการ"  value={activeJobs}      icon={<RefreshCw size={22} color="#F59E0B" />} color="#F59E0B" trend="5%"  trendUp />
-        <StatCard label="ปัญหาที่เปิดอยู่" value={openIssues}      icon={<AlertTriangle size={22} color="#F43F5E" />} color="#F43F5E" trend="3%"  trendUp={false} />
-        <StatCard label="คำขอที่รอ"         value={pendingRequests} icon={<ClipboardList size={22} color="#8B5CF6" />} color="#8B5CF6" sub={`${totalUsers} ผู้ใช้งานในระบบ`} />
+        <StatCard label="งานทั้งหมด"       value={totalJobs}       icon={<ClipboardList size={22} color="var(--accent-blue)" />} color="var(--accent-blue)" trend="12%" trendUp />
+        <StatCard label="งานที่ดำเนินการ"  value={activeJobs}      icon={<RefreshCw size={22} color="var(--accent-amber)" />} color="var(--accent-amber)" trend="5%"  trendUp />
+        <StatCard label="ปัญหาที่เปิดอยู่" value={openIssues}      icon={<AlertTriangle size={22} color="var(--accent-rose)" />} color="var(--accent-rose)" trend="3%"  trendUp={false} />
+        <StatCard label="คำขอที่รอ"         value={pendingRequests} icon={<Settings size={22} color="var(--accent-purple)" />} color="var(--accent-purple)" sub={`${totalUsers} ผู้ใช้งานในระบบ`} />
       </div>
 
       {/* Content grid */}
       <div className="section-grid">
         {/* Recent Jobs */}
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="card glass animate-fade-in" style={{ padding: 0, overflow: 'hidden', animationDelay: '0.1s' }}>
           <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: 15 }}>งานล่าสุด</div>
             <Link href="/jobs" style={{ fontSize: 12, color: 'var(--accent-blue-light)', textDecoration: 'none', fontWeight: 500 }}>ดูทั้งหมด →</Link>
@@ -98,7 +98,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Recent Issues */}
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="card glass animate-fade-in" style={{ padding: 0, overflow: 'hidden', animationDelay: '0.2s' }}>
           <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: 15 }}>ปัญหาล่าสุด</div>
             <Link href="/issues" style={{ fontSize: 12, color: 'var(--accent-blue-light)', textDecoration: 'none', fontWeight: 500 }}>ดูทั้งหมด →</Link>

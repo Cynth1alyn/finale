@@ -47,7 +47,7 @@ export default function Topbar({ title, subtitle }: TopbarProps) {
   };
 
   return (
-    <header className="topbar">
+    <header className="topbar glass">
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>{title}</div>
         {subtitle && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>{subtitle}</div>}
@@ -56,14 +56,15 @@ export default function Topbar({ title, subtitle }: TopbarProps) {
       {/* Notification */}
       <div style={{ position: 'relative' }} ref={dropdownRef}>
         <div style={{
-          width: 38, height: 38,
-          background: isNotifOpen ? 'var(--border-light)' : 'var(--bg-hover)',
+          width: 42, height: 42,
+          background: isNotifOpen ? 'var(--bg-hover)' : 'transparent',
           border: '1px solid var(--border-color)',
-          borderRadius: 10,
+          borderRadius: 12,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: 'var(--text-secondary)',
-          transition: 'background 0.15s',
-          cursor: 'pointer'
+          color: isNotifOpen ? 'var(--text-primary)' : 'var(--text-secondary)',
+          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+          cursor: 'pointer',
+          position: 'relative'
         }}
           onClick={() => setIsNotifOpen(!isNotifOpen)}
           onMouseEnter={e => { if (!isNotifOpen) (e.currentTarget as HTMLElement).style.background = 'var(--border-light)' }}

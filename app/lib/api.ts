@@ -18,7 +18,10 @@ import type {
   Priority
 } from './types'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+import * as mockData from './mock-data'
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true' || true // Default to true for checking phase
 
 // Helper function for API requests
 async function apiRequest(endpoint: string, options: RequestInit = {}) {
@@ -58,6 +61,20 @@ async function apiRequest(endpoint: string, options: RequestInit = {}) {
 // Auth API
 export const authAPI = {
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
+    if (USE_MOCK) {
+      const user = mockData.users.find(u => u.email === credentials.email)
+      if (user) {
+        return {
+          success: true,
+          data: {
+            user: user as any,
+            token: 'mock-token-' + Date.now()
+          }
+        }
+      }
+      throw new Error('Invalid credentials (Mock Mode)')
+    }
+
     const response = await apiRequest('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
@@ -69,6 +86,16 @@ export const authAPI = {
 // Dashboard API
 export const dashboardAPI = {
   getStats: async (): Promise<DashboardStats> => {
+    if (USE_MOCK) {
+      return {
+        totalUsers: mockData.users.length,
+        activeJobs: mockData.jobs.filter(j => j.job_status === 'in-progress').length,
+        openIssues: mockData.issues.filter(i => i.status === 'open').length,
+        totalEquipment: mockData.equipment.length,
+        totalDepartments: mockData.departments.length,
+        pendingRequests: mockData.requests.filter(r => r.req_status === 'pending').length,
+      }
+    }
     const response = await apiRequest('/dashboard/stats')
     return response.data
   },
@@ -77,6 +104,19 @@ export const dashboardAPI = {
 // Users API
 export const usersAPI = {
   getUsers: async (params?: { page?: number; limit?: number; search?: string }): Promise<User[]> => {
+    if (USE_MOCK) {
+      let filtered = [...mockData.users]
+      if (params?.search) {
+        const s = params.search.toLowerCase()
+        filtered = filtered.filter(u => 
+          u.firstname.toLowerCase().includes(s) || 
+          u.lastname.toLowerCase().includes(s) || 
+          u.email.toLowerCase().includes(s)
+        )
+      }
+      return filtered as any
+    }
+
     const query = new URLSearchParams()
     if (params?.page) query.append('page', params.page.toString())
     if (params?.limit) query.append('limit', params.limit.toString())
@@ -87,17 +127,24 @@ export const usersAPI = {
   },
 
   getUser: async (id: string): Promise<User> => {
+    if (USE_MOCK) {
+      const user = mockData.users.find(u => u.user_id === id)
+      if (!user) throw new Error('User not found')
+      return user as any
+    }
     const response = await apiRequest(`/users/${id}`)
     return response.data
   },
 
-  createUser: async (userData: {
-    name: string
-    email: string
-    password: string
-    role: Role
-    departmentId?: string
-  }): Promise<User> => {
+  createUser: async (userData: any): Promise<User> => {
+    if (USE_MOCK) {
+      const newUser = { 
+        ...userData, 
+        user_id: 'U' + Math.floor(Math.random() * 1000),
+        avatar_color: '#3B82F6'
+      }
+      return newUser as any
+    }
     const response = await apiRequest('/users', {
       method: 'POST',
       body: JSON.stringify(userData),
@@ -105,13 +152,10 @@ export const usersAPI = {
     return response.data
   },
 
-  updateUser: async (id: string, userData: Partial<{
-    name: string
-    email: string
-    role: Role
-    departmentId?: string
-    isActive: boolean
-  }>): Promise<User> => {
+  updateUser: async (id: string, userData: any): Promise<User> => {
+    if (USE_MOCK) {
+      return { id, ...userData } as any
+    }
     const response = await apiRequest(`/users/${id}`, {
       method: 'PUT',
       body: JSON.stringify(userData),
@@ -120,6 +164,7 @@ export const usersAPI = {
   },
 
   deleteUser: async (id: string): Promise<void> => {
+    if (USE_MOCK) return
     await apiRequest(`/users/${id}`, {
       method: 'DELETE',
     })
@@ -129,19 +174,23 @@ export const usersAPI = {
 // Departments API
 export const departmentsAPI = {
   getDepartments: async (): Promise<Department[]> => {
+    if (USE_MOCK) return mockData.departments as any
     const response = await apiRequest('/departments')
     return response.data
   },
 
   getDepartment: async (id: string): Promise<Department> => {
+    if (USE_MOCK) {
+      const d = mockData.departments.find(d => d.dept_id === id)
+      if (!d) throw new Error('Department not found')
+      return d as any
+    }
     const response = await apiRequest(`/departments/${id}`)
     return response.data
   },
 
-  createDepartment: async (deptData: {
-    name: string
-    description?: string
-  }): Promise<Department> => {
+  createDepartment: async (deptData: any): Promise<Department> => {
+    if (USE_MOCK) return { dept_id: 'D' + Date.now(), ...deptData } as any
     const response = await apiRequest('/departments', {
       method: 'POST',
       body: JSON.stringify(deptData),
@@ -149,10 +198,8 @@ export const departmentsAPI = {
     return response.data
   },
 
-  updateDepartment: async (id: string, deptData: Partial<{
-    name: string
-    description?: string
-  }>): Promise<Department> => {
+  updateDepartment: async (id: string, deptData: any): Promise<Department> => {
+    if (USE_MOCK) return { dept_id: id, ...deptData } as any
     const response = await apiRequest(`/departments/${id}`, {
       method: 'PUT',
       body: JSON.stringify(deptData),
@@ -161,6 +208,7 @@ export const departmentsAPI = {
   },
 
   deleteDepartment: async (id: string): Promise<void> => {
+    if (USE_MOCK) return
     await apiRequest(`/departments/${id}`, {
       method: 'DELETE',
     })
@@ -171,25 +219,25 @@ export const departmentsAPI = {
 export const equipmentAPI = {
   getEquipment: async (params?: {
     status?: EquipmentStatus
-    departmentId?: string
+    dept_id?: string
     type?: string
   }): Promise<Equipment[]> => {
+    if (USE_MOCK) {
+      let filtered = [...mockData.equipment]
+      if (params?.dept_id) filtered = filtered.filter(e => e.dept_id === params.dept_id)
+      return filtered as any
+    }
     const query = new URLSearchParams()
     if (params?.status) query.append('status', params.status)
-    if (params?.departmentId) query.append('departmentId', params.departmentId)
+    if (params?.dept_id) query.append('dept_id', params.dept_id)
     if (params?.type) query.append('type', params.type)
 
     const response = await apiRequest(`/equipment?${query}`)
     return response.data
   },
 
-  createEquipment: async (equipData: {
-    name: string
-    type: string
-    status?: EquipmentStatus
-    location?: string
-    departmentId?: string
-  }): Promise<Equipment> => {
+  createEquipment: async (equipData: any): Promise<Equipment> => {
+    if (USE_MOCK) return { equip_id: 'E' + Date.now(), ...equipData } as any
     const response = await apiRequest('/equipment', {
       method: 'POST',
       body: JSON.stringify(equipData),
@@ -197,13 +245,8 @@ export const equipmentAPI = {
     return response.data
   },
 
-  updateEquipment: async (id: string, equipData: Partial<{
-    name: string
-    type: string
-    status: EquipmentStatus
-    location?: string
-    departmentId?: string
-  }>): Promise<Equipment> => {
+  updateEquipment: async (id: string, equipData: any): Promise<Equipment> => {
+    if (USE_MOCK) return { equip_id: id, ...equipData } as any
     const response = await apiRequest(`/equipment/${id}`, {
       method: 'PUT',
       body: JSON.stringify(equipData),
@@ -212,6 +255,7 @@ export const equipmentAPI = {
   },
 
   deleteEquipment: async (id: string): Promise<void> => {
+    if (USE_MOCK) return
     await apiRequest(`/equipment/${id}`, {
       method: 'DELETE',
     })
@@ -223,29 +267,30 @@ export const issuesAPI = {
   getIssues: async (params?: {
     status?: IssueStatus
     priority?: Priority
-    departmentId?: string
+    dept_id?: string
   }): Promise<Issue[]> => {
+    if (USE_MOCK) return mockData.issues as any
     const query = new URLSearchParams()
     if (params?.status) query.append('status', params.status)
     if (params?.priority) query.append('priority', params.priority)
-    if (params?.departmentId) query.append('departmentId', params.departmentId)
+    if (params?.dept_id) query.append('dept_id', params.dept_id)
 
     const response = await apiRequest(`/issues?${query}`)
     return response.data
   },
 
   getIssue: async (id: string): Promise<Issue> => {
+    if (USE_MOCK) {
+      const issue = mockData.issues.find(i => i.issue_id === id)
+      if (!issue) throw new Error('Issue not found')
+      return issue as any
+    }
     const response = await apiRequest(`/issues/${id}`)
     return response.data
   },
 
-  createIssue: async (issueData: {
-    title: string
-    description?: string
-    priority?: Priority
-    equipmentId?: string
-    departmentId?: string
-  }): Promise<Issue> => {
+  createIssue: async (issueData: any): Promise<Issue> => {
+    if (USE_MOCK) return { issue_id: 'I' + Date.now(), ...issueData } as any
     const response = await apiRequest('/issues', {
       method: 'POST',
       body: JSON.stringify(issueData),
@@ -253,13 +298,8 @@ export const issuesAPI = {
     return response.data
   },
 
-  updateIssue: async (id: string, issueData: Partial<{
-    title: string
-    description?: string
-    status: IssueStatus
-    priority: Priority
-    technicianId?: string
-  }>): Promise<Issue> => {
+  updateIssue: async (id: string, issueData: any): Promise<Issue> => {
+    if (USE_MOCK) return { issue_id: id, ...issueData } as any
     const response = await apiRequest(`/issues/${id}`, {
       method: 'PUT',
       body: JSON.stringify(issueData),
@@ -268,6 +308,7 @@ export const issuesAPI = {
   },
 
   deleteIssue: async (id: string): Promise<void> => {
+    if (USE_MOCK) return
     await apiRequest(`/issues/${id}`, {
       method: 'DELETE',
     })
@@ -279,30 +320,30 @@ export const jobsAPI = {
   getJobs: async (params?: {
     status?: JobStatus
     priority?: Priority
-    departmentId?: string
+    dept_id?: string
   }): Promise<Job[]> => {
+    if (USE_MOCK) return mockData.jobs as any
     const query = new URLSearchParams()
     if (params?.status) query.append('status', params.status)
     if (params?.priority) query.append('priority', params.priority)
-    if (params?.departmentId) query.append('departmentId', params.departmentId)
+    if (params?.dept_id) query.append('dept_id', params.dept_id)
 
     const response = await apiRequest(`/jobs?${query}`)
     return response.data
   },
 
   getJob: async (id: string): Promise<Job> => {
+    if (USE_MOCK) {
+      const job = mockData.jobs.find(j => j.job_id === id)
+      if (!job) throw new Error('Job not found')
+      return job as any
+    }
     const response = await apiRequest(`/jobs/${id}`)
     return response.data
   },
 
-  createJob: async (jobData: {
-    title: string
-    description?: string
-    priority?: Priority
-    equipmentId?: string
-    technicianId?: string
-    departmentId?: string
-  }): Promise<Job> => {
+  createJob: async (jobData: any): Promise<Job> => {
+    if (USE_MOCK) return { job_id: 'J' + Date.now(), ...jobData } as any
     const response = await apiRequest('/jobs', {
       method: 'POST',
       body: JSON.stringify(jobData),
@@ -310,13 +351,8 @@ export const jobsAPI = {
     return response.data
   },
 
-  updateJob: async (id: string, jobData: Partial<{
-    title: string
-    description?: string
-    status: JobStatus
-    priority: Priority
-    technicianId?: string
-  }>): Promise<Job> => {
+  updateJob: async (id: string, jobData: any): Promise<Job> => {
+    if (USE_MOCK) return { job_id: id, ...jobData } as any
     const response = await apiRequest(`/jobs/${id}`, {
       method: 'PUT',
       body: JSON.stringify(jobData),
@@ -325,6 +361,7 @@ export const jobsAPI = {
   },
 
   deleteJob: async (id: string): Promise<void> => {
+    if (USE_MOCK) return
     await apiRequest(`/jobs/${id}`, {
       method: 'DELETE',
     })
@@ -335,28 +372,29 @@ export const jobsAPI = {
 export const requestsAPI = {
   getRequests: async (params?: {
     status?: RequestStatus
-    departmentId?: string
+    dept_id?: string
   }): Promise<Request[]> => {
+    if (USE_MOCK) return mockData.requests as any
     const query = new URLSearchParams()
     if (params?.status) query.append('status', params.status)
-    if (params?.departmentId) query.append('departmentId', params.departmentId)
+    if (params?.dept_id) query.append('dept_id', params.dept_id)
 
     const response = await apiRequest(`/requests?${query}`)
     return response.data
   },
 
   getRequest: async (id: string): Promise<Request> => {
+    if (USE_MOCK) {
+      const r = mockData.requests.find(r => r.req_id === id)
+      if (!r) throw new Error('Request not found')
+      return r as any
+    }
     const response = await apiRequest(`/requests/${id}`)
     return response.data
   },
 
-  createRequest: async (requestData: {
-    title: string
-    description?: string
-    type: string
-    priority?: Priority
-    departmentId?: string
-  }): Promise<Request> => {
+  createRequest: async (requestData: any): Promise<Request> => {
+    if (USE_MOCK) return { req_id: 'R' + Date.now(), ...requestData } as any
     const response = await apiRequest('/requests', {
       method: 'POST',
       body: JSON.stringify(requestData),
@@ -364,12 +402,8 @@ export const requestsAPI = {
     return response.data
   },
 
-  updateRequest: async (id: string, requestData: Partial<{
-    title: string
-    description?: string
-    status: RequestStatus
-    priority: Priority
-  }>): Promise<Request> => {
+  updateRequest: async (id: string, requestData: any): Promise<Request> => {
+    if (USE_MOCK) return { req_id: id, ...requestData } as any
     const response = await apiRequest(`/requests/${id}`, {
       method: 'PUT',
       body: JSON.stringify(requestData),
@@ -378,6 +412,7 @@ export const requestsAPI = {
   },
 
   deleteRequest: async (id: string): Promise<void> => {
+    if (USE_MOCK) return
     await apiRequest(`/requests/${id}`, {
       method: 'DELETE',
     })
