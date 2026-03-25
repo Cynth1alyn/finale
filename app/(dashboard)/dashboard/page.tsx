@@ -5,13 +5,15 @@ import StatusBadge from '@/app/components/StatusBadge';
 import PriorityBadge from '@/app/components/PriorityBadge';
 import Link from 'next/link';
 import { useAppContext } from '@/app/lib/AppContext';
+import DashboardChart from '@/app/components/DashboardChart';
 import {
   Settings,
   RefreshCw,
   AlertTriangle,
   ClipboardList,
   Monitor,
-  Map
+  Map,
+  BarChart3
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -55,6 +57,36 @@ export default function DashboardPage() {
           <Link href="/jobs" className="btn btn-secondary btn-sm">ดูงานทั้งหมด</Link>
           {/* Removed "+ สร้างรายงาน" button */}
         </div>
+      </div>
+
+      {/* Charts Section */}
+      <div style={{ display: 'flex', gap: 20, marginBottom: 24, flexWrap: 'wrap' }}>
+        <DashboardChart 
+          title="งานใหม่รายวัน" 
+          color="var(--accent-blue)"
+          data={[
+            { label: 'จ.', value: 4 },
+            { label: 'อ.', value: 7 },
+            { label: 'พ.', value: 5 },
+            { label: 'พฤ.', value: 8 },
+            { label: 'ศ.', value: 12 },
+            { label: 'ส.', value: 3 },
+            { label: 'อา.', value: 2 },
+          ]}
+        />
+        <DashboardChart 
+          title="ปัญหาที่ได้รับแจ้ง" 
+          color="var(--accent-rose)"
+          data={[
+            { label: 'จ.', value: 2 },
+            { label: 'อ.', value: 4 },
+            { label: 'พ.', value: 3 },
+            { label: 'พฤ.', value: 6 },
+            { label: 'ศ.', value: 5 },
+            { label: 'ส.', value: 1 },
+            { label: 'อา.', value: 2 },
+          ]}
+        />
       </div>
 
       {/* Stats */}

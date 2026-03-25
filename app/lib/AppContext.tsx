@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { api } from './api';
-import { 
+import {
   Job, User, Department, Issue, Request, Equipment, Unit, Notification, Role
 } from './types';
 
@@ -57,39 +57,41 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [units, setUnits] = useState<Unit[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
-    const loadInitialData = async () => {
-      try {
-        const [
-          fetchedJobs, 
-          fetchedUsers, 
-          fetchedDepts, 
-          fetchedIssues, 
-          fetchedRequests, 
-          fetchedEquip,
-          fetchedNotifs
-        ] = await Promise.all([
-          api.jobs.getJobs(),
-          api.users.getUsers(),
-          api.departments.getDepartments(),
-          api.issues.getIssues(),
-          api.requests.getRequests(),
-          api.equipment.getEquipment(),
-          api.notifications.getNotifications()
-        ]);
+  const loadInitialData = async () => {
+    try {
+      const [
+        fetchedJobs,
+        fetchedUsers,
+        fetchedDepts,
+        fetchedIssues,
+        fetchedRequests,
+        fetchedEquip,
+        fetchedNotifs
+      ] = await Promise.all([
+        api.jobs.getJobs(),
+        api.users.getUsers(),
+        api.departments.getDepartments(),
+        api.issues.getIssues(),
+        api.requests.getRequests(),
+        api.equipment.getEquipment(),
+        api.notifications.getNotifications()
+      ]);
 
-        setJobs(fetchedJobs);
-        setUsers(fetchedUsers);
-        setDepartments(fetchedDepts);
-        setIssues(fetchedIssues);
-        setRequests(fetchedRequests);
-        setEquipment(fetchedEquip);
-        setNotifications(fetchedNotifs);
-      } catch (error) {
-        console.error('Failed to load initial data:', error);
-      }
-    };
+      setJobs(fetchedJobs);
+      setUsers(fetchedUsers);
+      setDepartments(fetchedDepts);
+      setIssues(fetchedIssues);
+      setRequests(fetchedRequests);
+      setEquipment(fetchedEquip);
+      setNotifications(fetchedNotifs);
+    } catch (error) {
+      console.error('Failed to load initial data:', error);
+    }
+  };
 
+  useEffect(() => {
     loadInitialData();
+  }, []);
 
   const saveState = (key: string, value: any) => {
     localStorage.setItem(key, JSON.stringify(value));

@@ -16,7 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="th" suppressHydrationWarning>
-      <body>
+      <body suppressHydrationWarning>
         <ThemeProvider defaultTheme="dark" enableSystem={false}>
           <AppProvider>
             {children}

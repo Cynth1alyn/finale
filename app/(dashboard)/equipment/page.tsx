@@ -1,62 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAppContext } from '@/app/lib/AppContext';
 import { Equipment } from '@/app/lib/types';
-import Modal from '@/app/components/Modal';
 import DataTable from '@/app/components/DataTable';
-import { Package, AlertTriangle, XCircle, Edit2, X } from 'lucide-react';
+import { Package, AlertTriangle, XCircle } from 'lucide-react';
+import Link from 'next/link';
 
 const categoryColors: Record<string, string> = {
   Network: '#3B82F6', Hardware: '#8B5CF6', Consumable: '#F59E0B', Storage: '#10B981', Security: '#F43F5E',
 };
 
 export default function EquipmentPage() {
-  const { equipment, units, addEquipment, updateEquipment, deleteEquipment } = useAppContext();
+  const router = useRouter();
+  const { equipment, units, deleteEquipment } = useAppContext();
   const [categoryFilter, setCategoryFilter] = useState('all');
 
-  // Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingEquipment, setEditingEquipment] = useState<Equipment | null>(null);
-  
-  // Form State
-  const [formData, setFormData] = useState<Partial<Equipment>>({});
-
   const categories = ['all', ...Array.from(new Set(equipment.map(e => e.type_category)))];
-
-  const openAddModal = () => {
-    setEditingEquipment(null);
-    setFormData({
-      equip_id: `E${String((equipment.length > 0 ? Math.max(...equipment.map(x => parseInt(x.equip_id.replace(/\\D/g, ''), 10) || 0)) : 0) + 1).padStart(3, '0')}`,
-      name: '',
-      type_category: 'Hardware',
-      remain_qty: 0,
-      total_qty: 0,
-      unit_id: units[0]?.unit_id || 'UN01',
-    });
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (equip: Equipment) => {
-    setEditingEquipment(equip);
-    setFormData(equip);
-    setIsModalOpen(true);
-  };
 
   const handleDelete = (id: string) => {
     if (confirm('คุณต้องการลบอุปกรณ์นี้ใช่หรือไม่?')) {
       deleteEquipment(id);
     }
-  };
-
-  const handleSave = () => {
-    if (!formData.name) return alert('กรุณาระบุชื่ออุปกรณ์');
-    if (editingEquipment) {
-      updateEquipment(formData as Equipment);
-    } else {
-      addEquipment(formData as Equipment);
-    }
-    setIsModalOpen(false);
   };
 
   const filtered = equipment.filter(e => {
@@ -155,8 +121,8 @@ export default function EquipmentPage() {
       align: 'right',
       render: (row: typeof tableData[0]) => (
         <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
-          <button className="btn btn-ghost btn-sm" style={{ padding: '6px' }} onClick={() => openEditModal(row as Equipment)}><Edit2 size={14} /></button>
-          <button className="btn btn-ghost btn-sm" style={{ padding: '6px', color: 'var(--accent-rose)' }} onClick={() => handleDelete(row.equip_id)}><X size={14} /></button>
+          <Link href={`/equipment/${row.equip_id}`} className="btn btn-ghost btn-sm" style={{ padding: '6px' }} title="ดูรายละเอียด">✎</Link>
+          <button className="btn btn-ghost btn-sm" style={{ padding: '6px', color: 'var(--accent-rose)' }} onClick={() => handleDelete(row.equip_id)} title="ลบ">✕</button>
         </div>
       ),
     },
@@ -170,7 +136,7 @@ export default function EquipmentPage() {
           <div className="page-subtitle">ทั้งหมด {totalItems} รายการ · สต็อกต่ำ {lowStock} · หมด {outOfStock}</div>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button className="btn btn-primary" onClick={openAddModal}>+ เพิ่มอุปกรณ์</button>
+          <button className="btn btn-primary" onClick={() => router.push('/equipment/new')}>+ เพิ่มอุปกรณ์</button>
         </div>
       </div>
 
@@ -209,51 +175,6 @@ export default function EquipmentPage() {
           searchKeys={['name', 'equip_id']}
         />
       </div>
-
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingEquipment ? 'แก้ไขอุปกรณ์' : 'เพิ่มอุปกรณ์ใหม่'}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div>
-            <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>รหัสอุปกรณ์</label>
-            <input type="text" className="input" value={formData.equip_id || ''} disabled style={{ width: '100%', padding: '8px 12px', background: 'var(--bg-hover)' }} />
-          </div>
-          <div>
-            <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>ชื่ออุปกรณ์</label>
-            <input type="text" className="input" value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} style={{ width: '100%', padding: '8px 12px' }} />
-          </div>
-          <div style={{ display: 'flex', gap: 16 }}>
-            <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>ประเภท</label>
-              <select className="input" value={formData.type_category || 'Hardware'} onChange={e => setFormData({...formData, type_category: e.target.value})} style={{ width: '100%', padding: '8px 12px' }}>
-                <option value="Network">Network</option>
-                <option value="Hardware">Hardware</option>
-                <option value="Consumable">Consumable</option>
-                <option value="Storage">Storage</option>
-                <option value="Security">Security</option>
-              </select>
-            </div>
-            <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>หน่วยนับ</label>
-              <select className="input" value={formData.unit_id || ''} onChange={e => setFormData({...formData, unit_id: e.target.value})} style={{ width: '100%', padding: '8px 12px' }}>
-                {units.map(u => <option key={u.unit_id} value={u.unit_id}>{u.unit_name}</option>)}
-              </select>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 16 }}>
-            <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>จำนวนทั้งหมด</label>
-              <input type="number" className="input" value={formData.total_qty || 0} onChange={e => setFormData({...formData, total_qty: Number(e.target.value)})} style={{ width: '100%', padding: '8px 12px' }} />
-            </div>
-            <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>จำนวนคงเหลือ</label>
-              <input type="number" className="input" value={formData.remain_qty || 0} onChange={e => setFormData({...formData, remain_qty: Number(e.target.value)})} style={{ width: '100%', padding: '8px 12px' }} />
-            </div>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 10 }}>
-            <button className="btn btn-ghost" onClick={() => setIsModalOpen(false)}>ยกเลิก</button>
-            <button className="btn btn-primary" onClick={handleSave}>บันทึกข้อมูล</button>
-          </div>
-        </div>
-      </Modal>
     </>
   );
 }

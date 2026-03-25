@@ -15,13 +15,14 @@ import type {
   IssueStatus,
   JobStatus,
   RequestStatus,
-  Priority
+  Priority,
+  EquipmentHistory
 } from './types'
 
 import * as mockData from './mock-data'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
-const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true' || true // Default to true for checking phase
+const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true' || false // Default to false after phase 1
 
 // Helper function for API requests
 async function apiRequest(endpoint: string, options: RequestInit = {}) {
@@ -35,7 +36,7 @@ async function apiRequest(endpoint: string, options: RequestInit = {}) {
   }
 
   // Add auth token if available
-  const token = localStorage.getItem('token')
+  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
   if (token) {
     config.headers = {
       ...config.headers,
@@ -108,9 +109,9 @@ export const usersAPI = {
       let filtered = [...mockData.users]
       if (params?.search) {
         const s = params.search.toLowerCase()
-        filtered = filtered.filter(u => 
-          u.firstname.toLowerCase().includes(s) || 
-          u.lastname.toLowerCase().includes(s) || 
+        filtered = filtered.filter(u =>
+          u.firstname.toLowerCase().includes(s) ||
+          u.lastname.toLowerCase().includes(s) ||
           u.email.toLowerCase().includes(s)
         )
       }
@@ -138,8 +139,8 @@ export const usersAPI = {
 
   createUser: async (userData: any): Promise<User> => {
     if (USE_MOCK) {
-      const newUser = { 
-        ...userData, 
+      const newUser = {
+        ...userData,
         user_id: 'U' + Math.floor(Math.random() * 1000),
         avatar_color: '#3B82F6'
       }
@@ -251,6 +252,14 @@ export const equipmentAPI = {
       method: 'PUT',
       body: JSON.stringify(equipData),
     })
+    return response.data
+  },
+
+  getEquipmentHistory: async (id: string): Promise<EquipmentHistory[]> => {
+    if (USE_MOCK) {
+      return mockData.equipmentHistory.filter(h => h.equip_id === id) as any
+    }
+    const response = await apiRequest(`/equipment/${id}/history`)
     return response.data
   },
 
@@ -422,11 +431,13 @@ export const requestsAPI = {
 // Notifications API
 export const notificationsAPI = {
   getNotifications: async (): Promise<Notification[]> => {
+    if (USE_MOCK) return mockData.notifications as any
     const response = await apiRequest('/notifications')
     return response.data
   },
 
   getUnreadCount: async (): Promise<number> => {
+    if (USE_MOCK) return mockData.notifications.filter(n => !n.is_read).length
     const response = await apiRequest('/notifications/unread-count')
     return response.data
   },

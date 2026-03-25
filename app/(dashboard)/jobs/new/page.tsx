@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppContext } from '@/app/lib/AppContext';
-import { Job, JobPriority, JobStatus } from '@/app/lib/mock-data';
+import { Job, Priority, JobStatus } from '@/app/lib/types';
 import MapComponent from '@/app/components/MapComponent';
 import SearchableSelect from '@/app/components/SearchableSelect';
 import { User, UserPlus, Pencil, Package, X } from 'lucide-react';
@@ -17,8 +17,8 @@ export default function NewJobPage() {
     description: '',
     start_date: new Date().toISOString().split('T')[0],
     due_date: new Date().toISOString().split('T')[0],
-    job_priority: 'medium',
-    job_status: 'pending',
+    job_priority: Priority.MEDIUM,
+    job_status: JobStatus.PENDING,
     assigned_user_ids: [],
     assigned_lead_id: '',
     customer_name: '',
@@ -65,7 +65,7 @@ export default function NewJobPage() {
   const handleSave = () => {
     if (!formData.job_title) return alert('กรุณาระบุหัวข้องาน');
     
-    if (formData.job_status === 'pending' && formData.equipment_requests) {
+    if (formData.job_status === JobStatus.PENDING && formData.equipment_requests) {
       formData.equipment_requests.forEach(req => {
         const item = equipment.find(e => e.equip_id === req.equip_id);
         if (item) {
@@ -125,7 +125,7 @@ export default function NewJobPage() {
           <div style={{ display: 'flex', gap: 20 }}>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 8, color: 'var(--text-secondary)' }}>ความสำคัญ</label>
-              <select className="input" value={formData.job_priority || 'medium'} onChange={e => setFormData({...formData, job_priority: e.target.value as JobPriority})} style={{ width: '100%', padding: '10px 14px' }}>
+              <select className="input" value={formData.job_priority || Priority.MEDIUM} onChange={e => setFormData({...formData, job_priority: e.target.value as Priority})} style={{ width: '100%', padding: '10px 14px' }}>
                 <option value="low">ต่ำ</option>
                 <option value="medium">ปานกลาง</option>
                 <option value="high">สูง</option>

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { jobs, users, getDeptById } from '@/app/lib/mock-data';
+import { JobStatus } from '@/app/lib/types';
 import StatusBadge from '@/app/components/StatusBadge';
 import PriorityBadge from '@/app/components/PriorityBadge';
 
@@ -18,9 +19,9 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
   const dept = assignedUsers[0] ? getDeptById(assignedUsers[0].dept_id) : null;
 
   const daysLeft = Math.ceil((new Date(job.due_date).getTime() - new Date().getTime()) / 86400000);
-  const overdue = daysLeft < 0 && job.job_status !== 'done' && job.job_status !== 'cancelled';
-  const progressMap = { pending: 0, 'in-progress': 50, done: 100, cancelled: 0 };
-  const progress = progressMap[job.job_status];
+  const overdue = daysLeft < 0 && job.job_status !== JobStatus.DONE && job.job_status !== JobStatus.CANCELLED;
+  const progressMap: Record<string, number> = { [JobStatus.PENDING]: 0, [JobStatus.IN_PROGRESS]: 50, [JobStatus.DONE]: 100, [JobStatus.CANCELLED]: 0 };
+  const progress = progressMap[job.job_status] || 0;
 
   const avatarColors = ['#3B82F6','#8B5CF6','#10B981','#F59E0B','#F43F5E','#06B6D4','#EC4899'];
 

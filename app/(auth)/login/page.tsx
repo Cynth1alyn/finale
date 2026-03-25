@@ -19,7 +19,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     if (!email || !password) { setError('กรุณากรอกอีเมลและรหัสผ่าน'); return; }
-    
+
     setLoading(true);
     try {
       const response = await api.auth.login({ email, password });

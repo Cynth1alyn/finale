@@ -3,10 +3,16 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { issues, users, getUserById } from '@/app/lib/mock-data';
+import { IssueStatus } from '@/app/lib/types';
 import StatusBadge from '@/app/components/StatusBadge';
 
-const allStatuses = ['open', 'in-progress', 'resolved', 'closed'] as const;
-const statusLabels: Record<string, string> = { open: 'เปิด', 'in-progress': 'กำลังแก้ไข', resolved: 'แก้ไขแล้ว', closed: 'ปิด' };
+const allStatuses = [IssueStatus.OPEN, IssueStatus.IN_PROGRESS, IssueStatus.RESOLVED, IssueStatus.CLOSED] as const;
+const statusLabels: Record<string, string> = { 
+  [IssueStatus.OPEN]: 'เปิด', 
+  [IssueStatus.IN_PROGRESS]: 'กำลังแก้ไข', 
+  [IssueStatus.RESOLVED]: 'แก้ไขแล้ว', 
+  [IssueStatus.CLOSED]: 'ปิด' 
+};
 
 export default async function IssueDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

@@ -1,10 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAppContext } from '@/app/lib/AppContext';
-import { Department } from '@/app/lib/types';
-import Modal from '@/app/components/Modal';
-import { Building2, Edit2, X } from 'lucide-react';
+import { Building2 } from 'lucide-react';
+import Link from 'next/link';
 
 const deptColors = ['#3B82F6','#8B5CF6','#10B981','#F59E0B','#F43F5E'];
 const roleLabels: Record<string, string> = {
@@ -13,27 +12,8 @@ const roleLabels: Record<string, string> = {
 const avatarColors = ['#3B82F6','#8B5CF6','#10B981','#F59E0B','#F43F5E','#06B6D4','#EC4899','#14B8A6','#F97316','#A855F7'];
 
 export default function DepartmentsPage() {
-  const { departments, users, addDepartment, updateDepartment, deleteDepartment } = useAppContext();
-  
-  // Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingDept, setEditingDept] = useState<Department | null>(null);
-  const [formData, setFormData] = useState<Partial<Department>>({});
-
-  const openAddModal = () => {
-    setEditingDept(null);
-    setFormData({
-      dept_id: `D${String((departments.length > 0 ? Math.max(...departments.map(x => parseInt(x.dept_id.replace(/\\D/g, ''), 10) || 0)) : 0) + 1).padStart(3, '0')}`,
-      dept_name: '',
-    });
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (dept: Department) => {
-    setEditingDept(dept);
-    setFormData(dept);
-    setIsModalOpen(true);
-  };
+  const router = useRouter();
+  const { departments, users, deleteDepartment } = useAppContext();
 
   const handleDelete = (id: string, memberCount: number) => {
     if (memberCount > 0) {
@@ -45,16 +25,6 @@ export default function DepartmentsPage() {
     }
   };
 
-  const handleSave = () => {
-    if (!formData.dept_name) return alert('กรุณาระบุชื่อแผนก');
-    if (editingDept) {
-      updateDepartment(formData as Department);
-    } else {
-      addDepartment(formData as Department);
-    }
-    setIsModalOpen(false);
-  };
-
   return (
     <>
       <div className="page-header">
@@ -62,7 +32,7 @@ export default function DepartmentsPage() {
           <div className="page-title">แผนก</div>
           <div className="page-subtitle">ทั้งหมด {departments.length} แผนก</div>
         </div>
-        <button className="btn btn-primary" onClick={openAddModal}>+ เพิ่มแผนก</button>
+        <button className="btn btn-primary" onClick={() => router.push('/departments/new')}>+ เพิ่มแผนก</button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 18 }}>
@@ -70,10 +40,35 @@ export default function DepartmentsPage() {
           const members = users.filter(u => u.dept_id === dept.dept_id);
           const color = deptColors[di % deptColors.length];
           return (
-            <div key={dept.dept_id} className="card animate-fade-in" style={{ padding: 0, overflow: 'hidden', position: 'relative' }}>
-              <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: 4, zIndex: 2 }}>
-                <button className="btn btn-ghost btn-sm" style={{ padding: '6px' }} onClick={() => openEditModal(dept)}><Edit2 size={14}/></button>
-                <button className="btn btn-ghost btn-sm" style={{ padding: '6px', color: 'var(--accent-rose)' }} onClick={() => handleDelete(dept.dept_id, members.length)}><X size={14}/></button>
+            <Link 
+              key={dept.dept_id} 
+              href={`/departments/${dept.dept_id}`}
+              className="card animate-fade-in"
+              style={{ padding: 0, overflow: 'hidden', position: 'relative', textDecoration: 'none', cursor: 'pointer', transition: 'all 0.2s' }}
+              onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-2px)', e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.12)')}
+              onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)', e.currentTarget.style.boxShadow = '')}
+            >
+              <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: 4, zIndex: 2 }} onClick={e => e.preventDefault()}>
+                <button 
+                  className="btn btn-ghost btn-sm" 
+                  style={{ padding: '6px' }} 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    router.push(`/departments/${dept.dept_id}`);
+                  }}
+                  title="ดูรายละเอียด"
+                />
+                <button 
+                  className="btn btn-ghost btn-sm" 
+                  style={{ padding: '6px', color: 'var(--accent-rose)' }} 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleDelete(dept.dept_id, members.length);
+                  }}
+                  title="ลบแผนก"
+                >
+                  ✕
+                </button>
               </div>
 
               {/* Header */}
@@ -109,27 +104,10 @@ export default function DepartmentsPage() {
                   {members.length === 0 && <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>ยังไม่มีสมาชิก</div>}
                 </div>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
-
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingDept ? 'แก้ไขแผนก' : 'เพิ่มแผนกใหม่'}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div>
-            <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>รหัสแผนก</label>
-            <input type="text" className="input" value={formData.dept_id || ''} disabled style={{ width: '100%', padding: '8px 12px', background: 'var(--bg-hover)' }} />
-          </div>
-          <div>
-            <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>ชื่อแผนก</label>
-            <input type="text" className="input" value={formData.dept_name || ''} onChange={e => setFormData({...formData, dept_name: e.target.value})} style={{ width: '100%', padding: '8px 12px' }} />
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 10 }}>
-            <button className="btn btn-ghost" onClick={() => setIsModalOpen(false)}>ยกเลิก</button>
-            <button className="btn btn-primary" onClick={handleSave}>บันทึกข้อมูล</button>
-          </div>
-        </div>
-      </Modal>
     </>
   );
 }

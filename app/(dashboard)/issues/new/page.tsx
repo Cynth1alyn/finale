@@ -2,19 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Issue, IssueStatus } from '@/app/lib/types';
+import { users } from '@/app/lib/mock-data';
 import { useAppContext } from '@/app/lib/AppContext';
-import { Issue, IssueStatus } from '@/app/lib/mock-data';
 import MapComponent from '@/app/components/MapComponent';
 
 export default function NewIssuePage() {
   const router = useRouter();
-  const { issues, users, addIssue } = useAppContext();
+  const { issues, addIssue } = useAppContext();
   
   const [formData, setFormData] = useState<Partial<Issue>>({
     topic: '',
     detail: '',
     solution: '',
-    status: 'open',
+    status: IssueStatus.OPEN,
     report_date: new Date().toISOString().split('T')[0],
     reporter_id: users[0]?.user_id || 'U001',
     lat: 13.736717,

@@ -106,11 +106,19 @@ export interface Job {
 }
 
 // Request Types
+export interface RequestItem {
+  item_id: string
+  req_id: string
+  equip_id: string
+  qty: number
+}
+
 export interface Request {
   req_id: string
   req_date: string
   req_status: RequestStatus
   user_id: string
+  items?: RequestItem[]
 }
 
 // Unit Types
@@ -203,3 +211,12 @@ export interface RequestFilters {
   priority?: Priority
   departmentId?: string
 }
+
+export interface EquipmentHistory {
+  id: string;
+  equip_id: string;
+  date: string;
+  user_id: string;
+  action: 'check-out' | 'check-in' | 'maintenance' | 'repair' | 'retired' | string;
+  notes: string;
+}

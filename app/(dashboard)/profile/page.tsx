@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAppContext } from '@/app/lib/AppContext';
-import { User } from '@/app/lib/mock-data';
+import { User } from '@/app/lib/types';
 
 export default function ProfilePage() {
   const { users, updateUser, departments } = useAppContext();
