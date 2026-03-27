@@ -22,7 +22,7 @@ import type {
 import * as mockData from './mock-data'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
-const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true' || false // Default to false after phase 1
+const USE_MOCK = process.env.NEXT_PUBLIC_API_MOCK === 'true' || false // Matches .env.local variable naming
 
 // Helper function for API requests
 async function apiRequest(endpoint: string, options: RequestInit = {}) {
