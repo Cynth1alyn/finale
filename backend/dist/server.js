@@ -13,6 +13,7 @@ const issues_1 = __importDefault(require("./routes/issues"));
 const users_1 = __importDefault(require("./routes/users"));
 const equipment_1 = __importDefault(require("./routes/equipment"));
 const departments_1 = __importDefault(require("./routes/departments"));
+const requests_1 = __importDefault(require("./routes/requests"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3001;
@@ -32,6 +33,7 @@ app.use('/api/issues', issues_1.default);
 app.use('/api/users', users_1.default);
 app.use('/api/equipment', equipment_1.default);
 app.use('/api/departments', departments_1.default);
+app.use('/api/requests', requests_1.default);
 // Base route
 app.get('/', (req, res) => {
     res.send('TechJob API is running...');

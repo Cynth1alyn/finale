@@ -16,4 +16,26 @@ router.get('/:id/history', (req, res) => {
     const history = data_1.equipmentHistory.filter(h => h.equip_id === req.params.id);
     res.json({ success: true, data: history });
 });
+router.post('/', (req, res) => {
+    const newItem = req.body;
+    if (!newItem.equip_id) {
+        newItem.equip_id = 'E' + String(Date.now()).slice(-4);
+    }
+    data_1.equipment.push(newItem);
+    res.status(201).json({ success: true, data: newItem });
+});
+router.put('/:id', (req, res) => {
+    const index = data_1.equipment.findIndex(e => e.equip_id === req.params.id);
+    if (index === -1)
+        return res.status(404).json({ success: false, error: 'Equipment not found' });
+    data_1.equipment[index] = { ...data_1.equipment[index], ...req.body };
+    res.json({ success: true, data: data_1.equipment[index] });
+});
+router.delete('/:id', (req, res) => {
+    const index = data_1.equipment.findIndex(e => e.equip_id === req.params.id);
+    if (index === -1)
+        return res.status(404).json({ success: false, error: 'Equipment not found' });
+    data_1.equipment.splice(index, 1);
+    res.json({ success: true, message: 'Deleted' });
+});
 exports.default = router;

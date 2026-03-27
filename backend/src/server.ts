@@ -8,6 +8,7 @@ import issuesRoutes from './routes/issues';
 import usersRoutes from './routes/users';
 import equipmentRoutes from './routes/equipment';
 import departmentRoutes from './routes/departments';
+import requestsRoutes from './routes/requests';
 
 dotenv.config();
 
@@ -32,6 +33,7 @@ app.use('/api/issues', issuesRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/equipment', equipmentRoutes);
 app.use('/api/departments', departmentRoutes);
+app.use('/api/requests', requestsRoutes);
 
 // Base route
 app.get('/', (req, res) => {
