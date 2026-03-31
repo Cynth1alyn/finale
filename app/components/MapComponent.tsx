@@ -30,7 +30,10 @@ const DynamicMap = dynamic<MapComponentProps>(() => import('./LeafletMap'), {
 
 export default function MapComponent(props: MapComponentProps) {
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   if (!mounted) return <div style={{ width: '100%', height: props.height || '300px', background: 'var(--bg-hover)', borderRadius: '8px' }} />;
 

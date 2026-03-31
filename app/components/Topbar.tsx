@@ -14,11 +14,17 @@ interface TopbarProps {
 
 export default function Topbar({ title, subtitle }: TopbarProps) {
   const { users, notifications, markNotificationAsRead, markAllNotificationsAsRead } = useAppContext();
+  const [now, setNow] = useState<Date | null>(null);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-
   const unreadCount = notifications.filter(n => !n.is_read).length;
+
+  useEffect(() => {
+    setNow(new Date());
+    const timer = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -39,12 +45,15 @@ export default function Topbar({ title, subtitle }: TopbarProps) {
   };
 
   const timeAgo = (dateStr: string) => {
-    const min = Math.round((Date.now() - new Date(dateStr).getTime()) / 60000);
+    if (!now) return '...';
+    const min = Math.round((now.getTime() - new Date(dateStr).getTime()) / 60000);
     if (min < 1) return 'เมื่อสักครู่';
     if (min < 60) return `${min} นาทีที่แล้ว`;
     if (min < 1440) return `${Math.floor(min/60)} ชั่วโมงที่แล้ว`;
     return `${Math.floor(min/1440)} วันที่แล้ว`;
   };
+
+  const formattedDate = now ? now.toLocaleDateString('th-TH', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) : '...';
 
   return (
     <header className="topbar glass">
@@ -151,7 +160,7 @@ export default function Topbar({ title, subtitle }: TopbarProps) {
         color: 'var(--text-secondary)',
         fontWeight: 500,
       }}>
-        {new Date().toLocaleDateString('th-TH', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+        {formattedDate}
       </div>
 
       {/* User avatar */}

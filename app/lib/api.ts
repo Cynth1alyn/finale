@@ -68,7 +68,7 @@ export const authAPI = {
         return {
           success: true,
           data: {
-            user: user as any,
+            user: user as User,
             token: 'mock-token-' + Date.now()
           }
         }
@@ -115,7 +115,7 @@ export const usersAPI = {
           u.email.toLowerCase().includes(s)
         )
       }
-      return filtered as any
+      return filtered as User[]
     }
 
     const query = new URLSearchParams()
@@ -131,20 +131,20 @@ export const usersAPI = {
     if (USE_MOCK) {
       const user = mockData.users.find(u => u.user_id === id)
       if (!user) throw new Error('User not found')
-      return user as any
+      return user as User
     }
     const response = await apiRequest(`/users/${id}`)
     return response.data
   },
 
-  createUser: async (userData: any): Promise<User> => {
+  createUser: async (userData: Partial<User>): Promise<User> => {
     if (USE_MOCK) {
       const newUser = {
         ...userData,
         user_id: 'U' + Math.floor(Math.random() * 1000),
         avatar_color: '#3B82F6'
       }
-      return newUser as any
+      return newUser as User
     }
     const response = await apiRequest('/users', {
       method: 'POST',
@@ -153,9 +153,9 @@ export const usersAPI = {
     return response.data
   },
 
-  updateUser: async (id: string, userData: any): Promise<User> => {
+  updateUser: async (id: string, userData: Partial<User>): Promise<User> => {
     if (USE_MOCK) {
-      return { id, ...userData } as any
+      return { id, ...userData } as User
     }
     const response = await apiRequest(`/users/${id}`, {
       method: 'PUT',
@@ -175,7 +175,7 @@ export const usersAPI = {
 // Departments API
 export const departmentsAPI = {
   getDepartments: async (): Promise<Department[]> => {
-    if (USE_MOCK) return mockData.departments as any
+    if (USE_MOCK) return mockData.departments as Department[]
     const response = await apiRequest('/departments')
     return response.data
   },
@@ -184,14 +184,14 @@ export const departmentsAPI = {
     if (USE_MOCK) {
       const d = mockData.departments.find(d => d.dept_id === id)
       if (!d) throw new Error('Department not found')
-      return d as any
+      return d as Department
     }
     const response = await apiRequest(`/departments/${id}`)
     return response.data
   },
 
-  createDepartment: async (deptData: any): Promise<Department> => {
-    if (USE_MOCK) return { dept_id: 'D' + Date.now(), ...deptData } as any
+  createDepartment: async (deptData: Partial<Department>): Promise<Department> => {
+    if (USE_MOCK) return { dept_id: 'D' + Date.now(), ...deptData } as Department
     const response = await apiRequest('/departments', {
       method: 'POST',
       body: JSON.stringify(deptData),
@@ -199,8 +199,8 @@ export const departmentsAPI = {
     return response.data
   },
 
-  updateDepartment: async (id: string, deptData: any): Promise<Department> => {
-    if (USE_MOCK) return { dept_id: id, ...deptData } as any
+  updateDepartment: async (id: string, deptData: Partial<Department>): Promise<Department> => {
+    if (USE_MOCK) return { dept_id: id, ...deptData } as Department
     const response = await apiRequest(`/departments/${id}`, {
       method: 'PUT',
       body: JSON.stringify(deptData),
@@ -226,7 +226,7 @@ export const equipmentAPI = {
     if (USE_MOCK) {
       let filtered = [...mockData.equipment]
       if (params?.dept_id) filtered = filtered.filter(e => e.dept_id === params.dept_id)
-      return filtered as any
+      return filtered as Equipment[]
     }
     const query = new URLSearchParams()
     if (params?.status) query.append('status', params.status)
@@ -237,8 +237,8 @@ export const equipmentAPI = {
     return response.data
   },
 
-  createEquipment: async (equipData: any): Promise<Equipment> => {
-    if (USE_MOCK) return { equip_id: 'E' + Date.now(), ...equipData } as any
+  createEquipment: async (equipData: Partial<Equipment>): Promise<Equipment> => {
+    if (USE_MOCK) return { equip_id: 'E' + Date.now(), ...equipData } as Equipment
     const response = await apiRequest('/equipment', {
       method: 'POST',
       body: JSON.stringify(equipData),
@@ -246,8 +246,8 @@ export const equipmentAPI = {
     return response.data
   },
 
-  updateEquipment: async (id: string, equipData: any): Promise<Equipment> => {
-    if (USE_MOCK) return { equip_id: id, ...equipData } as any
+  updateEquipment: async (id: string, equipData: Partial<Equipment>): Promise<Equipment> => {
+    if (USE_MOCK) return { equip_id: id, ...equipData } as Equipment
     const response = await apiRequest(`/equipment/${id}`, {
       method: 'PUT',
       body: JSON.stringify(equipData),
@@ -257,7 +257,7 @@ export const equipmentAPI = {
 
   getEquipmentHistory: async (id: string): Promise<EquipmentHistory[]> => {
     if (USE_MOCK) {
-      return mockData.equipmentHistory.filter(h => h.equip_id === id) as any
+      return mockData.equipmentHistory.filter(h => h.equip_id === id) as EquipmentHistory[]
     }
     const response = await apiRequest(`/equipment/${id}/history`)
     return response.data
@@ -298,8 +298,8 @@ export const issuesAPI = {
     return response.data
   },
 
-  createIssue: async (issueData: any): Promise<Issue> => {
-    if (USE_MOCK) return { issue_id: 'I' + Date.now(), ...issueData } as any
+  createIssue: async (issueData: Partial<Issue>): Promise<Issue> => {
+    if (USE_MOCK) return { issue_id: 'I' + Date.now(), ...issueData } as Issue
     const response = await apiRequest('/issues', {
       method: 'POST',
       body: JSON.stringify(issueData),
@@ -307,8 +307,8 @@ export const issuesAPI = {
     return response.data
   },
 
-  updateIssue: async (id: string, issueData: any): Promise<Issue> => {
-    if (USE_MOCK) return { issue_id: id, ...issueData } as any
+  updateIssue: async (id: string, issueData: Partial<Issue>): Promise<Issue> => {
+    if (USE_MOCK) return { issue_id: id, ...issueData } as Issue
     const response = await apiRequest(`/issues/${id}`, {
       method: 'PUT',
       body: JSON.stringify(issueData),
@@ -331,7 +331,7 @@ export const jobsAPI = {
     priority?: Priority
     dept_id?: string
   }): Promise<Job[]> => {
-    if (USE_MOCK) return mockData.jobs as any
+    if (USE_MOCK) return mockData.jobs as Job[]
     const query = new URLSearchParams()
     if (params?.status) query.append('status', params.status)
     if (params?.priority) query.append('priority', params.priority)
@@ -345,14 +345,14 @@ export const jobsAPI = {
     if (USE_MOCK) {
       const job = mockData.jobs.find(j => j.job_id === id)
       if (!job) throw new Error('Job not found')
-      return job as any
+      return job as Job
     }
     const response = await apiRequest(`/jobs/${id}`)
     return response.data
   },
 
-  createJob: async (jobData: any): Promise<Job> => {
-    if (USE_MOCK) return { job_id: 'J' + Date.now(), ...jobData } as any
+  createJob: async (jobData: Partial<Job>): Promise<Job> => {
+    if (USE_MOCK) return { job_id: 'J' + Date.now(), ...jobData } as Job
     const response = await apiRequest('/jobs', {
       method: 'POST',
       body: JSON.stringify(jobData),
@@ -360,8 +360,8 @@ export const jobsAPI = {
     return response.data
   },
 
-  updateJob: async (id: string, jobData: any): Promise<Job> => {
-    if (USE_MOCK) return { job_id: id, ...jobData } as any
+  updateJob: async (id: string, jobData: Partial<Job>): Promise<Job> => {
+    if (USE_MOCK) return { job_id: id, ...jobData } as Job
     const response = await apiRequest(`/jobs/${id}`, {
       method: 'PUT',
       body: JSON.stringify(jobData),
@@ -383,7 +383,7 @@ export const requestsAPI = {
     status?: RequestStatus
     dept_id?: string
   }): Promise<Request[]> => {
-    if (USE_MOCK) return mockData.requests as any
+    if (USE_MOCK) return mockData.requests as Request[]
     const query = new URLSearchParams()
     if (params?.status) query.append('status', params.status)
     if (params?.dept_id) query.append('dept_id', params.dept_id)
@@ -396,14 +396,14 @@ export const requestsAPI = {
     if (USE_MOCK) {
       const r = mockData.requests.find(r => r.req_id === id)
       if (!r) throw new Error('Request not found')
-      return r as any
+      return r as Request
     }
     const response = await apiRequest(`/requests/${id}`)
     return response.data
   },
 
-  createRequest: async (requestData: any): Promise<Request> => {
-    if (USE_MOCK) return { req_id: 'R' + Date.now(), ...requestData } as any
+  createRequest: async (requestData: Partial<Request>): Promise<Request> => {
+    if (USE_MOCK) return { req_id: 'R' + Date.now(), ...requestData } as Request
     const response = await apiRequest('/requests', {
       method: 'POST',
       body: JSON.stringify(requestData),
@@ -411,8 +411,8 @@ export const requestsAPI = {
     return response.data
   },
 
-  updateRequest: async (id: string, requestData: any): Promise<Request> => {
-    if (USE_MOCK) return { req_id: id, ...requestData } as any
+  updateRequest: async (id: string, requestData: Partial<Request>): Promise<Request> => {
+    if (USE_MOCK) return { req_id: id, ...requestData } as Request
     const response = await apiRequest(`/requests/${id}`, {
       method: 'PUT',
       body: JSON.stringify(requestData),
@@ -431,7 +431,7 @@ export const requestsAPI = {
 // Notifications API
 export const notificationsAPI = {
   getNotifications: async (): Promise<Notification[]> => {
-    if (USE_MOCK) return mockData.notifications as any
+    if (USE_MOCK) return mockData.notifications as Notification[]
     const response = await apiRequest('/notifications')
     return response.data
   },

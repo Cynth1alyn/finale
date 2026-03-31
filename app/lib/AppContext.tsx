@@ -90,10 +90,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    loadInitialData();
+    const frame = requestAnimationFrame(() => {
+      loadInitialData();
+    });
+    return () => cancelAnimationFrame(frame);
   }, []);
 
-  const saveState = (key: string, value: any) => {
+  const saveState = (key: string, value: unknown) => {
     localStorage.setItem(key, JSON.stringify(value));
   };
 
