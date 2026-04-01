@@ -3,13 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Issue, IssueStatus } from '@/app/lib/types';
-import { users } from '@/app/lib/mock-data';
 import { useAppContext } from '@/app/lib/AppContext';
 import MapComponent from '@/app/components/MapComponent';
 
 export default function NewIssuePage() {
   const router = useRouter();
-  const { issues, addIssue } = useAppContext();
+  const { issues, users, addIssue } = useAppContext();
   
   const [formData, setFormData] = useState<Partial<Issue>>({
     topic: '',
@@ -17,20 +16,25 @@ export default function NewIssuePage() {
     solution: '',
     status: IssueStatus.OPEN,
     report_date: new Date().toISOString().split('T')[0],
-    reporter_id: users[0]?.user_id || 'U001',
+    reporter_id: '',
     lat: 13.736717,
-    lng: 100.523186
+    lng: 100.523186,
   });
 
   useEffect(() => {
-    // Generate new ID when component mounts
-    const newId = `I${String((issues.length > 0 ? Math.max(...issues.map(x => parseInt(x.issue_id.replace(/\\D/g, ''), 10) || 0)) : 0) + 1).padStart(3, '0')}`;
+    const newId = `I${String((issues.length > 0 ? Math.max(...issues.map(x => parseInt(x.issue_id.replace(/\D/g, ''), 10) || 0)) : 0) + 1).padStart(3, '0')}`;
     setFormData(prev => ({ ...prev, issue_id: newId }));
   }, [issues]);
 
-  const handleSave = () => {
+  useEffect(() => {
+    if (users.length > 0 && !formData.reporter_id) {
+      setFormData(prev => ({ ...prev, reporter_id: users[0].user_id }));
+    }
+  }, [users, formData.reporter_id]);
+
+  const handleSave = async () => {
     if (!formData.topic) return alert('กรุณาระบุหัวข้อปัญหา');
-    addIssue(formData as Issue);
+    await addIssue(formData as Issue);
     router.push('/issues');
   };
 

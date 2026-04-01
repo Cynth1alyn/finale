@@ -2,19 +2,18 @@ export enum Role {
   ADMIN = 'admin',
   MANAGER = 'manager',
   TECHNICIAN = 'technician',
-  USER = 'user',
+  STAFF = 'staff',
 }
 
 export enum EquipmentStatus {
-  ACTIVE = 'active',
+  OPERATIONAL = 'operational',
   MAINTENANCE = 'maintenance',
-  RETIRED = 'retired',
-  BROKEN = 'broken',
+  OUT_OF_ORDER = 'out-of-order',
+  DECOMMISSIONED = 'decommissioned',
 }
 
 export enum IssueStatus {
   OPEN = 'open',
-  ASSIGNED = 'assigned',
   IN_PROGRESS = 'in-progress',
   RESOLVED = 'resolved',
   CLOSED = 'closed',
@@ -59,13 +58,13 @@ export interface Department {
 
 export interface Equipment {
   equip_id: string;
-  equip_name: string;
-  brand: string;
-  model: string;
-  serial_no: string;
-  dept_id: string;
-  status: EquipmentStatus | string;
+  name: string;
+  type_category: string;
+  total_qty: number;
   remain_qty: number;
+  unit_id: string;
+  dept_id?: string;
+  status?: EquipmentStatus | string;
 }
 
 export interface Issue {
@@ -86,22 +85,31 @@ export interface Job {
   description: string;
   start_date: string;
   due_date: string;
-  priority: Priority | string;
+  job_priority: Priority | string;
   job_status: JobStatus | string;
   assigned_user_ids: string[];
+  lat?: number;
+  lng?: number;
+  customer_name?: string;
+  contact_number?: string;
+  address?: string;
+  landmark?: string;
+  assigned_lead_id?: string;
+  equipment_requests?: { equip_id: string; qty: number }[];
 }
 
 export interface RequestItem {
-  id: string;
-  name: string;
-  quantity: number;
-  unit: string;
+  item_id: string;
+  req_id: string;
+  equip_id: string;
+  qty: number;
 }
 
 export interface Request {
   req_id: string;
-  req_title: string;
+  req_date: string;
   req_status: RequestStatus | string;
+  user_id: string;
   items?: RequestItem[];
 }
 

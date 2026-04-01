@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { equipment, equipmentHistory } from '../lib/data';
+import { query, execute } from '../lib/db';
 
 const router = Router();
 
@@ -10,151 +10,97 @@ const router = Router();
  *   description: จัดการอุปกรณ์
  */
 
-/**
- * @swagger
- * /api/equipment:
- *   get:
- *     summary: ดึงอุปกรณ์ทั้งหมด
- *     tags: [Equipment]
- *     responses:
- *       200:
- *         description: สำเร็จ
- */
-router.get('/', (req, res) => {
-  res.json({ success: true, data: equipment });
-});
-
-/**
- * @swagger
- * /api/equipment/{id}:
- *   get:
- *     summary: ดึงอุปกรณ์ตาม ID
- *     tags: [Equipment]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: equip_id
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: สำเร็จ
- *       404:
- *         description: ไม่พบข้อมูล
- */
-router.get('/:id', (req, res) => {
-  const item = equipment.find(e => e.equip_id === req.params.id);
-  if (!item) return res.status(404).json({ success: false, error: 'Equipment not found' });
-  res.json({ success: true, data: item });
-});
-
-/**
- * @swagger
- * /api/equipment/{id}/history:
- *   get:
- *     summary: ดูประวัติอุปกรณ์
- *     tags: [Equipment]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: equip_id
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: สำเร็จ
- */
-router.get('/:id/history', (req, res) => {
-  const history = equipmentHistory.filter(h => h.equip_id === req.params.id);
-  res.json({ success: true, data: history });
-});
-
-/**
- * @swagger
- * /api/equipment:
- *   post:
- *     summary: เพิ่มอุปกรณ์ใหม่
- *     tags: [Equipment]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               equip_id:
- *                 type: string
- *               name:
- *                 type: string
- *               status:
- *                 type: string
- *     responses:
- *       201:
- *         description: สร้างสำเร็จ
- */
-router.post('/', (req, res) => {
-  const newItem = req.body;
-
-  if (!newItem.equip_id) {
-    newItem.equip_id = 'E' + String(Date.now()).slice(-4);
+router.get('/', async (req, res) => {
+  try {
+    const equipment = await query('SELECT * FROM equipment');
+    res.json({ success: true, data: equipment });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
   }
-
-  equipment.push(newItem);
-  res.status(201).json({ success: true, data: newItem });
 });
 
-/**
- * @swagger
- * /api/equipment/{id}:
- *   put:
- *     summary: แก้ไขอุปกรณ์
- *     tags: [Equipment]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: แก้ไขสำเร็จ
- *       404:
- *         description: ไม่พบข้อมูล
- */
-router.put('/:id', (req, res) => {
-  const index = equipment.findIndex(e => e.equip_id === req.params.id);
-  if (index === -1) return res.status(404).json({ success: false, error: 'Equipment not found' });
-
-  equipment[index] = { ...equipment[index], ...req.body };
-  res.json({ success: true, data: equipment[index] });
+router.get('/:id', async (req, res) => {
+  try {
+    const rows = await query('SELECT * FROM equipment WHERE equip_id = ?', [req.params.id]);
+    if (rows.length === 0) return res.status(404).json({ success: false, error: 'Equipment not found' });
+    res.json({ success: true, data: rows[0] });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
 });
 
-/**
- * @swagger
- * /api/equipment/{id}:
- *   delete:
- *     summary: ลบอุปกรณ์
- *     tags: [Equipment]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: ลบสำเร็จ
- *       404:
- *         description: ไม่พบข้อมูล
- */
-router.delete('/:id', (req, res) => {
-  const index = equipment.findIndex(e => e.equip_id === req.params.id);
-  if (index === -1) return res.status(404).json({ success: false, error: 'Equipment not found' });
+router.get('/:id/history', async (req, res) => {
+  try {
+    const history = await query('SELECT * FROM equipment_history WHERE equip_id = ? ORDER BY date DESC', [req.params.id]);
+    res.json({ success: true, data: history });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
+});
 
-  equipment.splice(index, 1);
-  res.json({ success: true, message: 'Deleted' });
+router.post('/', async (req, res) => {
+  try {
+    const newItem = req.body;
+    if (!newItem.equip_id) {
+      newItem.equip_id = 'E' + Date.now();
+    }
+
+    await query(
+      'INSERT INTO equipment (equip_id, name, type_category, total_qty, remain_qty, unit_id, dept_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [
+        newItem.equip_id,
+        newItem.name || '',
+        newItem.type_category || null,
+        newItem.total_qty || 0,
+        newItem.remain_qty || 0,
+        newItem.unit_id || null,
+        newItem.dept_id || null,
+        newItem.status || null
+      ]
+    );
+
+    res.status(201).json({ success: true, data: newItem });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
+});
+
+router.put('/:id', async (req, res) => {
+  try {
+    const rows = await query('SELECT * FROM equipment WHERE equip_id = ?', [req.params.id]);
+    if (rows.length === 0) return res.status(404).json({ success: false, error: 'Equipment not found' });
+
+    const existing = rows[0] as any;
+    const updated = { ...existing, ...req.body };
+
+    await query(
+      'UPDATE equipment SET name = ?, type_category = ?, total_qty = ?, remain_qty = ?, unit_id = ?, dept_id = ?, status = ? WHERE equip_id = ?',
+      [
+        updated.name || '',
+        updated.type_category || null,
+        updated.total_qty || 0,
+        updated.remain_qty || 0,
+        updated.unit_id || null,
+        updated.dept_id || null,
+        updated.status || null,
+        req.params.id
+      ]
+    );
+
+    res.json({ success: true, data: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
+});
+
+router.delete('/:id', async (req, res) => {
+  try {
+    const result: any = await execute('DELETE FROM equipment WHERE equip_id = ?', [req.params.id]);
+    if (result.affectedRows === 0) return res.status(404).json({ success: false, error: 'Equipment not found' });
+    res.json({ success: true, message: 'Deleted' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
 });
 
 export default router;

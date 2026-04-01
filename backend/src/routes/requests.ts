@@ -1,138 +1,88 @@
 import { Router } from 'express';
-import { requests } from '../lib/data';
+import { query, execute } from '../lib/db';
 
 const router = Router();
 
-/**
- * @swagger
- * tags:
- *   name: Requests
- *   description: จัดการคำร้อง
- */
+function jsonValue(value: unknown) {
+  return value == null ? null : JSON.stringify(value);
+}
 
-/**
- * @swagger
- * /api/requests:
- *   get:
- *     summary: ดึงคำร้องทั้งหมด
- *     tags: [Requests]
- *     responses:
- *       200:
- *         description: สำเร็จ
- */
-router.get('/', (req, res) => {
-  res.json({ success: true, data: requests });
-});
-
-/**
- * @swagger
- * /api/requests/{id}:
- *   get:
- *     summary: ดึงคำร้องตาม ID
- *     tags: [Requests]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: req_id
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: สำเร็จ
- *       404:
- *         description: ไม่พบข้อมูล
- */
-router.get('/:id', (req, res) => {
-  const item = requests.find(r => r.req_id === req.params.id);
-  if (!item) return res.status(404).json({ success: false, error: 'Request not found' });
-  res.json({ success: true, data: item });
-});
-
-/**
- * @swagger
- * /api/requests:
- *   post:
- *     summary: สร้างคำร้องใหม่
- *     tags: [Requests]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               req_id:
- *                 type: string
- *               title:
- *                 type: string
- *               description:
- *                 type: string
- *     responses:
- *       201:
- *         description: สร้างสำเร็จ
- */
-router.post('/', (req, res) => {
-  const newReq = req.body;
-
-  if (!newReq.req_id) {
-    newReq.req_id = 'R' + String(Date.now()).slice(-4);
+router.get('/', async (req, res) => {
+  try {
+    const requests = await query('SELECT * FROM requests');
+    res.json({ success: true, data: requests });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
   }
-
-  requests.push(newReq);
-  res.status(201).json({ success: true, data: newReq });
 });
 
-/**
- * @swagger
- * /api/requests/{id}:
- *   put:
- *     summary: แก้ไขคำร้อง
- *     tags: [Requests]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: แก้ไขสำเร็จ
- *       404:
- *         description: ไม่พบข้อมูล
- */
-router.put('/:id', (req, res) => {
-  const index = requests.findIndex(r => r.req_id === req.params.id);
-  if (index === -1) return res.status(404).json({ success: false, error: 'Request not found' });
-
-  requests[index] = { ...requests[index], ...req.body };
-  res.json({ success: true, data: requests[index] });
+router.get('/:id', async (req, res) => {
+  try {
+    const rows = await query('SELECT * FROM requests WHERE req_id = ?', [req.params.id]);
+    if (rows.length === 0) return res.status(404).json({ success: false, error: 'Request not found' });
+    res.json({ success: true, data: rows[0] });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
 });
 
-/**
- * @swagger
- * /api/requests/{id}:
- *   delete:
- *     summary: ลบคำร้อง
- *     tags: [Requests]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: ลบสำเร็จ
- *       404:
- *         description: ไม่พบข้อมูล
- */
-router.delete('/:id', (req, res) => {
-  const index = requests.findIndex(r => r.req_id === req.params.id);
-  if (index === -1) return res.status(404).json({ success: false, error: 'Request not found' });
+router.post('/', async (req, res) => {
+  try {
+    const newReq = { ...req.body };
+    if (!newReq.req_id) {
+      newReq.req_id = 'R' + Date.now();
+    }
 
-  requests.splice(index, 1);
-  res.json({ success: true, message: 'Deleted' });
+    await query(
+      'INSERT INTO requests (req_id, req_date, req_status, user_id, items) VALUES (?, ?, ?, ?, ?)',
+      [
+        newReq.req_id,
+        newReq.req_date || new Date().toISOString().slice(0, 10),
+        newReq.req_status || '',
+        newReq.user_id || '',
+        jsonValue(newReq.items)
+      ]
+    );
+
+    res.status(201).json({ success: true, data: newReq });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
+});
+
+router.put('/:id', async (req, res) => {
+  try {
+    const rows = await query('SELECT * FROM requests WHERE req_id = ?', [req.params.id]);
+    if (rows.length === 0) return res.status(404).json({ success: false, error: 'Request not found' });
+
+    const existing = rows[0] as any;
+    const updated = { ...existing, ...req.body };
+
+    await query(
+      'UPDATE requests SET req_date = ?, req_status = ?, user_id = ?, items = ? WHERE req_id = ?',
+      [
+        updated.req_date || new Date().toISOString().slice(0, 10),
+        updated.req_status || '',
+        updated.user_id || '',
+        jsonValue(updated.items),
+        req.params.id
+      ]
+    );
+
+    res.json({ success: true, data: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
+});
+
+router.delete('/:id', async (req, res) => {
+  try {
+    const result: any = await execute('DELETE FROM requests WHERE req_id = ?', [req.params.id]);
+    if (result.affectedRows === 0) return res.status(404).json({ success: false, error: 'Request not found' });
+    res.json({ success: true, message: 'Deleted' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
 });
 
 export default router;

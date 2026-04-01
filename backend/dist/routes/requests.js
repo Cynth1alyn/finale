@@ -1,37 +1,79 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const data_1 = require("../lib/data");
+const db_1 = require("../lib/db");
 const router = (0, express_1.Router)();
-router.get('/', (req, res) => {
-    res.json({ success: true, data: data_1.requests });
-});
-router.get('/:id', (req, res) => {
-    const item = data_1.requests.find(r => r.req_id === req.params.id);
-    if (!item)
-        return res.status(404).json({ success: false, error: 'Request not found' });
-    res.json({ success: true, data: item });
-});
-router.post('/', (req, res) => {
-    const newReq = req.body;
-    if (!newReq.req_id) {
-        newReq.req_id = 'R' + String(Date.now()).slice(-4);
+function jsonValue(value) {
+    return value == null ? null : JSON.stringify(value);
+}
+router.get('/', async (req, res) => {
+    try {
+        const requests = await (0, db_1.query)('SELECT * FROM requests');
+        res.json({ success: true, data: requests });
     }
-    data_1.requests.push(newReq);
-    res.status(201).json({ success: true, data: newReq });
+    catch (error) {
+        res.status(500).json({ success: false, error: String(error) });
+    }
 });
-router.put('/:id', (req, res) => {
-    const index = data_1.requests.findIndex(r => r.req_id === req.params.id);
-    if (index === -1)
-        return res.status(404).json({ success: false, error: 'Request not found' });
-    data_1.requests[index] = { ...data_1.requests[index], ...req.body };
-    res.json({ success: true, data: data_1.requests[index] });
+router.get('/:id', async (req, res) => {
+    try {
+        const rows = await (0, db_1.query)('SELECT * FROM requests WHERE req_id = ?', [req.params.id]);
+        if (rows.length === 0)
+            return res.status(404).json({ success: false, error: 'Request not found' });
+        res.json({ success: true, data: rows[0] });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, error: String(error) });
+    }
 });
-router.delete('/:id', (req, res) => {
-    const index = data_1.requests.findIndex(r => r.req_id === req.params.id);
-    if (index === -1)
-        return res.status(404).json({ success: false, error: 'Request not found' });
-    data_1.requests.splice(index, 1);
-    res.json({ success: true, message: 'Deleted' });
+router.post('/', async (req, res) => {
+    try {
+        const newReq = { ...req.body };
+        if (!newReq.req_id) {
+            newReq.req_id = 'R' + Date.now();
+        }
+        await (0, db_1.query)('INSERT INTO requests (req_id, req_date, req_status, user_id, items) VALUES (?, ?, ?, ?, ?)', [
+            newReq.req_id,
+            newReq.req_date || new Date().toISOString().slice(0, 10),
+            newReq.req_status || '',
+            newReq.user_id || '',
+            jsonValue(newReq.items)
+        ]);
+        res.status(201).json({ success: true, data: newReq });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, error: String(error) });
+    }
+});
+router.put('/:id', async (req, res) => {
+    try {
+        const rows = await (0, db_1.query)('SELECT * FROM requests WHERE req_id = ?', [req.params.id]);
+        if (rows.length === 0)
+            return res.status(404).json({ success: false, error: 'Request not found' });
+        const existing = rows[0];
+        const updated = { ...existing, ...req.body };
+        await (0, db_1.query)('UPDATE requests SET req_date = ?, req_status = ?, user_id = ?, items = ? WHERE req_id = ?', [
+            updated.req_date || new Date().toISOString().slice(0, 10),
+            updated.req_status || '',
+            updated.user_id || '',
+            jsonValue(updated.items),
+            req.params.id
+        ]);
+        res.json({ success: true, data: updated });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, error: String(error) });
+    }
+});
+router.delete('/:id', async (req, res) => {
+    try {
+        const result = await (0, db_1.execute)('DELETE FROM requests WHERE req_id = ?', [req.params.id]);
+        if (result.affectedRows === 0)
+            return res.status(404).json({ success: false, error: 'Request not found' });
+        res.json({ success: true, message: 'Deleted' });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, error: String(error) });
+    }
 });
 exports.default = router;

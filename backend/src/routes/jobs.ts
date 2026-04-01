@@ -1,131 +1,110 @@
 import { Router } from 'express';
-import { jobs } from '../lib/data';
+import { query, execute } from '../lib/db';
 
 const router = Router();
 
-/**
- * @swagger
- * tags:
- *   name: Jobs
- *   description: จัดการงาน
- */
+function jsonValue(value: unknown) {
+  return value == null ? null : JSON.stringify(value);
+}
 
-/**
- * @swagger
- * /api/jobs:
- *   get:
- *     summary: ดึงงานทั้งหมด
- *     tags: [Jobs]
- *     responses:
- *       200:
- *         description: สำเร็จ
- */
-router.get('/', (req, res) => {
-  res.json({ success: true, data: jobs });
+router.get('/', async (req, res) => {
+  try {
+    const jobs = await query('SELECT * FROM jobs');
+    res.json({ success: true, data: jobs });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
 });
 
-/**
- * @swagger
- * /api/jobs/{id}:
- *   get:
- *     summary: ดึงงานตาม ID
- *     tags: [Jobs]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: job_id
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: สำเร็จ
- *       404:
- *         description: ไม่พบงาน
- */
-router.get('/:id', (req, res) => {
-  const job = jobs.find(j => j.job_id === req.params.id);
-  if (!job) return res.status(404).json({ success: false, error: 'Job not found' });
-  res.json({ success: true, data: job });
+router.get('/:id', async (req, res) => {
+  try {
+    const jobs = await query('SELECT * FROM jobs WHERE job_id = ?', [req.params.id]);
+    if (jobs.length === 0) return res.status(404).json({ success: false, error: 'Job not found' });
+    res.json({ success: true, data: jobs[0] });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
 });
 
-/**
- * @swagger
- * /api/jobs:
- *   post:
- *     summary: สร้างงานใหม่
- *     tags: [Jobs]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *               status:
- *                 type: string
- *     responses:
- *       201:
- *         description: สร้างสำเร็จ
- */
-router.post('/', (req, res) => {
-  const newJob = { ...req.body, job_id: 'J' + Date.now() };
-  jobs.push(newJob);
-  res.status(201).json({ success: true, data: newJob });
+router.post('/', async (req, res) => {
+  try {
+    const newJob = { ...req.body };
+    if (!newJob.job_id) {
+      newJob.job_id = 'J' + Date.now();
+    }
+
+    await query(
+      'INSERT INTO jobs (job_id, job_title, description, start_date, due_date, job_priority, job_status, assigned_user_ids, lat, lng, customer_name, contact_number, address, landmark, assigned_lead_id, equipment_requests) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [
+        newJob.job_id,
+        newJob.job_title || '',
+        newJob.description || '',
+        newJob.start_date || new Date().toISOString().slice(0, 10),
+        newJob.due_date || new Date().toISOString().slice(0, 10),
+        newJob.job_priority || '',
+        newJob.job_status || '',
+        jsonValue(newJob.assigned_user_ids),
+        newJob.lat ?? null,
+        newJob.lng ?? null,
+        newJob.customer_name || null,
+        newJob.contact_number || null,
+        newJob.address || null,
+        newJob.landmark || null,
+        newJob.assigned_lead_id || null,
+        jsonValue(newJob.equipment_requests)
+      ]
+    );
+
+    res.status(201).json({ success: true, data: newJob });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
 });
 
-/**
- * @swagger
- * /api/jobs/{id}:
- *   put:
- *     summary: แก้ไขงาน
- *     tags: [Jobs]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: แก้ไขสำเร็จ
- *       404:
- *         description: ไม่พบงาน
- */
-router.put('/:id', (req, res) => {
-  const index = jobs.findIndex(j => j.job_id === req.params.id);
-  if (index === -1) return res.status(404).json({ success: false, error: 'Job not found' });
+router.put('/:id', async (req, res) => {
+  try {
+    const jobs = await query('SELECT * FROM jobs WHERE job_id = ?', [req.params.id]);
+    if (jobs.length === 0) return res.status(404).json({ success: false, error: 'Job not found' });
 
-  jobs[index] = { ...jobs[index], ...req.body };
-  res.json({ success: true, data: jobs[index] });
+    const existing = jobs[0] as any;
+    const updated = { ...existing, ...req.body };
+
+    await query(
+      'UPDATE jobs SET job_title = ?, description = ?, start_date = ?, due_date = ?, job_priority = ?, job_status = ?, assigned_user_ids = ?, lat = ?, lng = ?, customer_name = ?, contact_number = ?, address = ?, landmark = ?, assigned_lead_id = ?, equipment_requests = ? WHERE job_id = ?',
+      [
+        updated.job_title || '',
+        updated.description || '',
+        updated.start_date || new Date().toISOString().slice(0, 10),
+        updated.due_date || new Date().toISOString().slice(0, 10),
+        updated.job_priority || '',
+        updated.job_status || '',
+        jsonValue(updated.assigned_user_ids),
+        updated.lat ?? null,
+        updated.lng ?? null,
+        updated.customer_name || null,
+        updated.contact_number || null,
+        updated.address || null,
+        updated.landmark || null,
+        updated.assigned_lead_id || null,
+        jsonValue(updated.equipment_requests),
+        req.params.id
+      ]
+    );
+
+    res.json({ success: true, data: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
 });
 
-/**
- * @swagger
- * /api/jobs/{id}:
- *   delete:
- *     summary: ลบงาน
- *     tags: [Jobs]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: ลบสำเร็จ
- *       404:
- *         description: ไม่พบงาน
- */
-router.delete('/:id', (req, res) => {
-  const index = jobs.findIndex(j => j.job_id === req.params.id);
-  if (index === -1) return res.status(404).json({ success: false, error: 'Job not found' });
-
-  jobs.splice(index, 1);
-  res.json({ success: true, message: 'Deleted' });
+router.delete('/:id', async (req, res) => {
+  try {
+    const result: any = await execute('DELETE FROM jobs WHERE job_id = ?', [req.params.id]);
+    if (result.affectedRows === 0) return res.status(404).json({ success: false, error: 'Job not found' });
+    res.json({ success: true, message: 'Deleted' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
 });
 
 export default router;

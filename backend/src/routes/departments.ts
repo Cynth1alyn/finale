@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { departments } from '../lib/data';
+import { query, execute } from '../lib/db';
 
 const router = Router();
 
@@ -10,127 +10,62 @@ const router = Router();
  *   description: จัดการแผนก
  */
 
-/**
- * @swagger
- * /api/departments:
- *   get:
- *     summary: ดึงแผนกทั้งหมด
- *     tags: [Departments]
- *     responses:
- *       200:
- *         description: สำเร็จ
- */
-router.get('/', (req, res) => {
-  res.json({ success: true, data: departments });
-});
-
-/**
- * @swagger
- * /api/departments/{id}:
- *   get:
- *     summary: ดึงแผนกตาม ID
- *     tags: [Departments]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: dept_id
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: สำเร็จ
- *       404:
- *         description: ไม่พบข้อมูล
- */
-router.get('/:id', (req, res) => {
-  const dept = departments.find(d => d.dept_id === req.params.id);
-  if (!dept) return res.status(404).json({ success: false, error: 'Department not found' });
-  res.json({ success: true, data: dept });
-});
-
-/**
- * @swagger
- * /api/departments:
- *   post:
- *     summary: สร้างแผนกใหม่
- *     tags: [Departments]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               dept_id:
- *                 type: string
- *               name:
- *                 type: string
- *     responses:
- *       201:
- *         description: สร้างสำเร็จ
- */
-router.post('/', (req, res) => {
-  const newDept = req.body;
-
-  if (!newDept.dept_id) {
-    newDept.dept_id = 'D' + String(Date.now()).slice(-4);
+router.get('/', async (req, res) => {
+  try {
+    const departments = await query('SELECT * FROM departments');
+    res.json({ success: true, data: departments });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
   }
-
-  departments.push(newDept);
-  res.status(201).json({ success: true, data: newDept });
 });
 
-/**
- * @swagger
- * /api/departments/{id}:
- *   put:
- *     summary: แก้ไขแผนก
- *     tags: [Departments]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: แก้ไขสำเร็จ
- *       404:
- *         description: ไม่พบข้อมูล
- */
-router.put('/:id', (req, res) => {
-  const index = departments.findIndex(d => d.dept_id === req.params.id);
-  if (index === -1) return res.status(404).json({ success: false, error: 'Department not found' });
-
-  departments[index] = { ...departments[index], ...req.body };
-  res.json({ success: true, data: departments[index] });
+router.get('/:id', async (req, res) => {
+  try {
+    const departments = await query('SELECT * FROM departments WHERE dept_id = ?', [req.params.id]);
+    if (departments.length === 0) return res.status(404).json({ success: false, error: 'Department not found' });
+    res.json({ success: true, data: departments[0] });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
 });
 
-/**
- * @swagger
- * /api/departments/{id}:
- *   delete:
- *     summary: ลบแผนก
- *     tags: [Departments]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: ลบสำเร็จ
- *       404:
- *         description: ไม่พบข้อมูล
- */
-router.delete('/:id', (req, res) => {
-  const index = departments.findIndex(d => d.dept_id === req.params.id);
-  if (index === -1) return res.status(404).json({ success: false, error: 'Department not found' });
+router.post('/', async (req, res) => {
+  try {
+    const newDept = req.body;
+    if (!newDept.dept_id) {
+      newDept.dept_id = 'D' + Date.now();
+    }
 
-  departments.splice(index, 1);
-  res.json({ success: true, message: 'Deleted' });
+    await query('INSERT INTO departments (dept_id, dept_name, description) VALUES (?, ?, ?)', [newDept.dept_id, newDept.dept_name || '', newDept.description || null]);
+    res.status(201).json({ success: true, data: newDept });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
+});
+
+router.put('/:id', async (req, res) => {
+  try {
+    const departments = await query('SELECT * FROM departments WHERE dept_id = ?', [req.params.id]);
+    if (departments.length === 0) return res.status(404).json({ success: false, error: 'Department not found' });
+
+    const existing = departments[0] as any;
+    const updated = { ...existing, ...req.body };
+
+    await query('UPDATE departments SET dept_name = ?, description = ? WHERE dept_id = ?', [updated.dept_name || '', updated.description || null, req.params.id]);
+    res.json({ success: true, data: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
+});
+
+router.delete('/:id', async (req, res) => {
+  try {
+    const result: any = await execute('DELETE FROM departments WHERE dept_id = ?', [req.params.id]);
+    if (result.affectedRows === 0) return res.status(404).json({ success: false, error: 'Department not found' });
+    res.json({ success: true, message: 'Deleted' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
 });
 
 export default router;

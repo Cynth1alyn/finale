@@ -1,31 +1,64 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { issues, users, getUserById } from '@/app/lib/mock-data';
-import { IssueStatus } from '@/app/lib/types';
+import { api } from '@/app/lib/api';
+import { Issue, User, IssueStatus } from '@/app/lib/types';
 import StatusBadge from '@/app/components/StatusBadge';
 
 const allStatuses = [IssueStatus.OPEN, IssueStatus.IN_PROGRESS, IssueStatus.RESOLVED, IssueStatus.CLOSED] as const;
-const statusLabels: Record<string, string> = { 
-  [IssueStatus.OPEN]: 'เปิด', 
-  [IssueStatus.IN_PROGRESS]: 'กำลังแก้ไข', 
-  [IssueStatus.RESOLVED]: 'แก้ไขแล้ว', 
-  [IssueStatus.CLOSED]: 'ปิด' 
-};
 
-export default async function IssueDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const issue = issues.find(i => i.issue_id === id);
+export default function IssueDetailPage({ params }: { params: { id: string } }) {
+  const { id } = params;
+  const [issue, setIssue] = useState<Issue | null>(null);
+  const [reporter, setReporter] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
-  if (!issue) return (
-    <div className="card" style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
-      ไม่พบรายการ #{id}
-      <br /><Link href="/issues" className="btn btn-primary" style={{ marginTop: 16, display: 'inline-flex' }}>← กลับ</Link>
-    </div>
-  );
+  useEffect(() => {
+    let cancelled = false;
 
-  const reporter = getUserById(issue.reporter_id);
+    async function fetchIssue() {
+      try {
+        const fetchedIssue = await api.issues.getIssue(id);
+        if (cancelled) return;
+        setIssue(fetchedIssue);
+
+        if (fetchedIssue.reporter_id) {
+          try {
+            const user = await api.users.getUser(fetchedIssue.reporter_id);
+            if (!cancelled) setReporter(user);
+          } catch (error) {
+            console.warn('Reporter not found:', error);
+          }
+        }
+      } catch (error) {
+        if (!cancelled) setNotFound(true);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    fetchIssue();
+    return () => { cancelled = true; };
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="card" style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
+        กำลังโหลดข้อมูล...
+      </div>
+    );
+  }
+
+  if (notFound || !issue) {
+    return (
+      <div className="card" style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
+        ไม่พบรายการ #{id}
+        <br /><Link href="/issues" className="btn btn-primary" style={{ marginTop: 16, display: 'inline-flex' }}>← กลับ</Link>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -41,7 +74,6 @@ export default async function IssueDetailPage({ params }: { params: Promise<{ id
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20 }}>
-        {/* Main content */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
           <div className="card" style={{ padding: '22px 24px' }}>
             <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>รายละเอียดปัญหา</h3>
@@ -62,11 +94,9 @@ export default async function IssueDetailPage({ params }: { params: Promise<{ id
             )}
           </div>
 
-          {/* Status update */}
           <IssueStatusUpdater currentStatus={issue.status} />
         </div>
 
-        {/* Side panel */}
         <div className="card" style={{ padding: '20px 22px', alignSelf: 'start' }}>
           <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ข้อมูล</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -81,8 +111,6 @@ export default async function IssueDetailPage({ params }: { params: Promise<{ id
                 <span style={{ fontSize: 13 }}>{r.value}</span>
               </div>
             ))}
-
-            {/* Reporter */}
             {reporter && (
               <div style={{ paddingTop: 4 }}>
                 <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>ผู้แจ้ง</div>

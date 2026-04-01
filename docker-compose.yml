@@ -1,32 +1,34 @@
 version: '3.8'
 
 services:
-  mongodb:
-    image: mongo:latest
-    container_name: techjob-mongodb
+  mysql:
+    image: mysql:8.1
+    container_name: techjob-mysql
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: examplepassword
+      MYSQL_ROOT_PASSWORD: examplepassword
+      MYSQL_DATABASE: techjob
+      MYSQL_USER: techjob
+      MYSQL_PASSWORD: techjob123
     ports:
-      - "27017:27017"
+      - "3306:3306"
     volumes:
-      - mongodb_data:/data/db
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
 
-  mongo-express:
-    image: mongo-express:latest
-    container_name: techjob-mongo-express
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: techjob-phpmyadmin
     restart: always
-    ports:
-      - "8081:8081"
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: root
-      ME_CONFIG_MONGODB_ADMINPASSWORD: examplepassword
-      ME_CONFIG_MONGODB_URL: mongodb://root:examplepassword@mongodb:27017/
-      ME_CONFIG_BASICAUTH_USERNAME: admin
-      ME_CONFIG_BASICAUTH_PASSWORD: pass
     depends_on:
-      - mongodb
+      - mysql
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: techjob
+      PMA_PASSWORD: techjob123
+      PMA_ARBITRARY: 1
 
 volumes:
-  mongodb_data:
+  mysql_data:

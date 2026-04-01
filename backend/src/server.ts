@@ -9,6 +9,7 @@ import usersRoutes from './routes/users';
 import equipmentRoutes from './routes/equipment';
 import departmentRoutes from './routes/departments';
 import requestsRoutes from './routes/requests';
+import { connectDB, initializeDatabase } from './lib/db';
 
 dotenv.config();
 
@@ -46,6 +47,16 @@ app.use((err: Error, req: express.Request, res: express.Response, _next: express
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+async function startServer() {
+  await connectDB();
+  await initializeDatabase();
+
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
+
+startServer().catch((error) => {
+  console.error('Server failed to start:', error);
+  process.exit(1);
 });

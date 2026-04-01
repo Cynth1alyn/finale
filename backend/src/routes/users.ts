@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { users } from '../lib/data';
+import { query, execute } from '../lib/db';
 
 const router = Router();
 
@@ -10,127 +10,88 @@ const router = Router();
  *   description: จัดการผู้ใช้งาน
  */
 
-/**
- * @swagger
- * /api/users:
- *   get:
- *     summary: ดึงผู้ใช้ทั้งหมด
- *     tags: [Users]
- *     responses:
- *       200:
- *         description: สำเร็จ
- */
-router.get('/', (req, res) => {
-  res.json({ success: true, data: users });
-});
-
-/**
- * @swagger
- * /api/users/{id}:
- *   get:
- *     summary: ดึงผู้ใช้ตาม ID
- *     tags: [Users]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: user_id
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: สำเร็จ
- *       404:
- *         description: ไม่พบผู้ใช้
- */
-router.get('/:id', (req, res) => {
-  const user = users.find(u => u.user_id === req.params.id);
-  if (!user) return res.status(404).json({ success: false, error: 'User not found' });
-  res.json({ success: true, data: user });
-});
-
-/**
- * @swagger
- * /api/users:
- *   post:
- *     summary: สร้างผู้ใช้ใหม่
- *     tags: [Users]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               user_id:
- *                 type: string
- *               name:
- *                 type: string
- *     responses:
- *       201:
- *         description: สร้างสำเร็จ
- */
-router.post('/', (req, res) => {
-  const newUser = req.body;
-
-  if (!newUser.user_id) {
-    newUser.user_id = 'U' + String(Date.now()).slice(-4);
+router.get('/', async (req, res) => {
+  try {
+    const users = await query('SELECT * FROM users');
+    res.json({ success: true, data: users });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
   }
-
-  users.push(newUser);
-  res.status(201).json({ success: true, data: newUser });
 });
 
-/**
- * @swagger
- * /api/users/{id}:
- *   put:
- *     summary: แก้ไขผู้ใช้
- *     tags: [Users]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: แก้ไขสำเร็จ
- *       404:
- *         description: ไม่พบผู้ใช้
- */
-router.put('/:id', (req, res) => {
-  const index = users.findIndex(u => u.user_id === req.params.id);
-  if (index === -1) return res.status(404).json({ success: false, error: 'User not found' });
-
-  users[index] = { ...users[index], ...req.body };
-  res.json({ success: true, data: users[index] });
+router.get('/:id', async (req, res) => {
+  try {
+    const users = await query('SELECT * FROM users WHERE user_id = ?', [req.params.id]);
+    if (users.length === 0) return res.status(404).json({ success: false, error: 'User not found' });
+    res.json({ success: true, data: users[0] });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
 });
 
-/**
- * @swagger
- * /api/users/{id}:
- *   delete:
- *     summary: ลบผู้ใช้
- *     tags: [Users]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: ลบสำเร็จ
- *       404:
- *         description: ไม่พบผู้ใช้
- */
-router.delete('/:id', (req, res) => {
-  const index = users.findIndex(u => u.user_id === req.params.id);
-  if (index === -1) return res.status(404).json({ success: false, error: 'User not found' });
+router.post('/', async (req, res) => {
+  try {
+    const newUser = req.body;
+    if (!newUser.user_id) {
+      newUser.user_id = 'U' + Date.now();
+    }
 
-  users.splice(index, 1);
-  res.json({ success: true, message: 'Deleted' });
+    await query(
+      'INSERT INTO users (user_id, firstname, lastname, email, tel, role, dept_id, avatar_color) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [
+        newUser.user_id,
+        newUser.firstname || '',
+        newUser.lastname || '',
+        newUser.email || '',
+        newUser.tel || '',
+        newUser.role || '',
+        newUser.dept_id || null,
+        newUser.avatar_color || null
+      ]
+    );
+
+    res.status(201).json({ success: true, data: newUser });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
+});
+
+router.put('/:id', async (req, res) => {
+  try {
+    const users = await query('SELECT * FROM users WHERE user_id = ?', [req.params.id]);
+    if (users.length === 0) return res.status(404).json({ success: false, error: 'User not found' });
+
+    const existing = users[0] as any;
+    const updated = { ...existing, ...req.body };
+
+    await query(
+      'UPDATE users SET firstname = ?, lastname = ?, email = ?, tel = ?, role = ?, dept_id = ?, avatar_color = ? WHERE user_id = ?',
+      [
+        updated.firstname || '',
+        updated.lastname || '',
+        updated.email || '',
+        updated.tel || '',
+        updated.role || '',
+        updated.dept_id || null,
+        updated.avatar_color || null,
+        req.params.id
+      ]
+    );
+
+    res.json({ success: true, data: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
+});
+
+router.delete('/:id', async (req, res) => {
+  try {
+    const result: any = await execute('DELETE FROM users WHERE user_id = ?', [req.params.id]);
+    if (result.affectedRows === 0) return res.status(404).json({ success: false, error: 'User not found' });
+    res.json({ success: true, message: 'Deleted' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
 });
 
 export default router;

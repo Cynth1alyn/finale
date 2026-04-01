@@ -1,38 +1,88 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const data_1 = require("../lib/data");
+const db_1 = require("../lib/db");
 const router = (0, express_1.Router)();
-router.get('/', (req, res) => {
-    res.json({ success: true, data: data_1.users });
-});
-router.get('/:id', (req, res) => {
-    const user = data_1.users.find(u => u.user_id === req.params.id);
-    if (!user)
-        return res.status(404).json({ success: false, error: 'User not found' });
-    res.json({ success: true, data: user });
-});
-router.post('/', (req, res) => {
-    const newUser = req.body;
-    // Provide fallback ID generation if not provided by frontend
-    if (!newUser.user_id) {
-        newUser.user_id = 'U' + String(Date.now()).slice(-4);
+/**
+ * @swagger
+ * tags:
+ *   name: Users
+ *   description: จัดการผู้ใช้งาน
+ */
+router.get('/', async (req, res) => {
+    try {
+        const users = await (0, db_1.query)('SELECT * FROM users');
+        res.json({ success: true, data: users });
     }
-    data_1.users.push(newUser);
-    res.status(201).json({ success: true, data: newUser });
+    catch (error) {
+        res.status(500).json({ success: false, error: String(error) });
+    }
 });
-router.put('/:id', (req, res) => {
-    const index = data_1.users.findIndex(u => u.user_id === req.params.id);
-    if (index === -1)
-        return res.status(404).json({ success: false, error: 'User not found' });
-    data_1.users[index] = { ...data_1.users[index], ...req.body };
-    res.json({ success: true, data: data_1.users[index] });
+router.get('/:id', async (req, res) => {
+    try {
+        const users = await (0, db_1.query)('SELECT * FROM users WHERE user_id = ?', [req.params.id]);
+        if (users.length === 0)
+            return res.status(404).json({ success: false, error: 'User not found' });
+        res.json({ success: true, data: users[0] });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, error: String(error) });
+    }
 });
-router.delete('/:id', (req, res) => {
-    const index = data_1.users.findIndex(u => u.user_id === req.params.id);
-    if (index === -1)
-        return res.status(404).json({ success: false, error: 'User not found' });
-    data_1.users.splice(index, 1);
-    res.json({ success: true, message: 'Deleted' });
+router.post('/', async (req, res) => {
+    try {
+        const newUser = req.body;
+        if (!newUser.user_id) {
+            newUser.user_id = 'U' + Date.now();
+        }
+        await (0, db_1.query)('INSERT INTO users (user_id, firstname, lastname, email, tel, role, dept_id, avatar_color) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [
+            newUser.user_id,
+            newUser.firstname || '',
+            newUser.lastname || '',
+            newUser.email || '',
+            newUser.tel || '',
+            newUser.role || '',
+            newUser.dept_id || null,
+            newUser.avatar_color || null
+        ]);
+        res.status(201).json({ success: true, data: newUser });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, error: String(error) });
+    }
+});
+router.put('/:id', async (req, res) => {
+    try {
+        const users = await (0, db_1.query)('SELECT * FROM users WHERE user_id = ?', [req.params.id]);
+        if (users.length === 0)
+            return res.status(404).json({ success: false, error: 'User not found' });
+        const existing = users[0];
+        const updated = { ...existing, ...req.body };
+        await (0, db_1.query)('UPDATE users SET firstname = ?, lastname = ?, email = ?, tel = ?, role = ?, dept_id = ?, avatar_color = ? WHERE user_id = ?', [
+            updated.firstname || '',
+            updated.lastname || '',
+            updated.email || '',
+            updated.tel || '',
+            updated.role || '',
+            updated.dept_id || null,
+            updated.avatar_color || null,
+            req.params.id
+        ]);
+        res.json({ success: true, data: updated });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, error: String(error) });
+    }
+});
+router.delete('/:id', async (req, res) => {
+    try {
+        const result = await (0, db_1.execute)('DELETE FROM users WHERE user_id = ?', [req.params.id]);
+        if (result.affectedRows === 0)
+            return res.status(404).json({ success: false, error: 'User not found' });
+        res.json({ success: true, message: 'Deleted' });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, error: String(error) });
+    }
 });
 exports.default = router;

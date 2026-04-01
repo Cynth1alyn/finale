@@ -1,22 +1,40 @@
 import Link from 'next/link';
-import { jobs, users, getDeptById } from '@/app/lib/mock-data';
-import { JobStatus } from '@/app/lib/types';
+import { api } from '@/app/lib/api';
+import { JobStatus, User } from '@/app/lib/types';
 import StatusBadge from '@/app/components/StatusBadge';
 import PriorityBadge from '@/app/components/PriorityBadge';
 
-export default async function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const job = jobs.find(j => j.job_id === id);
+export default async function JobDetailPage({ params }: { params: { id: string } }) {
+  const { id } = params;
 
-  if (!job) return (
-    <div className="card" style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
-      ไม่พบงาน #{id}
-      <br /><Link href="/jobs" className="btn btn-primary" style={{ marginTop: 16, display: 'inline-flex' }}>← กลับ</Link>
-    </div>
-  );
+  let job;
+  try {
+    job = await api.jobs.getJob(id);
+  } catch {
+    job = null;
+  }
 
-  const assignedUsers = users.filter(u => job.assigned_user_ids.includes(u.user_id));
-  const dept = assignedUsers[0] ? getDeptById(assignedUsers[0].dept_id) : null;
+  if (!job) {
+    return (
+      <div className="card" style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
+        ไม่พบงาน #{id}
+        <br /><Link href="/jobs" className="btn btn-primary" style={{ marginTop: 16, display: 'inline-flex' }}>← กลับ</Link>
+      </div>
+    );
+  }
+
+  const assignedUsers: User[] = [];
+  for (const userId of job.assigned_user_ids ?? []) {
+    try {
+      const user = await api.users.getUser(userId);
+      assignedUsers.push(user);
+    } catch {
+      // skip missing user
+    }
+  }
+
+  const departments = await api.departments.getDepartments();
+  const dept = assignedUsers[0] ? departments.find(d => d.dept_id === assignedUsers[0].dept_id) : null;
 
   const daysLeft = Math.ceil((new Date(job.due_date).getTime() - new Date().getTime()) / 86400000);
   const overdue = daysLeft < 0 && job.job_status !== JobStatus.DONE && job.job_status !== JobStatus.CANCELLED;
@@ -42,16 +60,12 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 20 }}>
-        {/* Main */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-
-          {/* Detail card */}
           <div className="card" style={{ padding: '22px 24px' }}>
             <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.05em' }}>รายละเอียด</h3>
             <p style={{ fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.8 }}>{job.description}</p>
           </div>
 
-          {/* Progress */}
           <div className="card" style={{ padding: '22px 24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>ความคืบหน้า</h3>
@@ -71,7 +85,6 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
             </div>
           </div>
 
-          {/* Timeline */}
           <div className="card" style={{ padding: '22px 24px' }}>
             <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Timeline</h3>
             {[
@@ -100,9 +113,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
           </div>
         </div>
 
-        {/* Sidebar panel */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-          {/* Info */}
           <div className="card" style={{ padding: '20px 22px' }}>
             <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ข้อมูลงาน</h3>
             {[
@@ -119,12 +130,11 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
             ))}
           </div>
 
-          {/* Assignees */}
           <div className="card" style={{ padding: '20px 22px' }}>
             <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ผู้รับผิดชอบ ({assignedUsers.length})</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {assignedUsers.map((u, i) => {
-                const dept = getDeptById(u.dept_id);
+                const userDept = departments.find(d => d.dept_id === u.dept_id);
                 return (
                   <div key={u.user_id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div className="avatar avatar-md" style={{ background: avatarColors[i % avatarColors.length], fontSize: 12 }}>
@@ -132,7 +142,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                     </div>
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{u.firstname} {u.lastname}</div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{u.role} · {dept?.dept_name}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{u.role} · {userDept?.dept_name ?? '—'}</div>
                     </div>
                   </div>
                 );
@@ -144,3 +154,4 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
     </>
   );
 }
+

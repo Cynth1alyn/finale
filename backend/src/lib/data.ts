@@ -15,8 +15,8 @@ export const users: User[] = [
 ];
 
 export const equipment: Equipment[] = [
-  { equip_id: "E001", equip_name: "MacBook Pro 14", brand: "Apple", model: "M2 Pro", serial_no: "SN123456", dept_id: "D002", status: EquipmentStatus.ACTIVE, remain_qty: 5 },
-  { equip_id: "E002", equip_name: "Dell UltraSharp 27", brand: "Dell", model: "U2723QE", serial_no: "SN789012", dept_id: "D001", status: EquipmentStatus.ACTIVE, remain_qty: 12 },
+  { equip_id: "E001", name: "MacBook Pro 14", type_category: "Laptop", total_qty: 10, remain_qty: 5, unit_id: "UN01", dept_id: "D002", status: EquipmentStatus.OPERATIONAL },
+  { equip_id: "E002", name: "Dell UltraSharp 27", type_category: "Monitor", total_qty: 15, remain_qty: 12, unit_id: "UN01", dept_id: "D001", status: EquipmentStatus.OPERATIONAL },
 ];
 
 export const issues: Issue[] = [
@@ -24,11 +24,11 @@ export const issues: Issue[] = [
 ];
 
 export const jobs: Job[] = [
-  { job_id: "J001", job_title: "ติดตั้งระบบ Network ชั้น 3", description: "วางสาย LAN และตั้งค่า Switch", start_date: "2026-03-01", due_date: "2026-03-15", priority: Priority.HIGH, job_status: JobStatus.DONE, assigned_user_ids: ["U001"] },
+  { job_id: "J001", job_title: "ติดตั้งระบบ Network ชั้น 3", description: "วางสาย LAN และตั้งค่า Switch", start_date: "2026-03-01", due_date: "2026-03-15", job_priority: Priority.HIGH, job_status: JobStatus.DONE, assigned_user_ids: ["U001"] },
 ];
 
 export const requests: Request[] = [
-  { req_id: "R001", req_title: "ขอเบิกเมาส์และคีย์บอร์ด", req_status: RequestStatus.PENDING, items: [{ id: "ITM001", name: "Mouse Wireless", quantity: 2, unit: "ชิ้น" }] }
+  { req_id: "R001", req_date: "2026-03-10", req_status: RequestStatus.PENDING, user_id: "U001", items: [{ item_id: "RI001", req_id: "R001", equip_id: "E001", qty: 2 }] }
 ];
 
 export const equipmentHistory: EquipmentHistory[] = [

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { users } from '../lib/data';
+import { query } from '../lib/db';
 
 const router = Router();
 
@@ -10,65 +10,23 @@ const router = Router();
  *   description: การยืนยันตัวตน
  */
 
-/**
- * @swagger
- * /api/auth/login:
- *   post:
- *     summary: เข้าสู่ระบบ
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - email
- *               - password
- *             properties:
- *               email:
- *                 type: string
- *                 example: admin@test.com
- *               password:
- *                 type: string
- *                 example: 123456
- *     responses:
- *       200:
- *         description: เข้าสู่ระบบสำเร็จ
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: object
- *                   properties:
- *                     user:
- *                       type: object
- *                     token:
- *                       type: string
- *       401:
- *         description: email หรือ password ไม่ถูกต้อง
- */
-router.post('/login', (req, res) => {
-  const { email, password } = req.body;
+router.post('/login', async (req, res) => {
+  try {
+    const { email } = req.body;
+    console.log(`Login attempt for: ${email}`);
 
-  console.log(`Login attempt for: ${email}`);
+    const users = await query('SELECT * FROM users WHERE email = ?', [email]);
+    if (users.length === 0) return res.status(401).json({ success: false, error: 'Invalid email or password' });
 
-  const user = users.find(u => u.email === email);
-
-  if (user) {
     res.json({
       success: true,
       data: {
-        user,
-        token: "real-token-from-backend-" + Date.now()
+        user: users[0],
+        token: 'real-token-from-backend-' + Date.now()
       }
     });
-  } else {
-    res.status(401).json({ success: false, error: 'Invalid email or password' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
   }
 });
 

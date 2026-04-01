@@ -1,20 +1,29 @@
 import Link from 'next/link';
-import { requests, getItemsByReqId, getEquipById, getUnitById, getUserById } from '@/app/lib/mock-data';
+import { api } from '@/app/lib/api';
 import StatusBadge from '@/app/components/StatusBadge';
 
-export default async function RequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const request = requests.find(r => r.req_id === id);
+export default async function RequestDetailPage({ params }: { params: { id: string } }) {
+  const { id } = params;
 
-  if (!request) return (
-    <div className="card" style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
-      ไม่พบคำขอ #{id}
-      <br /><Link href="/requests" className="btn btn-primary" style={{ marginTop: 16, display: 'inline-flex' }}>← กลับ</Link>
-    </div>
-  );
+  let request;
+  try {
+    request = await api.requests.getRequest(id);
+  } catch {
+    request = null;
+  }
 
-  const requester = getUserById(request.user_id);
-  const items = getItemsByReqId(request.req_id);
+  if (!request) {
+    return (
+      <div className="card" style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
+        ไม่พบคำขอ #{id}
+        <br /><Link href="/requests" className="btn btn-primary" style={{ marginTop: 16, display: 'inline-flex' }}>← กลับ</Link>
+      </div>
+    );
+  }
+
+  const requester = await api.users.getUser(request.user_id).catch(() => null);
+  const equipmentList = await api.equipment.getEquipment().catch(() => []);
+  const items = request.items ?? [];
 
   return (
     <>
@@ -34,7 +43,6 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20 }}>
-        {/* Items table */}
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border-color)', fontWeight: 700, fontSize: 15 }}>รายการที่ขอ ({items.length} รายการ)</div>
           <table className="data-table">
@@ -50,18 +58,17 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
             </thead>
             <tbody>
               {items.map((item, i) => {
-                const equip = getEquipById(item.equip_id);
-                const unit = equip ? getUnitById(equip.unit_id) : null;
+                const equip = equipmentList.find(e => e.equip_id === item.equip_id);
                 const stockOk = equip && equip.remain_qty >= item.qty;
                 return (
-                  <tr key={item.item_id}>
+                  <tr key={item.item_id || `${item.equip_id}-${i}`}>
                     <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{i + 1}</td>
                     <td>
                       <div style={{ fontWeight: 600, fontSize: 13 }}>{equip?.name ?? '—'}</div>
                       <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{item.equip_id}</div>
                     </td>
-                    <td><span className="badge badge-slate">{equip?.type_category}</span></td>
-                    <td style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{unit?.unit_name ?? '—'}</td>
+                    <td><span className="badge badge-slate">{equip?.type_category ?? '—'}</span></td>
+                    <td style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{equip?.unit_id ?? '—'}</td>
                     <td style={{ textAlign: 'right', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>{item.qty}</td>
                     <td style={{ textAlign: 'right' }}>
                       <span style={{ fontSize: 13, fontWeight: 600, color: stockOk ? 'var(--accent-emerald)' : 'var(--accent-rose)' }}>

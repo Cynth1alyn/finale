@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { users, jobs, issues, equipment, departments, requests } from '../lib/data';
+import { query } from '../lib/db';
 import { JobStatus, IssueStatus, RequestStatus } from '../lib/types';
 
 const router = Router();
@@ -43,18 +43,38 @@ const router = Router();
  *                     pendingRequests:
  *                       type: integer
  */
-router.get('/stats', (req, res) => {
-  res.json({
-    success: true,
-    data: {
-      totalUsers: users.length,
-      activeJobs: jobs.filter(j => j.job_status === JobStatus.IN_PROGRESS).length,
-      openIssues: issues.filter(i => i.status === IssueStatus.OPEN || i.status === IssueStatus.IN_PROGRESS).length,
-      totalEquipment: equipment.length,
-      totalDepartments: departments.length,
-      pendingRequests: requests.filter(r => r.req_status === RequestStatus.PENDING).length,
-    }
-  });
+router.get('/stats', async (req, res) => {
+  try {
+    const [
+      totalUsersRows,
+      activeJobsRows,
+      openIssuesRows,
+      totalEquipmentRows,
+      totalDepartmentsRows,
+      pendingRequestsRows
+    ] = await Promise.all([
+      query('SELECT COUNT(*) AS count FROM users'),
+      query('SELECT COUNT(*) AS count FROM jobs WHERE job_status = ?', [JobStatus.IN_PROGRESS]),
+      query('SELECT COUNT(*) AS count FROM issues WHERE status = ? OR status = ?', [IssueStatus.OPEN, IssueStatus.IN_PROGRESS]),
+      query('SELECT COUNT(*) AS count FROM equipment'),
+      query('SELECT COUNT(*) AS count FROM departments'),
+      query('SELECT COUNT(*) AS count FROM requests WHERE req_status = ?', [RequestStatus.PENDING])
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        totalUsers: totalUsersRows[0]?.count ?? 0,
+        activeJobs: activeJobsRows[0]?.count ?? 0,
+        openIssues: openIssuesRows[0]?.count ?? 0,
+        totalEquipment: totalEquipmentRows[0]?.count ?? 0,
+        totalDepartments: totalDepartmentsRows[0]?.count ?? 0,
+        pendingRequests: pendingRequestsRows[0]?.count ?? 0,
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: String(error) });
+  }
 });
 
 export default router;

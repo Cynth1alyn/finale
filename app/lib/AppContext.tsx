@@ -65,8 +65,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         fetchedDepts,
         fetchedIssues,
         fetchedRequests,
-        fetchedEquip,
-        fetchedNotifs
+        fetchedEquip
       ] = await Promise.all([
         api.jobs.getJobs(),
         api.users.getUsers(),
@@ -74,7 +73,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         api.issues.getIssues(),
         api.requests.getRequests(),
         api.equipment.getEquipment(),
-        api.notifications.getNotifications()
       ]);
 
       setJobs(fetchedJobs);
@@ -83,9 +81,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setIssues(fetchedIssues);
       setRequests(fetchedRequests);
       setEquipment(fetchedEquip);
-      setNotifications(fetchedNotifs);
     } catch (error) {
       console.error('Failed to load initial data:', error);
+    }
+
+    try {
+      const fetchedNotifs = await api.notifications.getNotifications();
+      setNotifications(fetchedNotifs);
+    } catch (error) {
+      console.warn('Notifications endpoint unavailable or failed:', error);
+      setNotifications([]);
     }
   };
 

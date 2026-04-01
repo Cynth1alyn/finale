@@ -6,19 +6,18 @@ var Role;
     Role["ADMIN"] = "admin";
     Role["MANAGER"] = "manager";
     Role["TECHNICIAN"] = "technician";
-    Role["USER"] = "user";
+    Role["STAFF"] = "staff";
 })(Role || (exports.Role = Role = {}));
 var EquipmentStatus;
 (function (EquipmentStatus) {
-    EquipmentStatus["ACTIVE"] = "active";
+    EquipmentStatus["OPERATIONAL"] = "operational";
     EquipmentStatus["MAINTENANCE"] = "maintenance";
-    EquipmentStatus["RETIRED"] = "retired";
-    EquipmentStatus["BROKEN"] = "broken";
+    EquipmentStatus["OUT_OF_ORDER"] = "out-of-order";
+    EquipmentStatus["DECOMMISSIONED"] = "decommissioned";
 })(EquipmentStatus || (exports.EquipmentStatus = EquipmentStatus = {}));
 var IssueStatus;
 (function (IssueStatus) {
     IssueStatus["OPEN"] = "open";
-    IssueStatus["ASSIGNED"] = "assigned";
     IssueStatus["IN_PROGRESS"] = "in-progress";
     IssueStatus["RESOLVED"] = "resolved";
     IssueStatus["CLOSED"] = "closed";
