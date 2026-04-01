@@ -32,7 +32,7 @@ export default function DashboardPage() {
   // Find low stock equipment (e.g. remain_qty <= 3)
   const lowStockEquipment = equipment.filter(e => e.remain_qty <= 3).sort((a, b) => a.remain_qty - b.remain_qty).slice(0, 5);
 
-  const getUserName = (ids: string[]) => ids.map(id => {
+  const getUserName = (ids: string[] | null | undefined) => (ids || []).map(id => {
     const u = users.find(u => u.user_id === id);
     return u ? `${u.firstname}` : '—';
   }).join(', ');

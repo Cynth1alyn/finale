@@ -12,7 +12,7 @@ export default function JobsViewPage() {
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const getUserName = (ids: string[]) => ids.map(id => {
+  const getUserName = (ids: string[] | null | undefined) => (ids || []).map(id => {
     const u = users.find(u => u.user_id === id);
     return u ? `${u.firstname}` : '—';
   }).join(', ');
@@ -91,7 +91,7 @@ export default function JobsViewPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
         {filtered.map(job => {
           const overdue = new Date(job.due_date) < new Date() && job.job_status !== 'done' && job.job_status !== 'cancelled';
-          const assignees = job.assigned_user_ids.map(id => users.find(u => u.user_id === id)).filter(Boolean);
+          const assignees = (job.assigned_user_ids || []).map(id => users.find(u => u.user_id === id)).filter(Boolean);
           
           return (
             <div key={job.job_id} className="card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14, cursor: 'default', borderTop: `4px solid ${job.job_status === 'done' ? 'var(--accent-emerald)' : job.job_status === 'in-progress' ? 'var(--accent-blue)' : job.job_status === 'cancelled' ? 'var(--text-muted)' : 'var(--accent-amber)'}` }}>

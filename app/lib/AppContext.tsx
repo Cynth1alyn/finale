@@ -112,6 +112,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setJobs(prev => [...prev, newJob]);
     } catch (error) {
       console.error('Failed to add job:', error);
+      throw error;
     }
   };
   const updateJob = async (job: Job) => {
@@ -120,6 +121,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setJobs(prev => prev.map(j => (j.job_id === updated.job_id ? updated : j)));
     } catch (error) {
       console.error('Failed to update job:', error);
+      throw error;
     }
   };
   const deleteJob = async (id: string) => {
@@ -128,6 +130,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setJobs(prev => prev.filter(j => j.job_id !== id));
     } catch (error) {
       console.error('Failed to delete job:', error);
+      throw error;
     }
   };
 
@@ -138,6 +141,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setUsers(prev => [...prev, newUser]);
     } catch (error) {
       console.error('Failed to add user:', error);
+      throw error;
     }
   };
   const updateUser = async (user: User) => {
@@ -146,6 +150,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setUsers(prev => prev.map(u => (u.user_id === updated.user_id ? updated : u)));
     } catch (error) {
       console.error('Failed to update user:', error);
+      throw error;
     }
   };
   const deleteUser = async (id: string) => {
@@ -154,6 +159,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setUsers(prev => prev.filter(u => u.user_id !== id));
     } catch (error) {
       console.error('Failed to delete user:', error);
+      throw error;
     }
   };
 
@@ -242,6 +248,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setEquipment(prev => [...prev, newEquip]);
     } catch (error) {
       console.error('Failed to add equipment:', error);
+      throw error;
     }
   };
   const updateEquipment = async (equip: Equipment) => {
@@ -250,6 +257,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setEquipment(prev => prev.map(e => (e.equip_id === updated.equip_id ? updated : e)));
     } catch (error) {
       console.error('Failed to update equipment:', error);
+      throw error;
     }
   };
   const deleteEquipment = async (id: string) => {
@@ -258,6 +266,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setEquipment(prev => prev.filter(e => e.equip_id !== id));
     } catch (error) {
       console.error('Failed to delete equipment:', error);
+      throw error;
     }
   };
 

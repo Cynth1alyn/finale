@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppContext } from '@/app/lib/AppContext';
 import { Job, Priority, JobStatus } from '@/app/lib/types';
@@ -11,8 +11,17 @@ import { User, UserPlus, Pencil, Package, X } from 'lucide-react';
 export default function NewJobPage() {
   const router = useRouter();
   const { jobs, users, equipment, addJob, updateEquipment } = useAppContext();
-  
+
+  // Generate new job ID from current list
+  const newJobId = useMemo(() => {
+    const maxNum = jobs.length > 0
+      ? Math.max(...jobs.map(x => parseInt(x.job_id.replace(/\D/g, ''), 10) || 0))
+      : 0;
+    return `J${String(maxNum + 1).padStart(3, '0')}`;
+  }, [jobs]);
+
   const [formData, setFormData] = useState<Partial<Job>>({
+    job_id: newJobId,
     job_title: '',
     description: '',
     start_date: new Date().toISOString().split('T')[0],
@@ -43,12 +52,6 @@ export default function NewJobPage() {
   const activeEquipPage = Math.min(equipPage, totalEquipPages);
   const currentEquip = equipRequests.slice((activeEquipPage - 1) * ITEMS_PER_PAGE, activeEquipPage * ITEMS_PER_PAGE);
 
-  useEffect(() => {
-    // Generate new ID when component mounts
-    const newId = `J${String((jobs.length > 0 ? Math.max(...jobs.map(x => parseInt(x.job_id.replace(/\\D/g, ''), 10) || 0)) : 0) + 1).padStart(3, '0')}`;
-    setFormData(prev => ({ ...prev, job_id: newId }));
-  }, [jobs]);
-
   const handlePositionSelect = async (lat: number, lng: number) => {
     setFormData(prev => ({ ...prev, lat, lng }));
     try {
@@ -62,20 +65,22 @@ export default function NewJobPage() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.job_title) return alert('กรุณาระบุหัวข้องาน');
-    
-    if (formData.job_status === JobStatus.PENDING && formData.equipment_requests) {
-      formData.equipment_requests.forEach(req => {
-        const item = equipment.find(e => e.equip_id === req.equip_id);
-        if (item) {
-          updateEquipment({ ...item, remain_qty: Math.max(0, item.remain_qty - req.qty) });
+    try {
+      if (formData.job_status === JobStatus.PENDING && formData.equipment_requests) {
+        for (const req of formData.equipment_requests) {
+          const item = equipment.find(e => e.equip_id === req.equip_id);
+          if (item) {
+            await updateEquipment({ ...item, remain_qty: Math.max(0, item.remain_qty - req.qty) });
+          }
         }
-      });
+      }
+      await addJob(formData as Job);
+      router.push('/jobs');
+    } catch (error) {
+      alert('เกิดข้อผิดพลาด: ' + String(error));
     }
-
-    addJob(formData as Job);
-    router.push('/jobs');
   };
 
   return (

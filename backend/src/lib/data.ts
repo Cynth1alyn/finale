@@ -9,9 +9,9 @@ export const departments: Department[] = [
 ];
 
 export const users: User[] = [
-  { user_id: "U001", firstname: "ธนาวุฒิ", lastname: "แสงจันทร์", email: "thanawut@techjob.th", tel: "081-234-5678", role: Role.ADMIN, dept_id: "D001", avatar_color: "#3B82F6" },
-  { user_id: "U002", firstname: "สุภาพร", lastname: "วงศ์ตระกูล", email: "supaporn@techjob.th", tel: "082-345-6789", role: Role.MANAGER, dept_id: "D002", avatar_color: "#8B5CF6" },
-  { user_id: "U003", firstname: "Admin", lastname: "System", email: "admin@techjob.th", tel: "080-000-0000", role: Role.ADMIN, dept_id: "D001", avatar_color: "#3B82F6" },
+  { user_id: "U001", firstname: "Admin", lastname: "System", email: "admin@techjob.th", tel: "080-000-0000", role: Role.ADMIN, dept_id: "D001", avatar_color: "#3B82F6" },
+  { user_id: "U002", firstname: "ธนาวุฒิ", lastname: "แสงจันทร์", email: "thanawut@techjob.th", tel: "081-234-5678", role: Role.ADMIN, dept_id: "D001", avatar_color: "#3B82F6" },
+  { user_id: "U003", firstname: "สุภาพร", lastname: "วงศ์ตระกูล", email: "supaporn@techjob.th", tel: "082-345-6789", role: Role.MANAGER, dept_id: "D002", avatar_color: "#8B5CF6" },
 ];
 
 export const equipment: Equipment[] = [

@@ -51,7 +51,7 @@ export default function JobsPage() {
     setIsModalOpen(false);
   };
 
-  const getUserName = (ids: string[]) => ids.map(id => {
+  const getUserName = (ids: string[] | null | undefined) => (ids || []).map(id => {
     const u = users.find(u => u.user_id === id);
     return u ? `${u.firstname}` : '—';
   }).join(', ');
