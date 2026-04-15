@@ -18,23 +18,23 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
-const navItems: { href: string; label: string; icon: LucideIcon }[] = [
+const navItems: { href: string; label: string; icon: LucideIcon; roles?: string[] }[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/map', label: 'แผนที่', icon: Map },
-  { href: '/jobs-view', label: 'ติดตามงาน', icon: Briefcase },
-  { href: '/jobs', label: 'จัดการงาน', icon: Settings },
-  { href: '/users', label: 'ผู้ใช้งาน', icon: Users },
-  { href: '/departments', label: 'แผนก', icon: Building2 },
-  { href: '/issues', label: 'รายงานปัญหา', icon: FileText },
+  { href: '/map', label: 'แผนที่', icon: Map, roles: ['admin', 'manager', 'technician'] },
+  { href: '/jobs-view', label: 'ติดตามงาน', icon: Briefcase, roles: ['admin', 'manager', 'technician'] },
+  { href: '/jobs', label: 'จัดการงาน', icon: Settings, roles: ['admin', 'manager', 'technician'] },
+  { href: '/users', label: 'ผู้ใช้งาน', icon: Users, roles: ['admin'] },
+  { href: '/departments', label: 'แผนก', icon: Building2, roles: ['admin', 'manager'] },
+  { href: '/issues', label: 'รายงานปัญหา', icon: FileText, roles: ['admin', 'manager', 'technician'] },
   { href: '/issues/new', label: 'แจ้งปัญหา', icon: AlertTriangle },
   { href: '/requests', label: 'คำขอ', icon: ClipboardList },
-  { href: '/equipment', label: 'อุปกรณ์', icon: Monitor },
+  { href: '/equipment', label: 'อุปกรณ์', icon: Monitor, roles: ['admin', 'manager', 'technician'] },
 ];
 
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { users, jobs, issues, requests, equipment } = useAppContext();
+  const { jobs, issues, requests, equipment, currentUser, logout } = useAppContext();
 
   const pendingJobs = jobs.filter(j => j.job_status === 'pending').length;
   const openIssues = issues.filter(i => i.status === 'open' || i.status === 'in-progress').length;
@@ -51,8 +51,9 @@ export default function Sidebar() {
     }
   };
 
-  // Mock logged in user is U001
-  const currentUser = users.find(u => u.user_id === 'U001') || users[0];
+  const filteredNavItems = navItems.filter(item => 
+    !item.roles || (currentUser && item.roles.includes(currentUser.role))
+  );
 
   const initials = currentUser ? `${currentUser.firstname[0]}${currentUser.lastname[0]}` : '?';
 
@@ -85,7 +86,7 @@ export default function Sidebar() {
         <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '8px 10px 6px' }}>
           เมนูหลัก
         </div>
-        {navItems.map((item) => {
+        {filteredNavItems.map((item) => {
           const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
           const badgeCount = getBadgeCount(item.href);
 
@@ -166,11 +167,22 @@ export default function Sidebar() {
           </Link>
           <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'capitalize' }}>{currentUser?.role || 'Administrator'}</div>
         </div>
-        <Link href="/login" style={{ color: 'var(--text-muted)', textDecoration: 'none', transition: 'color 0.15s', display: 'flex', alignItems: 'center' }}
+        <button 
+          onClick={logout}
+          style={{ 
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
+            color: 'var(--text-muted)', 
+            transition: 'color 0.15s', 
+            display: 'flex', 
+            alignItems: 'center' 
+          }}
           onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--accent-rose)'}
           onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'}
           title="ออกจากระบบ"
-        ><LogOut size={16} strokeWidth={2} /></Link>
+        ><LogOut size={16} strokeWidth={2} /></button>
       </div>
     </aside>
   );

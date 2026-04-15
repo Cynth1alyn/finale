@@ -32,6 +32,28 @@ export default function DashboardPage() {
   // Find low stock equipment (e.g. remain_qty <= 3)
   const lowStockEquipment = equipment.filter(e => e.remain_qty <= 3).sort((a, b) => a.remain_qty - b.remain_qty).slice(0, 5);
 
+  // Dynamic Chart Data Calculation (Last 7 Days)
+  const thaiDays = ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'];
+  const last7Days = [...Array(7)].map((_, i) => {
+    const d = new Date('2026-04-15'); // Using fixed current date for mock data alignment
+    d.setDate(d.getDate() - (6 - i));
+    return d;
+  });
+
+  const getChartData = (items: any[], dateKey: string) => {
+    return last7Days.map(date => {
+      const dateStr = date.toISOString().split('T')[0];
+      const count = items.filter(item => item[dateKey] === dateStr).length;
+      return {
+        label: thaiDays[date.getDay()],
+        value: count
+      };
+    });
+  };
+
+  const jobChartData = getChartData(jobs, 'start_date');
+  const issueChartData = getChartData(issues, 'report_date');
+
   const getUserName = (ids: string[] | null | undefined) => (ids || []).map(id => {
     const u = users.find(u => u.user_id === id);
     return u ? `${u.firstname}` : '—';
@@ -64,28 +86,12 @@ export default function DashboardPage() {
         <DashboardChart 
           title="งานใหม่รายวัน" 
           color="var(--accent-blue)"
-          data={[
-            { label: 'จ.', value: 4 },
-            { label: 'อ.', value: 7 },
-            { label: 'พ.', value: 5 },
-            { label: 'พฤ.', value: 8 },
-            { label: 'ศ.', value: 12 },
-            { label: 'ส.', value: 3 },
-            { label: 'อา.', value: 2 },
-          ]}
+          data={jobChartData}
         />
         <DashboardChart 
           title="ปัญหาที่ได้รับแจ้ง" 
           color="var(--accent-rose)"
-          data={[
-            { label: 'จ.', value: 2 },
-            { label: 'อ.', value: 4 },
-            { label: 'พ.', value: 3 },
-            { label: 'พฤ.', value: 6 },
-            { label: 'ศ.', value: 5 },
-            { label: 'ส.', value: 1 },
-            { label: 'อา.', value: 2 },
-          ]}
+          data={issueChartData}
         />
       </div>
 

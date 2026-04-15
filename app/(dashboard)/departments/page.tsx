@@ -11,7 +11,9 @@ const roleLabels: Record<string, string> = {
 };
 const avatarColors = ['#3B82F6','#8B5CF6','#10B981','#F59E0B','#F43F5E','#06B6D4','#EC4899','#14B8A6','#F97316','#A855F7'];
 
-export default function DepartmentsPage() {
+import RoleGuard from '@/app/components/RoleGuard';
+
+function DepartmentsPageContent() {
   const router = useRouter();
   const { departments, users, deleteDepartment } = useAppContext();
 
@@ -109,5 +111,13 @@ export default function DepartmentsPage() {
         })}
       </div>
     </>
+  );
+}
+
+export default function DepartmentsPage() {
+  return (
+    <RoleGuard allowedRoles={['admin', 'manager']}>
+      <DepartmentsPageContent />
+    </RoleGuard>
   );
 }

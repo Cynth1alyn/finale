@@ -11,6 +11,9 @@ import departmentRoutes from './routes/departments';
 import requestsRoutes from './routes/requests';
 import { connectDB, initializeDatabase } from './lib/db';
 
+import { authenticateJWT } from './middleware/auth';
+import { authorizeRoles } from './middleware/authorize';
+
 dotenv.config();
 
 const app = express();
@@ -28,13 +31,15 @@ app.use((req, res, next) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/jobs', jobsRoutes);
-app.use('/api/issues', issuesRoutes);
-app.use('/api/users', usersRoutes);
-app.use('/api/equipment', equipmentRoutes);
-app.use('/api/departments', departmentRoutes);
-app.use('/api/requests', requestsRoutes);
+
+// Protected Routes
+app.use('/api/dashboard', authenticateJWT, dashboardRoutes);
+app.use('/api/jobs', authenticateJWT, jobsRoutes);
+app.use('/api/issues', authenticateJWT, issuesRoutes);
+app.use('/api/users', authenticateJWT, authorizeRoles('admin'), usersRoutes);
+app.use('/api/equipment', authenticateJWT, equipmentRoutes);
+app.use('/api/departments', authenticateJWT, authorizeRoles('admin', 'manager'), departmentRoutes);
+app.use('/api/requests', authenticateJWT, requestsRoutes);
 
 // Base route
 app.get('/', (req, res) => {

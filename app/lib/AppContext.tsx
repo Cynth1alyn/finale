@@ -15,6 +15,11 @@ interface AppContextType {
   equipment: Equipment[];
   units: Unit[];
   notifications: Notification[];
+  currentUser: User | null;
+  isLoading: boolean;
+
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
 
   addJob: (job: Job) => void;
   updateJob: (job: Job) => void;
@@ -39,6 +44,7 @@ interface AppContextType {
   addEquipment: (equip: Equipment) => void;
   updateEquipment: (equip: Equipment) => void;
   deleteEquipment: (id: string) => void;
+  checkOutEquipment: (id: string, userId: string, qty: number, notes: string) => Promise<void>;
 
   addNotification: (notif: Notification) => void;
   markNotificationAsRead: (id: string) => void;
@@ -56,6 +62,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const loadInitialData = async () => {
     try {
@@ -95,14 +103,51 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    const frame = requestAnimationFrame(() => {
-      loadInitialData();
-    });
-    return () => cancelAnimationFrame(frame);
+    const savedUser = localStorage.getItem('techjob_user');
+    const token = localStorage.getItem('auth_token');
+    
+    if (savedUser && token) {
+      setCurrentUser(JSON.parse(savedUser));
+    }
+    setIsLoading(false);
   }, []);
 
+  useEffect(() => {
+    if (currentUser) {
+      loadInitialData();
+    }
+  }, [currentUser]);
+
   const saveState = (key: string, value: unknown) => {
-    localStorage.setItem(key, JSON.stringify(value));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+  };
+
+  const login = async (email: string, password: string) => {
+    try {
+      const response = await api.auth.login({ email, password });
+      if (response.success && response.data) {
+        const { user, token } = response.data;
+        setCurrentUser(user);
+        localStorage.setItem('auth_token', token);
+        localStorage.setItem('techjob_user', JSON.stringify(user));
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    }
+  };
+
+  const logout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('techjob_user');
+    // Optional: clear other states
+    setJobs([]);
+    setIssues([]);
+    setRequests([]);
+    setNotifications([]);
   };
 
   // Jobs
@@ -270,6 +315,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const checkOutEquipment = async (id: string, userId: string, qty: number, notes: string) => {
+    try {
+      const updated = await api.equipment.checkOutEquipment(id, { user_id: userId, qty, notes });
+      setEquipment(prev => prev.map(e => (e.equip_id === updated.equip_id ? updated : e)));
+    } catch (error) {
+      console.error('Failed to check out equipment:', error);
+      throw error;
+    }
+  };
+
   // Notifications
   const addNotification = (notif: Notification) => {
     const next = [notif, ...notifications];
@@ -290,12 +345,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <AppContext.Provider value={{
       jobs, users, departments, issues, requests, equipment, units, notifications,
+      currentUser, isLoading,
+      login, logout,
       addJob, updateJob, deleteJob,
       addUser, updateUser, deleteUser,
       addDepartment, updateDepartment, deleteDepartment,
       addIssue, updateIssue, deleteIssue,
       addRequest, updateRequest, deleteRequest,
-      addEquipment, updateEquipment, deleteEquipment,
+      addEquipment, updateEquipment, deleteEquipment, checkOutEquipment,
       addNotification, markNotificationAsRead, markAllNotificationsAsRead
     }}>
       {children}

@@ -15,6 +15,8 @@ const equipment_1 = __importDefault(require("./routes/equipment"));
 const departments_1 = __importDefault(require("./routes/departments"));
 const requests_1 = __importDefault(require("./routes/requests"));
 const db_1 = require("./lib/db");
+const auth_2 = require("./middleware/auth");
+const authorize_1 = require("./middleware/authorize");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3001;
@@ -28,13 +30,14 @@ app.use((req, res, next) => {
 });
 // Routes
 app.use('/api/auth', auth_1.default);
-app.use('/api/dashboard', dashboard_1.default);
-app.use('/api/jobs', jobs_1.default);
-app.use('/api/issues', issues_1.default);
-app.use('/api/users', users_1.default);
-app.use('/api/equipment', equipment_1.default);
-app.use('/api/departments', departments_1.default);
-app.use('/api/requests', requests_1.default);
+// Protected Routes
+app.use('/api/dashboard', auth_2.authenticateJWT, dashboard_1.default);
+app.use('/api/jobs', auth_2.authenticateJWT, jobs_1.default);
+app.use('/api/issues', auth_2.authenticateJWT, issues_1.default);
+app.use('/api/users', auth_2.authenticateJWT, (0, authorize_1.authorizeRoles)('admin'), users_1.default);
+app.use('/api/equipment', auth_2.authenticateJWT, equipment_1.default);
+app.use('/api/departments', auth_2.authenticateJWT, (0, authorize_1.authorizeRoles)('admin', 'manager'), departments_1.default);
+app.use('/api/requests', auth_2.authenticateJWT, requests_1.default);
 // Base route
 app.get('/', (req, res) => {
     res.send('TechJob API is running...');

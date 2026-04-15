@@ -9,9 +9,11 @@ export const departments: Department[] = [
 ];
 
 export const users: User[] = [
-  { user_id: "U001", firstname: "Admin", lastname: "System", email: "admin@techjob.th", tel: "080-000-0000", role: Role.ADMIN, dept_id: "D001", avatar_color: "#3B82F6" },
-  { user_id: "U002", firstname: "ธนาวุฒิ", lastname: "แสงจันทร์", email: "thanawut@techjob.th", tel: "081-234-5678", role: Role.ADMIN, dept_id: "D001", avatar_color: "#3B82F6" },
-  { user_id: "U003", firstname: "สุภาพร", lastname: "วงศ์ตระกูล", email: "supaporn@techjob.th", tel: "082-345-6789", role: Role.MANAGER, dept_id: "D002", avatar_color: "#8B5CF6" },
+  { user_id: "U001", firstname: "Admin", lastname: "System", email: "admin@techjob.th", tel: "080-000-0000", role: Role.ADMIN, password: "$2a$10$clhoDogFFFe57/BqNENCaeBACtz9j25TCrU5CBK3lgt888Wzfp1wG", dept_id: "D001", avatar_color: "#3B82F6" },
+  { user_id: "U002", firstname: "ธนาวุฒิ", lastname: "แสงจันทร์", email: "thanawut@techjob.th", tel: "081-234-5678", role: Role.ADMIN, password: "$2a$10$clhoDogFFFe57/BqNENCaeBACtz9j25TCrU5CBK3lgt888Wzfp1wG", dept_id: "D001", avatar_color: "#3B82F6" },
+  { user_id: "U003", firstname: "สุภาพร", lastname: "วงศ์ตระกูล", email: "supaporn@techjob.th", tel: "082-345-6789", role: Role.MANAGER, password: "$2a$10$clhoDogFFFe57/BqNENCaeBACtz9j25TCrU5CBK3lgt888Wzfp1wG", dept_id: "D002", avatar_color: "#8B5CF6" },
+  { user_id: "U004", firstname: "สมชาย", lastname: "ใจดี", email: "technician@techjob.th", tel: "083-456-7890", role: Role.TECHNICIAN, password: "$2a$10$clhoDogFFFe57/BqNENCaeBACtz9j25TCrU5CBK3lgt888Wzfp1wG", dept_id: "D004", avatar_color: "#F59E0B" },
+  { user_id: "U005", firstname: "มานี", lastname: "มีนา", email: "staff@techjob.th", tel: "084-567-8901", role: Role.STAFF, password: "$2a$10$clhoDogFFFe57/BqNENCaeBACtz9j25TCrU5CBK3lgt888Wzfp1wG", dept_id: "D005", avatar_color: "#10B981" },
 ];
 
 export const equipment: Equipment[] = [

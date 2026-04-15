@@ -48,6 +48,7 @@ export interface User {
   tel: string;
   role: Role | string;
   dept_id: string;
+  password?: string;
   avatar_color?: string;
 }
 

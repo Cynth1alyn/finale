@@ -10,9 +10,11 @@ exports.departments = [
     { dept_id: "D005", dept_name: "Database Administration" },
 ];
 exports.users = [
-    { user_id: "U001", firstname: "ธนาวุฒิ", lastname: "แสงจันทร์", email: "thanawut@techjob.th", tel: "081-234-5678", role: types_1.Role.ADMIN, dept_id: "D001", avatar_color: "#3B82F6" },
-    { user_id: "U002", firstname: "สุภาพร", lastname: "วงศ์ตระกูล", email: "supaporn@techjob.th", tel: "082-345-6789", role: types_1.Role.MANAGER, dept_id: "D002", avatar_color: "#8B5CF6" },
-    { user_id: "U003", firstname: "Admin", lastname: "System", email: "admin@techjob.th", tel: "080-000-0000", role: types_1.Role.ADMIN, dept_id: "D001", avatar_color: "#3B82F6" },
+    { user_id: "U001", firstname: "Admin", lastname: "System", email: "admin@techjob.th", tel: "080-000-0000", role: types_1.Role.ADMIN, password: "$2a$10$XmS0E.YV7q5P6f1l9H.p.e/U2m/Xy0uV6z5S6T.W0S.G0S.m0S.m", dept_id: "D001", avatar_color: "#3B82F6" },
+    { user_id: "U002", firstname: "ธนาวุฒิ", lastname: "แสงจันทร์", email: "thanawut@techjob.th", tel: "081-234-5678", role: types_1.Role.ADMIN, password: "$2a$10$XmS0E.YV7q5P6f1l9H.p.e/U2m/Xy0uV6z5S6T.W0S.G0S.m0S.m", dept_id: "D001", avatar_color: "#3B82F6" },
+    { user_id: "U003", firstname: "สุภาพร", lastname: "วงศ์ตระกูล", email: "supaporn@techjob.th", tel: "082-345-6789", role: types_1.Role.MANAGER, password: "$2a$10$XmS0E.YV7q5P6f1l9H.p.e/U2m/Xy0uV6z5S6T.W0S.G0S.m0S.m", dept_id: "D002", avatar_color: "#8B5CF6" },
+    { user_id: "U004", firstname: "สมชาย", lastname: "ใจดี", email: "technician@techjob.th", tel: "083-456-7890", role: types_1.Role.TECHNICIAN, password: "$2a$10$XmS0E.YV7q5P6f1l9H.p.e/U2m/Xy0uV6z5S6T.W0S.G0S.m0S.m", dept_id: "D004", avatar_color: "#F59E0B" },
+    { user_id: "U005", firstname: "มานี", lastname: "มีนา", email: "staff@techjob.th", tel: "084-567-8901", role: types_1.Role.STAFF, password: "$2a$10$XmS0E.YV7q5P6f1l9H.p.e/U2m/Xy0uV6z5S6T.W0S.G0S.m0S.m", dept_id: "D005", avatar_color: "#10B981" },
 ];
 exports.equipment = [
     { equip_id: "E001", name: "MacBook Pro 14", type_category: "Laptop", total_qty: 10, remain_qty: 5, unit_id: "UN01", dept_id: "D002", status: types_1.EquipmentStatus.OPERATIONAL },

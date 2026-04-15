@@ -254,6 +254,23 @@ export const equipmentAPI = {
     })
     return response.data
   },
+  
+  checkOutEquipment: async (id: string, data: { user_id: string; qty: number; notes: string }): Promise<Equipment> => {
+    if (USE_MOCK) {
+      const equip = mockData.equipment.find(e => e.equip_id === id);
+      if (!equip) throw new Error('Equipment not found');
+      if (equip.remain_qty < data.qty) throw new Error('สต็อกไม่เพียงพอ');
+      const updated = { ...equip, remain_qty: equip.remain_qty - data.qty } as Equipment;
+      // In mock mode, we just return the updated equipment
+      // Note: mockData arrays are usually read-only in this context, but this works for UI simulation
+      return updated;
+    }
+    const response = await apiRequest(`/equipment/${id}/checkout`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return response.data;
+  },
 
   getEquipmentHistory: async (id: string): Promise<EquipmentHistory[]> => {
     if (USE_MOCK) {

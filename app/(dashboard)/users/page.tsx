@@ -5,6 +5,7 @@ import { useAppContext } from '@/app/lib/AppContext';
 import { User, Role } from '@/app/lib/types';
 import Modal from '@/app/components/Modal';
 import { Search, X, Edit2, Building2, Phone, Fingerprint } from 'lucide-react';
+import RoleGuard from '@/app/components/RoleGuard';
 
 const roleColors: Record<string, string> = {
   admin: '#F43F5E', manager: '#8B5CF6', technician: '#3B82F6', staff: '#10B981',
@@ -14,7 +15,7 @@ const roleLabels: Record<string, string> = {
 };
 const avatarColors = ['#3B82F6','#8B5CF6','#10B981','#F59E0B','#F43F5E','#06B6D4','#EC4899','#14B8A6','#F97316','#A855F7'];
 
-export default function UsersPage() {
+function UsersPageContent() {
   const { users, departments, addUser, updateUser, deleteUser } = useAppContext();
   const [roleFilter, setRoleFilter] = useState('all');
   const [search, setSearch] = useState('');
@@ -22,12 +23,14 @@ export default function UsersPage() {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [password, setPassword] = useState('');
   
   // Form State
-  const [formData, setFormData] = useState<Partial<User>>({});
+  const [formData, setFormData] = useState<Partial<User & { password?: string }>>({});
 
   const openAddModal = () => {
     setEditingUser(null);
+    setPassword('');
     setFormData({
       user_id: `U${String((users.length > 0 ? Math.max(...users.map(x => parseInt(x.user_id.replace(/\D/g, ''), 10) || 0)) : 0) + 1).padStart(3, '0')}`,
       firstname: '',
@@ -43,6 +46,7 @@ export default function UsersPage() {
 
   const openEditModal = (user: User) => {
     setEditingUser(user);
+    setPassword('');
     setFormData(user);
     setIsModalOpen(true);
   };
@@ -55,11 +59,16 @@ export default function UsersPage() {
 
   const handleSave = async () => {
     if (!formData.firstname || !formData.lastname) return alert('กรุณาระบุชื่อและนามสกุล');
+    if (!editingUser && !password) return alert('กรุณาระบุรหัสผ่านสำหรับผู้ใช้ใหม่');
+
     try {
+      const dataToSave = { ...formData };
+      if (password) dataToSave.password = password;
+
       if (editingUser) {
-        await updateUser(formData as User);
+        await updateUser(dataToSave as User);
       } else {
-        await addUser(formData as User);
+        await addUser(dataToSave as User);
       }
       setIsModalOpen(false);
     } catch (error) {
@@ -170,6 +179,19 @@ export default function UsersPage() {
             </div>
           </div>
           <div style={{ display: 'flex', gap: 16 }}>
+             <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>
+                รหัสผ่าน {editingUser && '(เว้นว่างไว้หากไม่ต้องการเปลี่ยน)'}
+              </label>
+              <input 
+                type="password" 
+                className="input" 
+                value={password} 
+                onChange={e => setPassword(e.target.value)} 
+                placeholder="••••••••"
+                style={{ width: '100%', padding: '8px 12px' }} 
+              />
+            </div>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>บทบาท</label>
               <select className="input" value={formData.role || 'staff'} onChange={e => setFormData({...formData, role: e.target.value as Role})} style={{ width: '100%', padding: '8px 12px' }}>
@@ -179,12 +201,15 @@ export default function UsersPage() {
                 <option value="admin">ผู้ดูแลระบบ</option>
               </select>
             </div>
+          </div>
+          <div style={{ display: 'flex', gap: 16 }}>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>แผนก</label>
               <select className="input" value={formData.dept_id || ''} onChange={e => setFormData({...formData, dept_id: e.target.value})} style={{ width: '100%', padding: '8px 12px' }}>
                 {departments.map(d => <option key={d.dept_id} value={d.dept_id}>{d.dept_name}</option>)}
               </select>
             </div>
+            <div style={{ flex: 1 }}></div>
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 10 }}>
             <button className="btn btn-ghost" onClick={() => setIsModalOpen(false)}>ยกเลิก</button>
@@ -193,5 +218,13 @@ export default function UsersPage() {
         </div>
       </Modal>
     </>
+  );
+}
+
+export default function UsersPage() {
+  return (
+    <RoleGuard allowedRoles={['admin']}>
+      <UsersPageContent />
+    </RoleGuard>
   );
 }

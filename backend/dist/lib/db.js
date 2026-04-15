@@ -61,6 +61,7 @@ async function createTables() {
     email VARCHAR(255) NOT NULL,
     tel VARCHAR(50) NOT NULL,
     role VARCHAR(50),
+    password VARCHAR(255) NULL,
     dept_id VARCHAR(50) NULL,
     avatar_color VARCHAR(50) NULL
   )`);
@@ -132,7 +133,7 @@ async function seedTableIfEmpty(table, countQuery, rows) {
             await query('INSERT INTO departments (dept_id, dept_name, description) VALUES (?, ?, ?)', [row.dept_id, row.dept_name, row.description || null]);
         }
         else if (table === 'users') {
-            await query('INSERT INTO users (user_id, firstname, lastname, email, tel, role, dept_id, avatar_color) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [row.user_id, row.firstname, row.lastname, row.email, row.tel, row.role, row.dept_id || null, row.avatar_color || null]);
+            await query('INSERT INTO users (user_id, firstname, lastname, email, tel, role, password, dept_id, avatar_color) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [row.user_id, row.firstname, row.lastname, row.email, row.tel, row.role, row.password || null, row.dept_id || null, row.avatar_color || null]);
         }
         else if (table === 'equipment') {
             await query('INSERT INTO equipment (equip_id, name, type_category, total_qty, remain_qty, unit_id, dept_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [row.equip_id, row.name, row.type_category || null, row.total_qty, row.remain_qty, row.unit_id || null, row.dept_id || null, row.status || null]);

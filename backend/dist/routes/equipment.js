@@ -18,21 +18,21 @@ router.get('/', async (req, res) => {
         res.status(500).json({ success: false, error: String(error) });
     }
 });
+router.get('/:id/history', async (req, res) => {
+    try {
+        const history = await (0, db_1.query)('SELECT * FROM equipment_history WHERE equip_id = ? ORDER BY date DESC', [req.params.id]);
+        res.json({ success: true, data: history });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, error: String(error) });
+    }
+});
 router.get('/:id', async (req, res) => {
     try {
         const rows = await (0, db_1.query)('SELECT * FROM equipment WHERE equip_id = ?', [req.params.id]);
         if (rows.length === 0)
             return res.status(404).json({ success: false, error: 'Equipment not found' });
         res.json({ success: true, data: rows[0] });
-    }
-    catch (error) {
-        res.status(500).json({ success: false, error: String(error) });
-    }
-});
-router.get('/:id/history', async (req, res) => {
-    try {
-        const history = await (0, db_1.query)('SELECT * FROM equipment_history WHERE equip_id = ? ORDER BY date DESC', [req.params.id]);
-        res.json({ success: true, data: history });
     }
     catch (error) {
         res.status(500).json({ success: false, error: String(error) });

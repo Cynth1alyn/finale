@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useAppContext } from '@/app/lib/AppContext';
 import { Equipment } from '@/app/lib/types';
 import DataTable from '@/app/components/DataTable';
-import { Package, AlertTriangle, XCircle } from 'lucide-react';
+import { Package, AlertTriangle, XCircle, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
+import CheckOutModal from '@/app/components/CheckOutModal';
 
 const categoryColors: Record<string, string> = {
   Network: '#3B82F6', Hardware: '#8B5CF6', Consumable: '#F59E0B', Storage: '#10B981', Security: '#F43F5E',
@@ -14,8 +15,10 @@ const categoryColors: Record<string, string> = {
 
 export default function EquipmentPage() {
   const router = useRouter();
-  const { equipment, units, deleteEquipment } = useAppContext();
+  const { equipment, units, users, deleteEquipment, checkOutEquipment } = useAppContext();
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEquip, setSelectedEquip] = useState<Equipment | null>(null);
 
   const categories = ['all', ...Array.from(new Set(equipment.map(e => e.type_category)))];
 
@@ -23,6 +26,11 @@ export default function EquipmentPage() {
     if (confirm('คุณต้องการลบอุปกรณ์นี้ใช่หรือไม่?')) {
       deleteEquipment(id);
     }
+  };
+
+  const openCheckOut = (equip: Equipment) => {
+    setSelectedEquip(equip);
+    setIsModalOpen(true);
   };
 
   const filtered = equipment.filter(e => {
@@ -121,6 +129,15 @@ export default function EquipmentPage() {
       align: 'right',
       render: (row: typeof tableData[0]) => (
         <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
+          <button 
+            className="btn btn-ghost btn-sm" 
+            style={{ padding: '6px', color: 'var(--accent-blue)' }} 
+            onClick={() => openCheckOut(row as unknown as Equipment)} 
+            disabled={row.remain_qty === 0}
+            title="เบิกอุปกรณ์"
+          >
+            <ShoppingBag size={16} />
+          </button>
           <Link href={`/equipment/${row.equip_id}`} className="btn btn-ghost btn-sm" style={{ padding: '6px' }} title="ดูรายละเอียด">✎</Link>
           <button className="btn btn-ghost btn-sm" style={{ padding: '6px', color: 'var(--accent-rose)' }} onClick={() => handleDelete(row.equip_id)} title="ลบ">✕</button>
         </div>
@@ -175,6 +192,16 @@ export default function EquipmentPage() {
           searchKeys={['name', 'equip_id']}
         />
       </div>
+
+      {selectedEquip && (
+        <CheckOutModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          equipment={selectedEquip}
+          users={users}
+          onCheckOut={(userId, qty, notes) => checkOutEquipment(selectedEquip.equip_id, userId, qty, notes)}
+        />
+      )}
     </>
   );
 }

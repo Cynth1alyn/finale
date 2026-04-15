@@ -8,8 +8,11 @@ import ThemeToggle from '../../components/ThemeToggle';
 
 import { api } from '@/app/lib/api';
 
+import { useAppContext } from '@/app/lib/AppContext';
+
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAppContext();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,14 +25,8 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      const response = await api.auth.login({ email, password });
-      if (response.success) {
-        localStorage.setItem('auth_token', response.data.token);
-        localStorage.setItem('user_data', JSON.stringify(response.data.user));
-        router.push('/dashboard');
-      } else {
-        setError('การเข้าสู่ระบบล้มเหลว');
-      }
+      await login(email, password);
+      router.push('/dashboard');
     } catch (err: any) {
       setError(err.message || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
     } finally {
@@ -147,7 +144,7 @@ export default function LoginPage() {
           {/* Demo hint */}
           <div style={{ marginTop: 20, padding: '12px 14px', background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 10 }}>
             <div style={{ fontSize: 11, color: 'var(--accent-blue-light)', fontWeight: 600, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}><Lightbulb size={12} /> Demo</div>
-            <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>กรอกอีเมลและรหัสผ่านใดก็ได้เพื่อเข้าสู่ระบบ</div>
+            <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>เข้าใช้งานด้วยอีเมลพนักงาน และรหัสผ่านพื้นฐาน: <span style={{ fontFamily: 'monospace', color: 'var(--text-primary)', fontWeight: 600 }}>password123</span></div>
           </div>
         </div>
 
