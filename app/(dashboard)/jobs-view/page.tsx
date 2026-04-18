@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAppContext } from '@/app/lib/AppContext';
 import StatusBadge from '@/app/components/StatusBadge';
 import PriorityBadge from '@/app/components/PriorityBadge';
+import Link from 'next/link';
 import { Search, X, AlertTriangle, MapPin, Calendar, Briefcase } from 'lucide-react';
 
 export default function JobsViewPage() {
@@ -94,8 +95,11 @@ export default function JobsViewPage() {
           const assignees = (job.assigned_user_ids || []).map(id => users.find(u => u.user_id === id)).filter(Boolean);
           
           return (
-            <div key={job.job_id} className="card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14, cursor: 'default', borderTop: `4px solid ${job.job_status === 'done' ? 'var(--accent-emerald)' : job.job_status === 'in-progress' ? 'var(--accent-blue)' : job.job_status === 'cancelled' ? 'var(--text-muted)' : 'var(--accent-amber)'}` }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+            <Link key={job.job_id} href={`/jobs/${job.job_id}`} style={{ textDecoration: 'none', display: 'flex' }}>
+              <div className="card" style={{ flex: 1, padding: 20, display: 'flex', flexDirection: 'column', gap: 14, cursor: 'pointer', transition: 'all 0.2s', borderTop: `4px solid ${job.job_status === 'done' ? 'var(--accent-emerald)' : job.job_status === 'in-progress' ? 'var(--accent-blue)' : job.job_status === 'cancelled' ? 'var(--text-muted)' : 'var(--accent-amber)'}` }}
+                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'}
+                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
                 <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', margin: 0, lineHeight: 1.4 }}>{job.job_title}</h3>
                 <div style={{ flexShrink: 0 }}><PriorityBadge priority={job.job_priority} /></div>
               </div>
@@ -138,7 +142,7 @@ export default function JobsViewPage() {
                 
                 <div style={{ display: 'flex', flexDirection: 'row-reverse', alignItems: 'center' }}>
                   {assignees.length === 0 && <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>ยังไม่มอบหมาย</span>}
-                  {assignees.slice(0, 3).map((u, i) => u ? (
+                  {assignees.slice(0, 3).map((u) => u ? (
                     <div key={u.user_id} className="avatar avatar-sm" style={{ background: u.avatar_color, color: '#fff', fontSize: 11, fontWeight: 600, marginLeft: -8, border: '2px solid var(--bg-card)' }} title={`${u.firstname} ${u.lastname}`}>
                       {u.firstname[0]}{u.lastname[0]}
                     </div>
@@ -151,6 +155,7 @@ export default function JobsViewPage() {
                 </div>
               </div>
             </div>
+           </Link>
           );
         })}
         {filtered.length === 0 && (

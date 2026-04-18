@@ -13,7 +13,7 @@ interface TopbarProps {
 }
 
 export default function Topbar({ title, subtitle }: TopbarProps) {
-  const { users, notifications, markNotificationAsRead, markAllNotificationsAsRead } = useAppContext();
+  const { currentUser, notifications, markNotificationAsRead, markAllNotificationsAsRead } = useAppContext();
   const [now, setNow] = useState<Date | null>(null);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -21,6 +21,7 @@ export default function Topbar({ title, subtitle }: TopbarProps) {
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setNow(new Date());
     const timer = setInterval(() => setNow(new Date()), 60000);
     return () => clearInterval(timer);
@@ -171,15 +172,15 @@ export default function Topbar({ title, subtitle }: TopbarProps) {
           <div 
             className="avatar avatar-md" 
             style={{ 
-              background: users.find(u => u.user_id === 'U001')?.avatar_color || 'linear-gradient(135deg,#3B82F6,#8B5CF6)', 
+              background: currentUser?.avatar_color || 'linear-gradient(135deg,#3B82F6,#8B5CF6)', 
               fontSize: 13, color: '#fff' 
             }}
           >
-            {users.find(u => u.user_id === 'U001') ? `${users.find(u => u.user_id === 'U001')?.firstname[0]}${users.find(u => u.user_id === 'U001')?.lastname[0]}` : '?'}
+            {currentUser ? `${currentUser.firstname[0]}${currentUser.lastname[0]}` : '?'}
           </div>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{users.find(u => u.user_id === 'U001')?.firstname || 'User'}</div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'capitalize' }}>{users.find(u => u.user_id === 'U001')?.role || 'Admin'}</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{currentUser?.firstname || 'User'}</div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'capitalize' }}>{currentUser?.role || 'Guest'}</div>
           </div>
         </div>
       </Link>

@@ -22,6 +22,7 @@ const pool = promise_1.default.createPool({
     queueLimit: 0,
     decimalNumbers: true,
     dateStrings: true,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     typeCast: (field, next) => {
         if (field.type === 245) {
             const value = field.string();
@@ -40,10 +41,12 @@ async function connectDB() {
         process.exit(1);
     }
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function query(sql, params = []) {
     const [rows] = await pool.query(sql, params);
     return rows;
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function execute(sql, params = []) {
     const [result] = await pool.execute(sql, params);
     return result;
@@ -123,6 +126,7 @@ async function createTables() {
 function jsonValue(value) {
     return value == null ? null : JSON.stringify(value);
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function seedTableIfEmpty(table, countQuery, rows) {
     const [countRows] = await pool.query(countQuery);
     const count = countRows[0]?.count || 0;

@@ -12,8 +12,7 @@ import {
   AlertTriangle,
   ClipboardList,
   Monitor,
-  Map,
-  BarChart3
+  Map
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -40,10 +39,10 @@ export default function DashboardPage() {
     return d;
   });
 
-  const getChartData = (items: any[], dateKey: string) => {
+  const getChartData = <T, K extends keyof T>(items: T[], dateKey: K) => {
     return last7Days.map(date => {
       const dateStr = date.toISOString().split('T')[0];
-      const count = items.filter(item => item[dateKey] === dateStr).length;
+      const count = items.filter(item => String(item[dateKey]) === dateStr).length;
       return {
         label: thaiDays[date.getDay()],
         value: count

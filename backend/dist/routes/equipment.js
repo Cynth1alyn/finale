@@ -83,6 +83,30 @@ router.put('/:id', async (req, res) => {
         res.status(500).json({ success: false, error: String(error) });
     }
 });
+router.post('/:id/checkout', async (req, res) => {
+    try {
+        const { user_id, qty, notes } = req.body;
+        const equip_id = req.params.id;
+        if (!user_id || !qty) {
+            return res.status(400).json({ success: false, error: 'Missing user_id or qty' });
+        }
+        const rows = await (0, db_1.query)('SELECT * FROM equipment WHERE equip_id = ?', [equip_id]);
+        if (rows.length === 0)
+            return res.status(404).json({ success: false, error: 'Equipment not found' });
+        const equip = rows[0];
+        if (equip.remain_qty < qty) {
+            return res.status(400).json({ success: false, error: 'จำนวนอุปกรณ์ในสต็อกไม่เพียงพอ' });
+        }
+        const newRemainQty = equip.remain_qty - qty;
+        await (0, db_1.query)('UPDATE equipment SET remain_qty = ? WHERE equip_id = ?', [newRemainQty, equip_id]);
+        const historyId = 'H' + Date.now();
+        await (0, db_1.query)('INSERT INTO equipment_history (id, equip_id, date, user_id, action, notes) VALUES (?, ?, ?, ?, ?, ?)', [historyId, equip_id, new Date().toISOString().slice(0, 10), user_id, 'check-out', notes || `เบิกออก ${qty} ชิ้น`]);
+        res.json({ success: true, message: 'Check-out successful', data: { ...equip, remain_qty: newRemainQty } });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, error: String(error) });
+    }
+});
 router.delete('/:id', async (req, res) => {
     try {
         const result = await (0, db_1.execute)('DELETE FROM equipment WHERE equip_id = ?', [req.params.id]);

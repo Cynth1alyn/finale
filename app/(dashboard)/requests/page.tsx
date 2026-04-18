@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Link from 'next/link';
 import { useAppContext } from '@/app/lib/AppContext';
-import { Request, RequestStatus } from '@/app/lib/types';
+import { RequestStatus } from '@/app/lib/types';
 import StatusBadge from '@/app/components/StatusBadge';
 import DataTable from '@/app/components/DataTable';
 

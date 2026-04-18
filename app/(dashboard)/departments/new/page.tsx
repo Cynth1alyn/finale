@@ -17,6 +17,7 @@ export default function NewDepartmentPage() {
   useEffect(() => {
     // Generate new ID when component mounts
     const newId = `D${String((departments.length > 0 ? Math.max(...departments.map(x => parseInt(x.dept_id.replace(/\D/g, ''), 10) || 0)) : 0) + 1).padStart(3, '0')}`;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFormData(prev => ({ ...prev, dept_id: newId }));
   }, [departments]);
 

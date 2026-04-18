@@ -1,4 +1,4 @@
-import mysql from 'mysql2/promise';
+import mysql, { RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 import dotenv from 'dotenv';
 import {
   departments,
@@ -23,7 +23,8 @@ const pool = mysql.createPool({
   queueLimit: 0,
   decimalNumbers: true,
   dateStrings: true,
-  typeCast: (field: any, next: any) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  typeCast: (field: any, next: () => void) => {
     if (field.type === 245) {
       const value = field.string();
       return value ? JSON.parse(value) : null;
@@ -42,13 +43,15 @@ export async function connectDB() {
   }
 }
 
-export async function query<T = any>(sql: string, params: any[] = []) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function query<T = RowDataPacket>(sql: string, params: any[] = []) {
   const [rows] = await pool.query(sql, params);
   return rows as T[];
 }
 
-export async function execute(sql: string, params: any[] = []) {
-  const [result] = await pool.execute(sql, params);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function execute(sql: string, params: any[] = []): Promise<ResultSetHeader> {
+  const [result] = await pool.execute<ResultSetHeader>(sql, params);
   return result;
 }
 
@@ -135,9 +138,10 @@ function jsonValue(value: unknown) {
   return value == null ? null : JSON.stringify(value);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function seedTableIfEmpty(table: string, countQuery: string, rows: any[]) {
-  const [countRows] = await pool.query<any[]>(countQuery);
-  const count = (countRows as any[])[0]?.count || 0;
+  const [countRows] = await pool.query<RowDataPacket[]>(countQuery);
+  const count = countRows[0]?.count || 0;
   if (count > 0) return;
 
   for (const row of rows) {

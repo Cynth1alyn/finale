@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { Mail, Lock, AlertCircle, Lightbulb, ArrowLeft } from 'lucide-react';
 import ThemeToggle from '../../components/ThemeToggle';
 
-import { api } from '@/app/lib/api';
 
 import { useAppContext } from '@/app/lib/AppContext';
 
@@ -27,8 +26,8 @@ export default function LoginPage() {
     try {
       await login(email, password);
       router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+    } catch (err) {
+      setError((err as Error).message || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
     } finally {
       setLoading(false);
     }

@@ -1,16 +1,16 @@
+'use client';
+
+import { use } from 'react';
 import Link from 'next/link';
-import { api } from '@/app/lib/api';
+import { useAppContext } from '@/app/lib/AppContext';
 import StatusBadge from '@/app/components/StatusBadge';
 
-export default async function RequestDetailPage({ params }: { params: { id: string } }) {
+export default function RequestDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const { id } = params;
 
-  let request;
-  try {
-    request = await api.requests.getRequest(id);
-  } catch {
-    request = null;
-  }
+  const { requests, users, equipment: equipmentList } = useAppContext();
+  const request = requests.find(r => r.req_id === id);
 
   if (!request) {
     return (
@@ -21,8 +21,7 @@ export default async function RequestDetailPage({ params }: { params: { id: stri
     );
   }
 
-  const requester = await api.users.getUser(request.user_id).catch(() => null);
-  const equipmentList = await api.equipment.getEquipment().catch(() => []);
+  const requester = request ? users.find(u => u.user_id === request.user_id) : null;
   const items = request.items ?? [];
 
   return (

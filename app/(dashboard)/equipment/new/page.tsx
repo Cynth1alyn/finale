@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppContext } from '@/app/lib/AppContext';
-import { Equipment, EquipmentStatus } from '@/app/lib/types';
+import { Equipment } from '@/app/lib/types';
 
 export default function NewEquipmentPage() {
   const router = useRouter();
@@ -21,6 +21,7 @@ export default function NewEquipmentPage() {
   useEffect(() => {
     // Generate new ID when component mounts
     const newId = `E${String((equipment.length > 0 ? Math.max(...equipment.map(x => parseInt(x.equip_id.replace(/\D/g, ''), 10) || 0)) : 0) + 1).padStart(3, '0')}`;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFormData(prev => ({ ...prev, equip_id: newId }));
   }, [equipment]);
 

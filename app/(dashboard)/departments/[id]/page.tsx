@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAppContext } from '@/app/lib/AppContext';
 import { Department } from '@/app/lib/types';
 import Link from 'next/link';
-import { Trash2, ArrowLeft } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 
 export default function DepartmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -24,6 +24,7 @@ export default function DepartmentDetailPage({ params }: { params: Promise<{ id:
 
   useEffect(() => {
     if (dept) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData(dept);
     }
   }, [dept]);

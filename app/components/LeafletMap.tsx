@@ -42,7 +42,7 @@ function MapController({ onSelect, readOnly, activeMarkerId, markerRefs }: { onS
 function SearchControl({ onSelect }: { onSelect?: (lat: number, lng: number) => void }) {
   const map = useMap();
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<Record<string, string>[]>([]);
   const [loading, setLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const controlRef = useRef<HTMLDivElement>(null);
@@ -69,7 +69,7 @@ function SearchControl({ onSelect }: { onSelect?: (lat: number, lng: number) => 
     setLoading(false);
   };
 
-  const handleSelect = (item: any) => {
+  const handleSelect = (item: Record<string, string>) => {
     const lat = parseFloat(item.lat);
     const lng = parseFloat(item.lon); // Nominatim outputs lon
     map.flyTo([lat, lng], 16, { animate: true });

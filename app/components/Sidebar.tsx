@@ -87,7 +87,11 @@ export default function Sidebar() {
           เมนูหลัก
         </div>
         {filteredNavItems.map((item) => {
-          const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+          const active = pathname === item.href || (
+            item.href !== '/dashboard' && 
+            pathname.startsWith(item.href + '/') && 
+            !navItems.some(nav => nav.href !== item.href && pathname.startsWith(nav.href) && nav.href.length > item.href.length)
+          );
           const badgeCount = getBadgeCount(item.href);
 
           return (

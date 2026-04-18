@@ -66,7 +66,7 @@ router.put('/:id', async (req, res) => {
     const jobs = await query('SELECT * FROM jobs WHERE job_id = ?', [req.params.id]);
     if (jobs.length === 0) return res.status(404).json({ success: false, error: 'Job not found' });
 
-    const existing = jobs[0] as any;
+    const existing = jobs[0] as Record<string, unknown>;
     const updated = { ...existing, ...req.body };
 
     await query(
@@ -99,7 +99,7 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    const result: any = await execute('DELETE FROM jobs WHERE job_id = ?', [req.params.id]);
+    const result = await execute('DELETE FROM jobs WHERE job_id = ?', [req.params.id]);
     if (result.affectedRows === 0) return res.status(404).json({ success: false, error: 'Job not found' });
     res.json({ success: true, message: 'Deleted' });
   } catch (error) {

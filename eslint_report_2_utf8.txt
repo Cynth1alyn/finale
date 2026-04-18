@@ -1,0 +1,123 @@
+﻿
+D:\Myproject\finale\app\(dashboard)\equipment\new\page.tsx
+   6:21  warning  'EquipmentStatus' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  24:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\Myproject\finale\app\(dashboard)\equipment\new\page.tsx:24:5
+  22 |     // Generate new ID when component mounts
+  23 |     const newId = `E${String((equipment.length > 0 ? Math.max(...equipment.map(x => parseInt(x.equip_id.replace(/\D/g, ''), 10) || 0)) : 0) + 1).padStart(3, '0')}`;
+> 24 |     setFormData(prev => ({ ...prev, equip_id: newId }));
+     |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  25 |   }, [equipment]);
+  26 |
+  27 |   const handleSave = () => {  react-hooks/set-state-in-effect
+
+D:\Myproject\finale\app\(dashboard)\issues\[id]\page.tsx
+  35:16  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Myproject\finale\app\(dashboard)\issues\page.tsx
+  4:10  warning  'useRouter' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Myproject\finale\app\(dashboard)\jobs-view\page.tsx
+  141:50  warning  'i' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Myproject\finale\app\(dashboard)\jobs\page.tsx
+  17:57  warning  'updateEquipment' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Myproject\finale\app\(dashboard)\profile\page.tsx
+  18:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\Myproject\finale\app\(dashboard)\profile\page.tsx:18:5
+  16 |
+  17 |   useEffect(() => {
+> 18 |     setIsClient(true);
+     |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  19 |     if (currentUser) {
+  20 |       setFormData(currentUser);
+  21 |     }  react-hooks/set-state-in-effect
+
+D:\Myproject\finale\app\(dashboard)\requests\new\page.tsx
+   55:67  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   72:9   warning  'getEquipmentName' is assigned a value but never used            @typescript-eslint/no-unused-vars
+   76:9   warning  'getUserName' is assigned a value but never used                 @typescript-eslint/no-unused-vars
+  277:49  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  277:61  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+D:\Myproject\finale\app\(dashboard)\requests\page.tsx
+  7:10  warning  'Request' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Myproject\finale\app\components\CheckOutModal.tsx
+  44:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Myproject\finale\app\components\LeafletMap.tsx
+  45:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  72:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Myproject\finale\app\lib\api.ts
+   13:3   warning  'Role' is defined but never used          @typescript-eslint/no-unused-vars
+  298:45  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  312:23  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Myproject\finale\backend\src\lib\db.ts
+   26:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   26:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   45:33  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   45:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   50:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  138:74  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  139:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  140:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Myproject\finale\backend\src\middleware\auth.ts
+  12:41  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  12:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  17:15  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Myproject\finale\backend\src\middleware\authorize.ts
+  5:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Myproject\finale\backend\src\routes\auth.ts
+  47:23  warning  '_' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Myproject\finale\backend\src\routes\departments.ts
+  51:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  63:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Myproject\finale\backend\src\routes\equipment.ts
+   73:33  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  108:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  130:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Myproject\finale\backend\src\routes\issues.ts
+  65:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  91:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Myproject\finale\backend\src\routes\jobs.ts
+   69:33  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  102:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Myproject\finale\backend\src\routes\requests.ts
+  58:33  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  80:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Myproject\finale\backend\src\routes\users.ts
+  64:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  89:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Myproject\finale\backend\src\server.ts
+  50:67  warning  '_next' is defined but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 46 problems (35 errors, 11 warnings)
+

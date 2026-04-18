@@ -61,7 +61,7 @@ router.put('/:id', async (req, res) => {
     const users = await query('SELECT * FROM users WHERE user_id = ?', [req.params.id]);
     if (users.length === 0) return res.status(404).json({ success: false, error: 'User not found' });
 
-    const existing = users[0] as any;
+    const existing = users[0] as Record<string, unknown>;
     const updated = { ...existing, ...req.body };
 
     await query(
@@ -86,7 +86,7 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    const result: any = await execute('DELETE FROM users WHERE user_id = ?', [req.params.id]);
+    const result = await execute('DELETE FROM users WHERE user_id = ?', [req.params.id]);
     if (result.affectedRows === 0) return res.status(404).json({ success: false, error: 'User not found' });
     res.json({ success: true, message: 'Deleted' });
   } catch (error) {

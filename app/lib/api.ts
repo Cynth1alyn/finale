@@ -10,7 +10,6 @@ import type {
   DashboardStats,
   LoginRequest,
   LoginResponse,
-  Role,
   EquipmentStatus,
   IssueStatus,
   JobStatus,
@@ -28,6 +27,7 @@ const USE_MOCK = process.env.NEXT_PUBLIC_API_MOCK === 'true' || false // Matches
 async function apiRequest(endpoint: string, options: RequestInit = {}) {
   const url = `${API_BASE_URL}${endpoint}`
   const config: RequestInit = {
+    cache: 'no-store',
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -295,7 +295,7 @@ export const issuesAPI = {
     priority?: Priority
     dept_id?: string
   }): Promise<Issue[]> => {
-    if (USE_MOCK) return mockData.issues as any
+    if (USE_MOCK) return mockData.issues as Issue[]
     const query = new URLSearchParams()
     if (params?.status) query.append('status', params.status)
     if (params?.priority) query.append('priority', params.priority)
@@ -309,7 +309,7 @@ export const issuesAPI = {
     if (USE_MOCK) {
       const issue = mockData.issues.find(i => i.issue_id === id)
       if (!issue) throw new Error('Issue not found')
-      return issue as any
+      return issue as Issue
     }
     const response = await apiRequest(`/issues/${id}`)
     return response.data

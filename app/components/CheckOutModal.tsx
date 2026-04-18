@@ -41,8 +41,8 @@ export default function CheckOutModal({ isOpen, onClose, equipment, users, onChe
     try {
       await onCheckOut(selectedUserId, qty, notes);
       onClose();
-    } catch (err: any) {
-      setError(err.message || 'เกิดข้อผิดพลาดในการเบิก');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err) || 'เกิดข้อผิดพลาดในการเบิก');
     } finally {
       setLoading(false);
     }

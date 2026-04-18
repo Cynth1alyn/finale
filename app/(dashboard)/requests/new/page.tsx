@@ -28,6 +28,7 @@ export default function NewRequestPage() {
   useEffect(() => {
     // Generate new ID when component mounts
     const newId = `R${String((requests.length > 0 ? Math.max(...requests.map(x => parseInt(x.req_id?.replace(/\D/g, ''), 10) || 0)) : 0) + 1).padStart(3, '0')}`;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFormData(prev => ({ ...prev, req_id: newId }));
   }, [requests]);
 
@@ -51,7 +52,7 @@ export default function NewRequestPage() {
     }));
   };
 
-  const handleUpdateItem = (itemId: string, field: string, value: any) => {
+  const handleUpdateItem = (itemId: string, field: string, value: string | number) => {
     setFormData(prev => ({
       ...prev,
       items: (prev.items || []).map(i => 
@@ -68,14 +69,7 @@ export default function NewRequestPage() {
     router.push('/requests');
   };
 
-  const getEquipmentName = (equipId: string) => {
-    return equipment.find(e => e.equip_id === equipId)?.name || '—';
-  };
 
-  const getUserName = (userId: string) => {
-    const user = users.find(u => u.user_id === userId);
-    return user ? `${user.firstname} ${user.lastname}` : '—';
-  };
 
   return (
     <>
@@ -273,7 +267,7 @@ export default function NewRequestPage() {
               borderRadius: 8,
               border: '1px dashed var(--border-color)'
             }}>
-              ยังไม่มีรายการอุปกรณ์ <br /> คลิก "เพิ่มรายการ" เพื่อเริ่มต้น
+              ยังไม่มีรายการอุปกรณ์ <br /> คลิก &quot;เพิ่มรายการ&quot; เพื่อเริ่มต้น
             </div>
           )}
         </div>

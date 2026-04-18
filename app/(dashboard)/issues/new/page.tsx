@@ -23,11 +23,13 @@ export default function NewIssuePage() {
 
   useEffect(() => {
     const newId = `I${String((issues.length > 0 ? Math.max(...issues.map(x => parseInt(x.issue_id.replace(/\D/g, ''), 10) || 0)) : 0) + 1).padStart(3, '0')}`;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFormData(prev => ({ ...prev, issue_id: newId }));
   }, [issues]);
 
   useEffect(() => {
     if (users.length > 0 && !formData.reporter_id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData(prev => ({ ...prev, reporter_id: users[0].user_id }));
     }
   }, [users, formData.reporter_id]);

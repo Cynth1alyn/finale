@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Search as SearchIcon, X } from 'lucide-react';
 
 interface Column<T> {
@@ -28,6 +29,7 @@ export default function DataTable<T extends Record<string, unknown>>({
   searchKeys = [],
   emptyMessage = 'ไม่พบข้อมูล',
 }: DataTableProps<T>) {
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState('');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
@@ -113,7 +115,16 @@ export default function DataTable<T extends Record<string, unknown>>({
                 </td>
               </tr>
             ) : paged.map((row, i) => (
-              <tr key={i}>
+              <tr 
+                key={i}
+                onClick={e => {
+                  // Prevent navigation if clicking inside an interactive element
+                  if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('a')) return;
+                  if (rowHref) router.push(rowHref(row));
+                }}
+                style={{ cursor: rowHref ? 'pointer' : 'default' }}
+                className={rowHref ? 'hover-row' : ''}
+              >
                 {columns.map(col => (
                   <td key={col.key} style={{ textAlign: col.align || 'left' }}>
                     {col.render ? col.render(row) : String(row[col.key] ?? '—')}

@@ -1,18 +1,18 @@
+'use client';
+
+import { use } from 'react';
 import Link from 'next/link';
-import { api } from '@/app/lib/api';
+import { useAppContext } from '@/app/lib/AppContext';
 import { JobStatus, User } from '@/app/lib/types';
 import StatusBadge from '@/app/components/StatusBadge';
 import PriorityBadge from '@/app/components/PriorityBadge';
 
-export default async function JobDetailPage({ params }: { params: { id: string } }) {
+export default function JobDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const { id } = params;
-
-  let job;
-  try {
-    job = await api.jobs.getJob(id);
-  } catch {
-    job = null;
-  }
+  
+  const { jobs, users, departments } = useAppContext();
+  const job = jobs.find(j => j.job_id === id);
 
   if (!job) {
     return (
@@ -23,17 +23,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
     );
   }
 
-  const assignedUsers: User[] = [];
-  for (const userId of job.assigned_user_ids ?? []) {
-    try {
-      const user = await api.users.getUser(userId);
-      assignedUsers.push(user);
-    } catch {
-      // skip missing user
-    }
-  }
-
-  const departments = await api.departments.getDepartments();
+  const assignedUsers = (job.assigned_user_ids || []).map(uid => users.find(u => u.user_id === uid)).filter(Boolean) as User[];
   const dept = assignedUsers[0] ? departments.find(d => d.dept_id === assignedUsers[0].dept_id) : null;
 
   const daysLeft = Math.ceil((new Date(job.due_date).getTime() - new Date().getTime()) / 86400000);

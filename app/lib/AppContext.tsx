@@ -1,10 +1,20 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { api } from './api';
 import {
-  Job, User, Department, Issue, Request, Equipment, Unit, Notification, Role
+  Job, User, Department, Issue, Request, Equipment, Unit, Notification
 } from './types';
+import * as baseApi from './api';
+const api = {
+  jobs: baseApi.jobsAPI,
+  users: baseApi.usersAPI,
+  departments: baseApi.departmentsAPI,
+  issues: baseApi.issuesAPI,
+  requests: baseApi.requestsAPI,
+  equipment: baseApi.equipmentAPI,
+  notifications: baseApi.notificationsAPI,
+  auth: baseApi.authAPI
+};
 
 interface AppContextType {
   jobs: Job[];
@@ -60,7 +70,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [requests, setRequests] = useState<Request[]>([]);
   const [equipment, setEquipment] = useState<Equipment[]>([]);
-  const [units, setUnits] = useState<Unit[]>([]);
+  const [units] = useState<Unit[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -107,6 +117,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const token = localStorage.getItem('auth_token');
     
     if (savedUser && token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCurrentUser(JSON.parse(savedUser));
     }
     setIsLoading(false);
@@ -114,6 +125,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (currentUser) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       loadInitialData();
     }
   }, [currentUser]);

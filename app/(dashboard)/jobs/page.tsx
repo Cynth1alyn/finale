@@ -14,7 +14,7 @@ import { Search, X, AlertTriangle, User, UserPlus, Pencil, Package } from 'lucid
 
 export default function JobsPage() {
   const router = useRouter();
-  const { jobs, users, equipment, updateJob, deleteJob, updateEquipment } = useAppContext();
+  const { jobs, users, equipment, updateJob, deleteJob } = useAppContext();
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');

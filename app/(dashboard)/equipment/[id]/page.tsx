@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppContext } from '@/app/lib/AppContext';
-import { Equipment } from '@/app/lib/types';
+import { Equipment, EquipmentHistory } from '@/app/lib/types';
 import Link from 'next/link';
 import { Trash2 } from 'lucide-react';
 import { api } from '@/app/lib/api';
@@ -26,6 +26,7 @@ export default function EquipmentDetailPage({ params }: { params: Promise<{ id: 
 
   useEffect(() => {
     if (equip) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData(equip);
     }
   }, [equip]);
@@ -323,7 +324,7 @@ export default function EquipmentDetailPage({ params }: { params: Promise<{ id: 
 
 function EquipmentHistoryList({ equipId }: { equipId: string }) {
   const { users } = useAppContext();
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<EquipmentHistory[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -376,7 +377,7 @@ function EquipmentHistoryList({ equipId }: { equipId: string }) {
               </div>
               {h.notes && (
                 <div style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                  "{h.notes}"
+                  &quot;{h.notes}&quot;
                 </div>
               )}
             </div>

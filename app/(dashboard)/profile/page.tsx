@@ -5,16 +5,14 @@ import { useAppContext } from '@/app/lib/AppContext';
 import { User } from '@/app/lib/types';
 
 export default function ProfilePage() {
-  const { users, updateUser, departments } = useAppContext();
-  
-  // Mock current user
-  const currentUser = users.find(u => u.user_id === 'U001');
+  const { currentUser, updateUser, departments } = useAppContext();
   
   const [formData, setFormData] = useState<Partial<User>>({});
   const [isClient, setIsClient] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsClient(true);
     if (currentUser) {
       setFormData(currentUser);

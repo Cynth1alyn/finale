@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TechJob Management System
 
-## Getting Started
+TechJob is an end-to-end IT service management solution, providing tools for ticketing, asset tracking, and job assignments.
 
-First, run the development server:
+## 🚀 Getting Started
 
+The application is split into a Next.js (React) frontend and an Express (Node.js) backend, powered by a MySQL database.
+
+### 1. Database Setup
+The easiest way to start the database is using Docker. From the project root, start MySQL and phpMyAdmin:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+docker-compose up -d
 ```
+*MySQL will run on port `3306` with the username `techjob` and password `techjob123`. phpMyAdmin is available at `http://localhost:8080`.*
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Backend Setup
+Navigate to the `backend` folder to install dependencies and run the API server. Upon the first successful start, the server will automatically seed the initial database elements.
+```bash
+cd backend
+npm install
+npm run build
+npm run start
+```
+*The backend server will run on `http://localhost:3001`.*
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Frontend Setup
+Open a new terminal and navigate to the project root. Install dependencies and start the Next.js development server:
+```bash
+npm install
+npm run dev
+```
+*The frontend application will be available at `http://localhost:3000`.*
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### ⚙️ Environment Configuration
+The frontend connects to the backend API via the `.env.local` configuration layer. 
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Mock Data Mode**: If you wish to run the frontend independently without a database, you can toggle Mock mode:
+```env
+NEXT_PUBLIC_API_MOCK=true
+```
+For full database connectivity, ensure this is set to `false`.

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/app/lib/api';
 import { Issue, User, IssueStatus } from '@/app/lib/types';
@@ -8,7 +8,8 @@ import StatusBadge from '@/app/components/StatusBadge';
 
 const allStatuses = [IssueStatus.OPEN, IssueStatus.IN_PROGRESS, IssueStatus.RESOLVED, IssueStatus.CLOSED] as const;
 
-export default function IssueDetailPage({ params }: { params: { id: string } }) {
+export default function IssueDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const { id } = params;
   const [issue, setIssue] = useState<Issue | null>(null);
   const [reporter, setReporter] = useState<User | null>(null);
@@ -32,7 +33,7 @@ export default function IssueDetailPage({ params }: { params: { id: string } }) 
             console.warn('Reporter not found:', error);
           }
         }
-      } catch (error) {
+      } catch {
         if (!cancelled) setNotFound(true);
       } finally {
         if (!cancelled) setLoading(false);

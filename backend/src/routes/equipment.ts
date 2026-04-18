@@ -70,7 +70,7 @@ router.put('/:id', async (req, res) => {
     const rows = await query('SELECT * FROM equipment WHERE equip_id = ?', [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ success: false, error: 'Equipment not found' });
 
-    const existing = rows[0] as any;
+    const existing = rows[0] as Record<string, unknown>;
     const updated = { ...existing, ...req.body };
 
     await query(
@@ -105,7 +105,7 @@ router.post('/:id/checkout', async (req, res) => {
     const rows = await query('SELECT * FROM equipment WHERE equip_id = ?', [equip_id]);
     if (rows.length === 0) return res.status(404).json({ success: false, error: 'Equipment not found' });
 
-    const equip = rows[0] as any;
+    const equip = rows[0] as { remain_qty: number; [key: string]: unknown };
     if (equip.remain_qty < qty) {
       return res.status(400).json({ success: false, error: 'จำนวนอุปกรณ์ในสต็อกไม่เพียงพอ' });
     }
@@ -127,7 +127,7 @@ router.post('/:id/checkout', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    const result: any = await execute('DELETE FROM equipment WHERE equip_id = ?', [req.params.id]);
+    const result = await execute('DELETE FROM equipment WHERE equip_id = ?', [req.params.id]);
     if (result.affectedRows === 0) return res.status(404).json({ success: false, error: 'Equipment not found' });
     res.json({ success: true, message: 'Deleted' });
   } catch (error) {
