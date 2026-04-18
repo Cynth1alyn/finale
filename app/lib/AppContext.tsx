@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import {
-  Job, User, Department, Issue, Request, Equipment, Unit, Notification
+  Job, User, Department, Issue, Request, Equipment, Unit, Notification, Role
 } from './types';
 import * as baseApi from './api';
 const api = {
@@ -120,8 +120,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const token = localStorage.getItem('auth_token');
     
     if (savedUser && token) {
+      const u = JSON.parse(savedUser);
+      if (u && u.role) u.role = u.role.toLowerCase() as Role;
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setCurrentUser(JSON.parse(savedUser));
+      setCurrentUser(u);
     }
     setIsLoading(false);
   }, []);
@@ -144,6 +146,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const response = await api.auth.login({ email, password });
       if (response.success && response.data) {
         const { user, token } = response.data;
+        if (user && user.role) user.role = user.role.toLowerCase() as Role;
         setCurrentUser(user);
         localStorage.setItem('auth_token', token);
         localStorage.setItem('techjob_user', JSON.stringify(user));
@@ -359,7 +362,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppContext.Provider value={{
-      jobs, users, departments, issues, requests, equipment, units, notifications,
+      jobs: currentUser?.role?.toLowerCase() === 'admin' || currentUser?.role?.toLowerCase() === 'manager' 
+        ? jobs 
+        : jobs.filter(j => j.assigned_user_ids?.includes(currentUser?.user_id || '') || j.assigned_lead_id === currentUser?.user_id),
+      users, departments, issues, requests, equipment, units, notifications,
       currentUser, isLoading,
       login, logout,
       addJob, updateJob, deleteJob,

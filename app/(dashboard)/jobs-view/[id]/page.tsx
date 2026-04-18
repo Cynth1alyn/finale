@@ -59,7 +59,14 @@ export default function JobsViewDetailPage({ params }: { params: Promise<{ id: s
       };
     });
 
-  const availableEquip = equipment.filter(e => e.remain_qty > 0 && !equipRequests.find(r => r.equip_id === e.equip_id));
+  const availableEquipOptions = equipment
+    .filter(e => !equipRequests.find(r => r.equip_id === e.equip_id))
+    .map(e => ({
+      value: e.equip_id,
+      label: `${e.name} (เหลือ: ${e.remain_qty})`,
+      disabled: e.remain_qty <= 0,
+      disabledReason: e.remain_qty <= 0 ? 'อุปกรณ์หมดคลัง' : undefined
+    }));
 
   const handleSave = async () => {
     try {
@@ -275,7 +282,7 @@ export default function JobsViewDetailPage({ params }: { params: Promise<{ id: s
             </h3>
             <div style={{ width: 300, flexShrink: 0 }}>
               <SearchableSelect
-                options={availableEquip.map(e => ({ value: e.equip_id, label: `${e.name} (เหลือ: ${e.remain_qty})` }))}
+                options={availableEquipOptions}
                 placeholder="เลือกอุปกรณ์..."
                 value=""
                 resetOnSelect={true}

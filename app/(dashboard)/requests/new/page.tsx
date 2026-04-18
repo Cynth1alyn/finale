@@ -183,8 +183,8 @@ export default function NewRequestPage() {
                     style={{ fontSize: 13, padding: '8px 10px', borderRadius: 4, border: '1px solid var(--border-color)' }}
                   >
                     {equipment.map(e => (
-                      <option key={e.equip_id} value={e.equip_id}>
-                        {e.name}
+                      <option key={e.equip_id} value={e.equip_id} disabled={e.remain_qty <= 0}>
+                        {e.name} (เหลือ: {e.remain_qty})
                       </option>
                     ))}
                   </select>
