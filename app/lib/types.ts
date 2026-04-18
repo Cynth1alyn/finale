@@ -4,7 +4,7 @@ export enum Role {
   ADMIN = 'admin',
   MANAGER = 'manager',
   TECHNICIAN = 'technician',
-  STAFF = 'staff'
+  USER = 'user'
 }
 
 export enum JobStatus {

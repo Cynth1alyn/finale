@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useAppContext } from '@/app/lib/AppContext';
-import { Building2 } from 'lucide-react';
+import { Building2, Pencil } from 'lucide-react';
 import Link from 'next/link';
 
 const deptColors = ['#3B82F6','#8B5CF6','#10B981','#F59E0B','#F43F5E'];
@@ -59,7 +59,9 @@ function DepartmentsPageContent() {
                     router.push(`/departments/${dept.dept_id}`);
                   }}
                   title="ดูรายละเอียด"
-                />
+                >
+                  <Pencil size={14} />
+                </button>
                 <button 
                   className="btn btn-ghost btn-sm" 
                   style={{ padding: '6px', color: 'var(--accent-rose)' }} 

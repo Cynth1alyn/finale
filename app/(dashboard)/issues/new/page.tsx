@@ -8,7 +8,7 @@ import MapComponent from '@/app/components/MapComponent';
 
 export default function NewIssuePage() {
   const router = useRouter();
-  const { issues, users, addIssue } = useAppContext();
+  const { issues, addIssue, currentUser } = useAppContext();
   
   const [formData, setFormData] = useState<Partial<Issue>>({
     topic: '',
@@ -20,24 +20,24 @@ export default function NewIssuePage() {
     lat: 13.736717,
     lng: 100.523186,
   });
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const newId = `I${String((issues.length > 0 ? Math.max(...issues.map(x => parseInt(x.issue_id.replace(/\D/g, ''), 10) || 0)) : 0) + 1).padStart(3, '0')}`;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setFormData(prev => ({ ...prev, issue_id: newId }));
-  }, [issues]);
-
-  useEffect(() => {
-    if (users.length > 0 && !formData.reporter_id) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setFormData(prev => ({ ...prev, reporter_id: users[0].user_id }));
-    }
-  }, [users, formData.reporter_id]);
+    setFormData(prev => ({ ...prev, issue_id: newId, reporter_id: currentUser?.user_id || '' }));
+  }, [issues, currentUser]);
 
   const handleSave = async () => {
     if (!formData.topic) return alert('กรุณาระบุหัวข้อปัญหา');
-    await addIssue(formData as Issue);
-    router.push('/issues');
+    try {
+      setIsSaving(true);
+      await addIssue(formData as Issue);
+      router.push('/issues');
+    } catch (e) {
+      alert('เกิดข้อผิดพลาด: ' + String(e));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -92,16 +92,23 @@ export default function NewIssuePage() {
             </div>
           </div>
           
-          <div>
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 500, marginBottom: 8, color: 'var(--text-secondary)' }}>ผู้แจ้ง</label>
-            <select className="input" value={formData.reporter_id || ''} onChange={e => setFormData({...formData, reporter_id: e.target.value})} style={{ width: '100%', padding: '12px 16px', fontSize: 15 }}>
-              {users.map(u => <option key={u.user_id} value={u.user_id}>{u.firstname} {u.lastname} ({u.role})</option>)}
-            </select>
+          {/* Reporter auto-display */}
+          <div style={{ padding: '12px 16px', background: 'var(--bg-secondary)', borderRadius: 10, border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div className="avatar avatar-md" style={{ background: currentUser?.avatar_color || '#3B82F6', fontSize: 13, color: '#fff', flexShrink: 0 }}>
+              {currentUser ? `${currentUser.firstname[0]}${currentUser.lastname[0]}` : '?'}
+            </div>
+            <div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 2 }}>ผู้แจ้ง (บัญชีที่ Log in อยู่)</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{currentUser?.firstname} {currentUser?.lastname}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{currentUser?.email}</div>
+            </div>
           </div>
           
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 16, marginTop: 16, paddingTop: 24, borderTop: '1px solid var(--border-color)' }}>
-            <button className="btn btn-ghost" onClick={() => router.push('/issues')} style={{ padding: '10px 24px', fontSize: 15 }}>ยกเลิก</button>
-            <button className="btn btn-primary" onClick={handleSave} style={{ padding: '10px 24px', fontSize: 15 }}>ส่งข้อมูลแจ้งปัญหา</button>
+            <button className="btn btn-ghost" onClick={() => router.push('/issues')} style={{ padding: '10px 24px', fontSize: 15 }} disabled={isSaving}>ยกเลิก</button>
+            <button className="btn btn-primary" onClick={handleSave} style={{ padding: '10px 24px', fontSize: 15 }} disabled={isSaving}>
+              {isSaving ? 'กำลังบันทึก...' : 'ส่งข้อมูลแจ้งปัญหา'}
+            </button>
           </div>
         </div>
       </div>

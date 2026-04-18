@@ -8,12 +8,19 @@ import { Search, X, Edit2, Building2, Phone, Fingerprint } from 'lucide-react';
 import RoleGuard from '@/app/components/RoleGuard';
 
 const roleColors: Record<string, string> = {
-  admin: '#F43F5E', manager: '#8B5CF6', technician: '#3B82F6', staff: '#10B981',
+  admin: '#F43F5E', manager: '#8B5CF6', technician: '#3B82F6', user: '#10B981',
 };
 const roleLabels: Record<string, string> = {
-  admin: 'ผู้ดูแลระบบ', manager: 'ผู้จัดการ', technician: 'ช่างเทคนิค', staff: 'พนักงาน',
+  admin: 'ผู้ดูแลระบบ', manager: 'ผู้จัดการ', technician: 'ช่างเทคนิค', user: 'ผู้ใช้งาน',
 };
 const avatarColors = ['#3B82F6','#8B5CF6','#10B981','#F59E0B','#F43F5E','#06B6D4','#EC4899','#14B8A6','#F97316','#A855F7'];
+
+function formatPhone(raw: string) {
+  const digits = raw.replace(/\D/g, '').slice(0, 10);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
 
 function UsersPageContent() {
   const { users, departments, addUser, updateUser, deleteUser } = useAppContext();
@@ -23,21 +30,20 @@ function UsersPageContent() {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [password, setPassword] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   
   // Form State
   const [formData, setFormData] = useState<Partial<User & { password?: string }>>({});
 
   const openAddModal = () => {
     setEditingUser(null);
-    setPassword('');
     setFormData({
       user_id: `U${String((users.length > 0 ? Math.max(...users.map(x => parseInt(x.user_id.replace(/\D/g, ''), 10) || 0)) : 0) + 1).padStart(3, '0')}`,
       firstname: '',
       lastname: '',
       email: '',
       tel: '',
-      role: Role.STAFF,
+      role: Role.USER,
       dept_id: departments[0]?.dept_id || 'D001',
       avatar_color: avatarColors[Math.floor(Math.random() * avatarColors.length)]
     });
@@ -46,7 +52,6 @@ function UsersPageContent() {
 
   const openEditModal = (user: User) => {
     setEditingUser(user);
-    setPassword('');
     setFormData(user);
     setIsModalOpen(true);
   };
@@ -59,11 +64,11 @@ function UsersPageContent() {
 
   const handleSave = async () => {
     if (!formData.firstname || !formData.lastname) return alert('กรุณาระบุชื่อและนามสกุล');
-    if (!editingUser && !password) return alert('กรุณาระบุรหัสผ่านสำหรับผู้ใช้ใหม่');
+    if (formData.email && !formData.email.includes('@')) return alert('อีเมลไม่ถูกต้อง ต้องมี @');
 
     try {
+      setIsSaving(true);
       const dataToSave = { ...formData };
-      if (password) dataToSave.password = password;
 
       if (editingUser) {
         await updateUser(dataToSave as User);
@@ -73,6 +78,8 @@ function UsersPageContent() {
       setIsModalOpen(false);
     } catch (error) {
       alert('เกิดข้อผิดพลาด: ' + String(error));
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -85,7 +92,7 @@ function UsersPageContent() {
     return true;
   });
 
-  const roles = ['all', 'admin', 'manager', 'technician', 'staff'];
+  const roles = ['all', 'admin', 'manager', 'technician', 'user'];
   const roleCount = (r: string) => r === 'all' ? users.length : users.filter(u => u.role === r).length;
 
   return (
@@ -175,45 +182,40 @@ function UsersPageContent() {
             </div>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>เบอร์โทรศัพท์</label>
-              <input type="text" className="input" value={formData.tel || ''} onChange={e => setFormData({...formData, tel: e.target.value})} style={{ width: '100%', padding: '8px 12px' }} />
+              <input
+                type="text"
+                className="input"
+                value={formData.tel || ''}
+                onChange={e => setFormData({...formData, tel: formatPhone(e.target.value)})}
+                style={{ width: '100%', padding: '8px 12px' }}
+                placeholder="0XX-XXX-XXXX"
+                maxLength={12}
+                inputMode="numeric"
+              />
             </div>
           </div>
           <div style={{ display: 'flex', gap: 16 }}>
-             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>
-                รหัสผ่าน {editingUser && '(เว้นว่างไว้หากไม่ต้องการเปลี่ยน)'}
-              </label>
-              <input 
-                type="password" 
-                className="input" 
-                value={password} 
-                onChange={e => setPassword(e.target.value)} 
-                placeholder="••••••••"
-                style={{ width: '100%', padding: '8px 12px' }} 
-              />
-            </div>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>บทบาท</label>
-              <select className="input" value={formData.role || 'staff'} onChange={e => setFormData({...formData, role: e.target.value as Role})} style={{ width: '100%', padding: '8px 12px' }}>
-                <option value="staff">พนักงาน</option>
+              <select className="input" value={formData.role || 'user'} onChange={e => setFormData({...formData, role: e.target.value as Role})} style={{ width: '100%', padding: '8px 12px' }}>
+                <option value="user">ผู้ใช้งาน</option>
                 <option value="technician">ช่างเทคนิค</option>
                 <option value="manager">ผู้จัดการ</option>
                 <option value="admin">ผู้ดูแลระบบ</option>
               </select>
             </div>
-          </div>
-          <div style={{ display: 'flex', gap: 16 }}>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>แผนก</label>
               <select className="input" value={formData.dept_id || ''} onChange={e => setFormData({...formData, dept_id: e.target.value})} style={{ width: '100%', padding: '8px 12px' }}>
                 {departments.map(d => <option key={d.dept_id} value={d.dept_id}>{d.dept_name}</option>)}
               </select>
             </div>
-            <div style={{ flex: 1 }}></div>
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 10 }}>
-            <button className="btn btn-ghost" onClick={() => setIsModalOpen(false)}>ยกเลิก</button>
-            <button className="btn btn-primary" onClick={handleSave}>บันทึกข้อมูล</button>
+            <button className="btn btn-ghost" onClick={() => setIsModalOpen(false)} disabled={isSaving}>ยกเลิก</button>
+            <button className="btn btn-primary" onClick={handleSave} disabled={isSaving}>
+              {isSaving ? 'กำลังบันทึก...' : 'บันทึกข้อมูล'}
+            </button>
           </div>
         </div>
       </Modal>

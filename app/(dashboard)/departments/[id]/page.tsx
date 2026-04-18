@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAppContext } from '@/app/lib/AppContext';
 import { Department } from '@/app/lib/types';
 import Link from 'next/link';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Pencil } from 'lucide-react';
 
 export default function DepartmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -86,10 +86,13 @@ export default function DepartmentDetailPage({ params }: { params: Promise<{ id:
                     border: 'none',
                     fontSize: 12,
                     fontWeight: 500,
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
                   }}
                 >
-                  แก้ไข
+                  <Pencil size={13} /> แก้ไข
                 </button>
               )}
             </div>

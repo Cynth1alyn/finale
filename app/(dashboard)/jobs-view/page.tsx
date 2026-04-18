@@ -95,7 +95,7 @@ export default function JobsViewPage() {
           const assignees = (job.assigned_user_ids || []).map(id => users.find(u => u.user_id === id)).filter(Boolean);
           
           return (
-            <Link key={job.job_id} href={`/jobs/${job.job_id}`} style={{ textDecoration: 'none', display: 'flex' }}>
+            <Link key={job.job_id} href={`/jobs-view/${job.job_id}`} style={{ textDecoration: 'none', display: 'flex' }}>
               <div className="card" style={{ flex: 1, padding: 20, display: 'flex', flexDirection: 'column', gap: 14, cursor: 'pointer', transition: 'all 0.2s', borderTop: `4px solid ${job.job_status === 'done' ? 'var(--accent-emerald)' : job.job_status === 'in-progress' ? 'var(--accent-blue)' : job.job_status === 'cancelled' ? 'var(--text-muted)' : 'var(--accent-amber)'}` }}
                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'}
                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'}>

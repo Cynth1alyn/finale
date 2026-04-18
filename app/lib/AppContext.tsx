@@ -27,6 +27,8 @@ interface AppContextType {
   notifications: Notification[];
   currentUser: User | null;
   isLoading: boolean;
+  sidebarCollapsed: boolean;
+  setSidebarCollapsed: (collapsed: boolean) => void;
 
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
@@ -74,6 +76,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const loadInitialData = async () => {
     try {
@@ -365,7 +368,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addIssue, updateIssue, deleteIssue,
       addRequest, updateRequest, deleteRequest,
       addEquipment, updateEquipment, deleteEquipment, checkOutEquipment,
-      addNotification, markNotificationAsRead, markAllNotificationsAsRead
+      addNotification, markNotificationAsRead, markAllNotificationsAsRead,
+      sidebarCollapsed, setSidebarCollapsed
     }}>
       {children}
     </AppContext.Provider>

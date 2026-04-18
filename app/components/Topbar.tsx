@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useAppContext } from '@/app/lib/AppContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Bell } from 'lucide-react';
+import { Bell, Menu, X } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 
 interface TopbarProps {
@@ -13,7 +13,7 @@ interface TopbarProps {
 }
 
 export default function Topbar({ title, subtitle }: TopbarProps) {
-  const { currentUser, notifications, markNotificationAsRead, markAllNotificationsAsRead } = useAppContext();
+  const { currentUser, notifications, markNotificationAsRead, markAllNotificationsAsRead, sidebarCollapsed, setSidebarCollapsed } = useAppContext();
   const [now, setNow] = useState<Date | null>(null);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -58,9 +58,32 @@ export default function Topbar({ title, subtitle }: TopbarProps) {
 
   return (
     <header className="topbar glass">
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>{title}</div>
-        {subtitle && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>{subtitle}</div>}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1 }}>
+        <button
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--text-secondary)',
+            cursor: 'pointer',
+            padding: 8,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 8,
+            transition: 'all 0.2s',
+            marginLeft: -8, // Offset padding to keep the icon nicely aligned
+          }}
+          onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg-hover)'}
+          onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
+        >
+          {sidebarCollapsed ? <Menu size={20} /> : <X size={20} />}
+        </button>
+
+        <div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em', lineHeight: 1 }}>{title}</div>
+          {subtitle && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4, lineHeight: 1 }}>{subtitle}</div>}
+        </div>
       </div>
 
       {/* Notification */}

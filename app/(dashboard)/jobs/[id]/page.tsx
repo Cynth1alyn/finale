@@ -6,6 +6,7 @@ import { useAppContext } from '@/app/lib/AppContext';
 import { JobStatus, User } from '@/app/lib/types';
 import StatusBadge from '@/app/components/StatusBadge';
 import PriorityBadge from '@/app/components/PriorityBadge';
+import { MapPin, Phone, User as UserIcon, Crown, Building2, AlertTriangle } from 'lucide-react';
 
 export default function JobDetailPage(props: { params: Promise<{ id: string }> }) {
   const params = use(props.params);
@@ -24,6 +25,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
   }
 
   const assignedUsers = (job.assigned_user_ids || []).map(uid => users.find(u => u.user_id === uid)).filter(Boolean) as User[];
+  const lead = users.find(u => u.user_id === job.assigned_lead_id);
   const dept = assignedUsers[0] ? departments.find(d => d.dept_id === assignedUsers[0].dept_id) : null;
 
   const daysLeft = Math.ceil((new Date(job.due_date).getTime() - new Date().getTime()) / 86400000);
@@ -32,6 +34,18 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
   const progress = progressMap[job.job_status] || 0;
 
   const avatarColors = ['#3B82F6','#8B5CF6','#10B981','#F59E0B','#F43F5E','#06B6D4','#EC4899'];
+
+  const roleLabel = (role: string) => {
+    if (role === 'technician') return 'ช่างเทคนิค';
+    if (role === 'user') return 'ผู้ใช้งาน';
+    if (role === 'manager') return 'ผู้จัดการ';
+    if (role === 'admin') return 'ผู้ดูแลระบบ';
+    return role;
+  };
+
+  const mapUrl = job.lat && job.lng
+    ? `https://www.openstreetmap.org/?mlat=${job.lat}&mlon=${job.lng}#map=15/${job.lat}/${job.lng}`
+    : null;
 
   return (
     <>
@@ -50,12 +64,86 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 20 }}>
+
+        {/* Left column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+
+          {/* Description */}
           <div className="card" style={{ padding: '22px 24px' }}>
             <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.05em' }}>รายละเอียด</h3>
-            <p style={{ fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.8 }}>{job.description}</p>
+            <p style={{ fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.8 }}>
+              {job.description || <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>ไม่มีรายละเอียด</span>}
+            </p>
           </div>
 
+          {/* Customer Info */}
+          {(job.customer_name || job.contact_number || job.address || job.landmark) && (
+            <div className="card" style={{ padding: '22px 24px' }}>
+              <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <UserIcon size={15} /> ข้อมูลลูกค้า
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {job.customer_name && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14 }}>
+                    <UserIcon size={14} color="var(--accent-blue)" style={{ flexShrink: 0 }} />
+                    <span style={{ color: 'var(--text-muted)', minWidth: 80 }}>ชื่อ</span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{job.customer_name}</span>
+                  </div>
+                )}
+                {job.contact_number && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14 }}>
+                    <Phone size={14} color="var(--accent-emerald)" style={{ flexShrink: 0 }} />
+                    <span style={{ color: 'var(--text-muted)', minWidth: 80 }}>เบอร์ติดต่อ</span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{job.contact_number}</span>
+                  </div>
+                )}
+                {job.address && (
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 14 }}>
+                    <MapPin size={14} color="var(--accent-rose)" style={{ flexShrink: 0, marginTop: 2 }} />
+                    <span style={{ color: 'var(--text-muted)', minWidth: 80, flexShrink: 0 }}>ที่อยู่</span>
+                    <span style={{ color: 'var(--text-primary)', lineHeight: 1.6 }}>{job.address}</span>
+                  </div>
+                )}
+                {job.landmark && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14 }}>
+                    <AlertTriangle size={14} color="var(--accent-amber)" style={{ flexShrink: 0 }} />
+                    <span style={{ color: 'var(--text-muted)', minWidth: 80 }}>จุดสังเกต</span>
+                    <span style={{ color: 'var(--accent-amber)', fontWeight: 500 }}>{job.landmark}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Location Map */}
+          {job.lat && job.lng && (
+            <div className="card" style={{ padding: '22px 24px' }}>
+              <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <MapPin size={15} /> ตำแหน่งที่ตั้ง
+              </h3>
+              <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border-color)', marginBottom: 10, background: 'var(--bg-secondary)' }}>
+                {/* Static map image via OpenStreetMap tiles */}
+                <iframe
+                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${job.lng - 0.01},${job.lat - 0.01},${job.lng + 0.01},${job.lat + 0.01}&layer=mapnik&marker=${job.lat},${job.lng}`}
+                  style={{ width: '100%', height: 260, border: 'none', display: 'block' }}
+                  title="ตำแหน่งงาน"
+                />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                  {job.lat.toFixed(6)}, {job.lng.toFixed(6)}
+                </div>
+                {mapUrl && (
+                  <a href={mapUrl} target="_blank" rel="noreferrer"
+                    style={{ fontSize: 12, color: 'var(--accent-blue)', textDecoration: 'none', fontWeight: 500 }}>
+                    เปิดใน OpenStreetMap ↗
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Progress */}
           <div className="card" style={{ padding: '22px 24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>ความคืบหน้า</h3>
@@ -75,6 +163,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
             </div>
           </div>
 
+          {/* Timeline */}
           <div className="card" style={{ padding: '22px 24px' }}>
             <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Timeline</h3>
             {[
@@ -103,14 +192,17 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
           </div>
         </div>
 
+        {/* Right column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+
+          {/* Job Meta */}
           <div className="card" style={{ padding: '20px 22px' }}>
             <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ข้อมูลงาน</h3>
             {[
               { label: 'สถานะ',       value: <StatusBadge status={job.job_status} /> },
               { label: 'ความสำคัญ',   value: <PriorityBadge priority={job.job_priority} /> },
               { label: 'วันเริ่มต้น', value: job.start_date },
-              { label: 'กำหนดเสร็จ',  value: job.due_date },
+              { label: 'กำหนดเสร็จ',  value: <span style={{ color: overdue ? 'var(--accent-rose)' : 'var(--text-primary)', fontWeight: overdue ? 700 : 400 }}>{job.due_date}{overdue ? ' ⚠' : ''}</span> },
               { label: 'แผนก',        value: dept?.dept_name ?? '—' },
             ].map(r => (
               <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border-color)' }}>
@@ -120,19 +212,48 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
             ))}
           </div>
 
+          {/* Lead Person */}
+          {lead && (
+            <div className="card" style={{ padding: '20px 22px' }}>
+              <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Crown size={14} color="var(--accent-amber)" /> หัวหน้างาน
+              </h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', background: 'var(--bg-secondary)', borderRadius: 10, border: '1px solid var(--border-color)' }}>
+                <div className="avatar avatar-md" style={{ background: lead.avatar_color || '#8B5CF6', fontSize: 13, color: '#fff', flexShrink: 0 }}>
+                  {lead.firstname[0]}{lead.lastname[0]}
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>{lead.firstname} {lead.lastname}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                    {roleLabel(lead.role)}
+                    {lead.dept_id && departments.find(d => d.dept_id === lead.dept_id) && (
+                      <span style={{ marginLeft: 6, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                        · <Building2 size={10} /> {departments.find(d => d.dept_id === lead.dept_id)?.dept_name}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Assigned Team */}
           <div className="card" style={{ padding: '20px 22px' }}>
             <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ผู้รับผิดชอบ ({assignedUsers.length})</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {assignedUsers.length === 0 && (
+                <div style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: 12 }}>— ยังไม่มีผู้รับผิดชอบ —</div>
+              )}
               {assignedUsers.map((u, i) => {
                 const userDept = departments.find(d => d.dept_id === u.dept_id);
                 return (
                   <div key={u.user_id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div className="avatar avatar-md" style={{ background: avatarColors[i % avatarColors.length], fontSize: 12 }}>
+                    <div className="avatar avatar-md" style={{ background: u.avatar_color || avatarColors[i % avatarColors.length], fontSize: 12, color: '#fff', flexShrink: 0 }}>
                       {u.firstname[0]}{u.lastname[0]}
                     </div>
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{u.firstname} {u.lastname}</div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{u.role} · {userDept?.dept_name ?? '—'}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{roleLabel(u.role)} · {userDept?.dept_name ?? '—'}</div>
                     </div>
                   </div>
                 );
@@ -140,8 +261,8 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
             </div>
           </div>
         </div>
+
       </div>
     </>
   );
 }
-

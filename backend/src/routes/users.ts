@@ -37,7 +37,7 @@ router.post('/', async (req, res) => {
     }
 
     await query(
-      'INSERT INTO users (user_id, firstname, lastname, email, tel, role, dept_id, avatar_color) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO users (user_id, firstname, lastname, email, tel, role, dept_id, avatar_color, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
         newUser.user_id,
         newUser.firstname || '',
@@ -46,7 +46,8 @@ router.post('/', async (req, res) => {
         newUser.tel || '',
         newUser.role || '',
         newUser.dept_id || null,
-        newUser.avatar_color || null
+        newUser.avatar_color || null,
+        newUser.password || '$2a$10$TWz9N3Io1I/bkQq2Oic.f.gvUYMJ2/gtUsWuY.sN4znm5I63p2nKO'
       ]
     );
 

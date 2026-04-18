@@ -8,9 +8,10 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: ReactNode;
+  maxWidth?: number;
 }
 
-export default function Modal({ isOpen, onClose, title, children }: ModalProps) {
+export default function Modal({ isOpen, onClose, title, children, maxWidth = 500 }: ModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -30,7 +31,7 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
         style={{ 
           background: 'var(--bg-secondary)', 
           width: '100%', 
-          maxWidth: 500,
+          maxWidth: maxWidth,
           maxHeight: '90vh',
           display: 'flex',
           flexDirection: 'column',

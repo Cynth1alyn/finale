@@ -40,12 +40,12 @@ export const users: User[] = [
   { user_id: "U002", firstname: "สุภาพร", lastname: "วงศ์ตระกูล", email: "supaporn@techjob.th", tel: "082-345-6789", role: UserRole.MANAGER, dept_id: "D002", avatar_color: "#8B5CF6" },
   { user_id: "U003", firstname: "กิตติพล", lastname: "ประมวลผล", email: "kittipol@techjob.th", tel: "083-456-7890", role: UserRole.TECHNICIAN, dept_id: "D001", avatar_color: "#10B981" },
   { user_id: "U004", firstname: "นันทวัน", lastname: "ดวงดี", email: "nantawan@techjob.th", tel: "084-567-8901", role: UserRole.TECHNICIAN, dept_id: "D004", avatar_color: "#F59E0B" },
-  { user_id: "U005", firstname: "ปรีชา", lastname: "มีสุข", email: "preecha@techjob.th", tel: "085-678-9012", role: UserRole.STAFF, dept_id: "D003", avatar_color: "#F43F5E" },
+  { user_id: "U005", firstname: "ปรีชา", lastname: "มีสุข", email: "preecha@techjob.th", tel: "085-678-9012", role: UserRole.USER, dept_id: "D003", avatar_color: "#F43F5E" },
   { user_id: "U006", firstname: "วิภาวดี", lastname: "รักษ์ศิลป์", email: "wipawadee@techjob.th", tel: "086-789-0123", role: UserRole.MANAGER, dept_id: "D003", avatar_color: "#06B6D4" },
   { user_id: "U007", firstname: "ชัยวัฒน์", lastname: "ยิ้มแย้ม", email: "chaiwat@techjob.th", tel: "087-890-1234", role: UserRole.TECHNICIAN, dept_id: "D005", avatar_color: "#EC4899" },
-  { user_id: "U008", firstname: "มาลินี", lastname: "สุขใจ", email: "malinee@techjob.th", tel: "088-901-2345", role: UserRole.STAFF, dept_id: "D002", avatar_color: "#14B8A6" },
+  { user_id: "U008", firstname: "มาลินี", lastname: "สุขใจ", email: "malinee@techjob.th", tel: "088-901-2345", role: UserRole.USER, dept_id: "D002", avatar_color: "#14B8A6" },
   { user_id: "U009", firstname: "ภาณุวัฒน์", lastname: "ทองคำ", email: "panuwat@techjob.th", tel: "089-012-3456", role: UserRole.TECHNICIAN, dept_id: "D004", avatar_color: "#F97316" },
-  { user_id: "U010", firstname: "รัตนาวลี", lastname: "บุญมา", email: "rattana@techjob.th", tel: "090-123-4567", role: UserRole.STAFF, dept_id: "D001", avatar_color: "#A855F7" },
+  { user_id: "U010", firstname: "รัตนาวลี", lastname: "บุญมา", email: "rattana@techjob.th", tel: "090-123-4567", role: UserRole.USER, dept_id: "D001", avatar_color: "#A855F7" },
 ];
 
 // ─── Jobs ────────────────────────────────────────────────────────────────────
