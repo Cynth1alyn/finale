@@ -9,10 +9,10 @@ import RoleGuard from '@/app/components/RoleGuard';
 import Pagination from '@/app/components/Pagination';
 
 const roleColors: Record<string, string> = {
-  admin: '#F43F5E', manager: '#8B5CF6', technician: '#3B82F6', user: '#10B981',
+  admin: '#F43F5E', manager: '#8B5CF6', technician: '#3B82F6',
 };
 const roleLabels: Record<string, string> = {
-  admin: 'ผู้ดูแลระบบ', manager: 'ผู้จัดการ', technician: 'ช่างเทคนิค', user: 'ผู้ใช้งาน',
+  admin: 'ผู้ดูแลระบบ', manager: 'ผู้จัดการ', technician: 'ช่างเทคนิค',
 };
 const avatarColors = ['#3B82F6','#8B5CF6','#10B981','#F59E0B','#F43F5E','#06B6D4','#EC4899','#14B8A6','#F97316','#A855F7'];
 
@@ -48,7 +48,7 @@ function UsersPageContent() {
       lastname: '',
       email: '',
       tel: '',
-      role: Role.USER,
+      role: Role.TECHNICIAN,
       dept_id: departments[0]?.dept_id || 'D001',
       avatar_color: avatarColors[Math.floor(Math.random() * avatarColors.length)]
     });
@@ -97,7 +97,7 @@ function UsersPageContent() {
     return true;
   });
 
-  const roles = ['all', 'admin', 'manager', 'technician', 'user'];
+  const roles = ['all', 'admin', 'manager', 'technician'];
   const roleCount = (r: string) => r === 'all' ? users.length : users.filter(u => u.role === r).length;
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
@@ -213,8 +213,7 @@ function UsersPageContent() {
           <div style={{ display: 'flex', gap: 16 }}>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>บทบาท</label>
-              <select className="input" value={formData.role || 'user'} onChange={e => setFormData({...formData, role: e.target.value as Role})} style={{ width: '100%', padding: '8px 12px' }}>
-                <option value="user">ผู้ใช้งาน</option>
+              <select className="input" value={formData.role || 'technician'} onChange={e => setFormData({...formData, role: e.target.value as Role})} style={{ width: '100%', padding: '8px 12px' }}>
                 <option value="technician">ช่างเทคนิค</option>
                 <option value="manager">ผู้จัดการ</option>
                 <option value="admin">ผู้ดูแลระบบ</option>

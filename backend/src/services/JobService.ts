@@ -30,11 +30,24 @@ export class JobService {
     return job;
   }
 
-  static async createJob(data: Partial<Job>) {
+  static async createJob(data: Partial<Job>, role: string) {
+    if (role.toLowerCase() !== 'admin') {
+      throw new Error('Forbidden: Only administrators can create new jobs');
+    }
     return await JobRepository.create(data);
   }
 
-  static async updateJob(id: string, data: Partial<Job>) {
+  static async updateJob(id: string, data: Partial<Job>, role: string, userId: string) {
+    const job = await JobRepository.findById(id);
+    if (!job) throw new Error('Job not found');
+
+    const r = role.toLowerCase();
+    const isAuthorized = r === 'admin' || job.assigned_lead_id === userId;
+    
+    if (!isAuthorized) {
+      throw new Error('Forbidden: You are not authorized to update this job');
+    }
+
     await JobRepository.update(id, data);
     return await JobRepository.findById(id);
   }

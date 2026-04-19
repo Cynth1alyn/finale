@@ -2,7 +2,6 @@ export enum Role {
   ADMIN = 'admin',
   MANAGER = 'manager',
   TECHNICIAN = 'technician',
-  USER = 'user',
 }
 
 export enum EquipmentStatus {

@@ -13,7 +13,7 @@ interface RoleGuardProps {
 export default function RoleGuard({ 
   children, 
   allowedRoles, 
-  redirectTo = '/dashboard' 
+  redirectTo = '/home' 
 }: RoleGuardProps) {
   const { currentUser, isLoading } = useAppContext();
   const router = useRouter();

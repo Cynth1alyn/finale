@@ -289,8 +289,8 @@ export default function JobsPage() {
               </div>
             )}
 
-            {/* Assignees Selection - For Admin & Manager */}
-            {(isAdmin || isManager) && (
+            {/* Assignees Selection - For Manager */}
+            {(isManager) && (
               <div>
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-primary)' }}>พนักงานลูกทีม (Assignees)</label>
                 <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>

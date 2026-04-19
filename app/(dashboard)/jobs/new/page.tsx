@@ -223,65 +223,68 @@ export default function NewJobPage() {
               </div>
             </div>
 
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <UserPlus size={18} color="var(--accent-blue)" /> พนักงานลูกทีม
-                </h3>
-                <div style={{ width: 280 }}>
-                  <SearchableSelect
-                    options={teamOptions}
-                    placeholder="เพิ่มพนักงาน..."
-                    value=""
-                    resetOnSelect={true}
-                    onSelect={val => {
-                      if (val && !formData.assigned_user_ids?.includes(val)) {
-                        const newAssignees = [...(formData.assigned_user_ids || []), val];
-                        setFormData({...formData, assigned_user_ids: newAssignees});
-                        setAssigneePage(Math.ceil(newAssignees.length / ITEMS_PER_PAGE));
-                      }
-                    }}
-                  />
+            {!isAdmin && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <UserPlus size={18} color="var(--accent-blue)" /> พนักงานลูกทีม
+                  </h3>
+                  <div style={{ width: 280 }}>
+                    <SearchableSelect
+                      options={teamOptions}
+                      placeholder="เพิ่มพนักงาน..."
+                      value=""
+                      resetOnSelect={true}
+                      onSelect={val => {
+                        if (val && !formData.assigned_user_ids?.includes(val)) {
+                          const newAssignees = [...(formData.assigned_user_ids || []), val];
+                          setFormData({...formData, assigned_user_ids: newAssignees});
+                          setAssigneePage(Math.ceil(newAssignees.length / ITEMS_PER_PAGE));
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+                <div style={{ border: '1px solid var(--border-color)', borderRadius: 8, overflow: 'hidden' }}>
+                  <table className="data-table" style={{ width: '100%', background: 'var(--bg-card)', fontSize: 13 }}>
+                    <thead>
+                      <tr><th style={{ width: 60 }}>ลำดับ</th><th>รหัสพนักงาน</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th style={{ width: 60, textAlign: 'center' }}>ลบ</th></tr>
+                    </thead>
+                    <tbody>
+                      {currentAssignees.length > 0 ? (
+                        currentAssignees.map((uid, index) => {
+                          const globalIndex = (activeAssigneePage - 1) * ITEMS_PER_PAGE + index + 1;
+                          const u = users.find(x => x.user_id === uid);
+                          return u ? (
+                            <tr key={uid}>
+                              <td>{globalIndex}</td>
+                              <td>{u.user_id}</td>
+                              <td>{u.firstname} {u.lastname}</td>
+                              <td style={{ textTransform: 'capitalize' }}>{u.role === 'technician' ? 'ช่างเทคนิค' : u.role === 'user' ? 'ผู้ใช้งาน' : u.role}</td>
+                              <td style={{ textAlign: 'center' }}>
+                                <button onClick={() => setFormData({...formData, assigned_user_ids: formData.assigned_user_ids!.filter(id => id !== uid)})} style={{ background: 'var(--accent-rose)', color: '#fff', border: 'none', borderRadius: 6, width: 28, height: 28, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: 'auto' }}>
+                                  <X size={16} strokeWidth={3} />
+                                </button>
+                              </td>
+                            </tr>
+                          ) : null;
+                        })
+                      ) : (
+                        <tr><td colSpan={5} style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>— ยังไม่ได้เลือกพนักงาน —</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                  {totalAssigneePages > 1 && (
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: 8, padding: '12px', borderTop: '1px solid var(--border-color)', background: 'var(--bg-card)', fontSize: 13 }}>
+                      <button className="btn btn-ghost btn-sm" style={{ padding: '6px 12px' }} onClick={() => setAssigneePage(p => Math.max(1, p - 1))} disabled={activeAssigneePage === 1}>ก่อนหน้า</button>
+                      <span style={{ alignSelf: 'center', color: 'var(--text-secondary)', fontWeight: 500 }}>หน้า {activeAssigneePage} จาก {totalAssigneePages}</span>
+                      <button className="btn btn-ghost btn-sm" style={{ padding: '6px 12px' }} onClick={() => setAssigneePage(p => Math.min(totalAssigneePages, p + 1))} disabled={activeAssigneePage === totalAssigneePages}>ถัดไป</button>
+                    </div>
+                  )}
                 </div>
               </div>
-              <div style={{ border: '1px solid var(--border-color)', borderRadius: 8, overflow: 'hidden' }}>
-                <table className="data-table" style={{ width: '100%', background: 'var(--bg-card)', fontSize: 13 }}>
-                  <thead>
-                    <tr><th style={{ width: 60 }}>ลำดับ</th><th>รหัสพนักงาน</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th style={{ width: 60, textAlign: 'center' }}>ลบ</th></tr>
-                  </thead>
-                  <tbody>
-                    {currentAssignees.length > 0 ? (
-                      currentAssignees.map((uid, index) => {
-                        const globalIndex = (activeAssigneePage - 1) * ITEMS_PER_PAGE + index + 1;
-                        const u = users.find(x => x.user_id === uid);
-                        return u ? (
-                          <tr key={uid}>
-                            <td>{globalIndex}</td>
-                            <td>{u.user_id}</td>
-                            <td>{u.firstname} {u.lastname}</td>
-                            <td style={{ textTransform: 'capitalize' }}>{u.role === 'technician' ? 'ช่างเทคนิค' : u.role === 'user' ? 'ผู้ใช้งาน' : u.role}</td>
-                            <td style={{ textAlign: 'center' }}>
-                              <button onClick={() => setFormData({...formData, assigned_user_ids: formData.assigned_user_ids!.filter(id => id !== uid)})} style={{ background: 'var(--accent-rose)', color: '#fff', border: 'none', borderRadius: 6, width: 28, height: 28, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: 'auto' }}>
-                                <X size={16} strokeWidth={3} />
-                              </button>
-                            </td>
-                          </tr>
-                        ) : null;
-                      })
-                    ) : (
-                      <tr><td colSpan={5} style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>— ยังไม่ได้เลือกพนักงาน —</td></tr>
-                    )}
-                  </tbody>
-                </table>
-                {totalAssigneePages > 1 && (
-                  <div style={{ display: 'flex', justifyContent: 'center', gap: 8, padding: '12px', borderTop: '1px solid var(--border-color)', background: 'var(--bg-card)', fontSize: 13 }}>
-                    <button className="btn btn-ghost btn-sm" style={{ padding: '6px 12px' }} onClick={() => setAssigneePage(p => Math.max(1, p - 1))} disabled={activeAssigneePage === 1}>ก่อนหน้า</button>
-                    <span style={{ alignSelf: 'center', color: 'var(--text-secondary)', fontWeight: 500 }}>หน้า {activeAssigneePage} จาก {totalAssigneePages}</span>
-                    <button className="btn btn-ghost btn-sm" style={{ padding: '6px 12px' }} onClick={() => setAssigneePage(p => Math.min(totalAssigneePages, p + 1))} disabled={activeAssigneePage === totalAssigneePages}>ถัดไป</button>
-                  </div>
-                )}
-              </div>
-            </div>
+            )}
+
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 16, marginTop: 16, paddingTop: 24, borderTop: '1px solid var(--border-color)' }}>

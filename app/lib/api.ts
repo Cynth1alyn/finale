@@ -21,7 +21,15 @@ import type {
 import * as mockData from './mock-data'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
-const USE_MOCK = process.env.NEXT_PUBLIC_API_MOCK === 'true' || false // Matches .env.local variable naming
+const USE_MOCK = process.env.NEXT_PUBLIC_API_MOCK === 'true' || false
+
+// Mutable mock storage for persistence within session
+let mockJobs = [...mockData.jobs];
+let mockUsers = [...mockData.users];
+let mockDepartments = [...mockData.departments];
+let mockIssues = [...mockData.issues];
+let mockRequests = [...mockData.requests];
+let mockNotifications = [...mockData.notifications];
 
 // Helper function for API requests
 async function apiRequest(endpoint: string, options: RequestInit = {}) {
@@ -142,10 +150,11 @@ export const usersAPI = {
     if (USE_MOCK) {
       const newUser = {
         ...userData,
-        user_id: 'U' + Math.floor(Math.random() * 1000),
-        avatar_color: '#3B82F6'
-      }
-      return newUser as User
+        user_id: userData.user_id || 'U' + Math.floor(Math.random() * 1000),
+        avatar_color: userData.avatar_color || '#3B82F6'
+      } as User;
+      mockUsers.push(newUser);
+      return newUser;
     }
     const response = await apiRequest('/users', {
       method: 'POST',
@@ -156,7 +165,8 @@ export const usersAPI = {
 
   updateUser: async (id: string, userData: Partial<User>): Promise<User> => {
     if (USE_MOCK) {
-      return { id, ...userData } as User
+      mockUsers = mockUsers.map(u => u.user_id === id ? { ...u, ...userData } as User : u);
+      return mockUsers.find(u => u.user_id === id)!;
     }
     const response = await apiRequest(`/users/${id}`, {
       method: 'PUT',
@@ -166,7 +176,10 @@ export const usersAPI = {
   },
 
   deleteUser: async (id: string): Promise<void> => {
-    if (USE_MOCK) return
+    if (USE_MOCK) {
+      mockUsers = mockUsers.filter(u => u.user_id !== id);
+      return;
+    }
     await apiRequest(`/users/${id}`, {
       method: 'DELETE',
     })
@@ -359,7 +372,20 @@ export const jobsAPI = {
     limit?: number
     offset?: number
   }): Promise<Job[]> => {
-    if (USE_MOCK) return mockData.jobs as Job[]
+    if (USE_MOCK) {
+      let filtered = [...mockJobs]
+      const tokenUserStr = typeof window !== 'undefined' ? localStorage.getItem('techjob_user') : null;
+      if (tokenUserStr) {
+        const user = JSON.parse(tokenUserStr);
+        if (user.role !== 'admin') {
+          filtered = filtered.filter(j => 
+            j.assigned_lead_id === user.user_id || 
+            (Array.isArray(j.assigned_user_ids) && j.assigned_user_ids.includes(user.user_id))
+          );
+        }
+      }
+      return filtered as Job[]
+    }
     const query = new URLSearchParams()
     if (params?.status) query.append('status', params.status)
     if (params?.priority) query.append('priority', params.priority)
@@ -382,7 +408,15 @@ export const jobsAPI = {
   },
 
   createJob: async (jobData: Partial<Job>): Promise<Job> => {
-    if (USE_MOCK) return { job_id: 'J' + Date.now(), ...jobData } as Job
+    if (USE_MOCK) {
+      const newJob = { 
+        job_id: 'J' + Date.now(), 
+        assigned_user_ids: [],
+        ...jobData 
+      } as Job;
+      mockJobs.push(newJob);
+      return newJob;
+    }
     const response = await apiRequest('/jobs', {
       method: 'POST',
       body: JSON.stringify(jobData),
@@ -391,7 +425,10 @@ export const jobsAPI = {
   },
 
   updateJob: async (id: string, jobData: Partial<Job>): Promise<Job> => {
-    if (USE_MOCK) return { job_id: id, ...jobData } as Job
+    if (USE_MOCK) {
+      mockJobs = mockJobs.map(j => j.job_id === id ? { ...j, ...jobData } as Job : j);
+      return mockJobs.find(j => j.job_id === id)!;
+    }
     const response = await apiRequest(`/jobs/${id}`, {
       method: 'PUT',
       body: JSON.stringify(jobData),
@@ -400,7 +437,10 @@ export const jobsAPI = {
   },
 
   deleteJob: async (id: string): Promise<void> => {
-    if (USE_MOCK) return
+    if (USE_MOCK) {
+      mockJobs = mockJobs.filter(j => j.job_id !== id);
+      return;
+    }
     await apiRequest(`/jobs/${id}`, {
       method: 'DELETE',
     })

@@ -32,7 +32,7 @@ class UserRepository {
             user.lastname || '',
             user.email || '',
             user.tel || '',
-            user.role || types_1.Role.USER,
+            user.role || types_1.Role.TECHNICIAN,
             hashedPassword,
             user.dept_id || null,
             user.avatar_color || '#3B82F6',

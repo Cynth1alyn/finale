@@ -35,20 +35,31 @@ router.get('/:id', async (req, res) => {
 });
 router.post('/', async (req, res) => {
     try {
-        const jobId = await JobService_1.JobService.createJob(req.body);
+        const user = req.user;
+        if (!user)
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
+        const jobId = await JobService_1.JobService.createJob(req.body, user.role);
         res.status(201).json({ success: true, data: { ...req.body, job_id: jobId } });
     }
     catch (error) {
-        res.status(500).json({ success: false, error: String(error) });
+        const status = error.message.includes('Forbidden') ? 403 : 500;
+        res.status(status).json({ success: false, error: String(error) });
     }
 });
 router.put('/:id', async (req, res) => {
     try {
-        const updated = await JobService_1.JobService.updateJob(req.params.id, req.body);
+        const user = req.user;
+        if (!user)
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
+        const updated = await JobService_1.JobService.updateJob(req.params.id, req.body, user.role, user.user_id);
         res.json({ success: true, message: 'Updated successfully', data: updated });
     }
     catch (error) {
-        const status = error.message.includes('not found') ? 404 : 500;
+        let status = 500;
+        if (error.message.includes('not found'))
+            status = 404;
+        else if (error.message.includes('Forbidden'))
+            status = 403;
         res.status(status).json({ success: false, error: String(error) });
     }
 });

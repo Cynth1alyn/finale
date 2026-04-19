@@ -3,8 +3,7 @@
 export enum Role {
   ADMIN = 'admin',
   MANAGER = 'manager',
-  TECHNICIAN = 'technician',
-  USER = 'user'
+  TECHNICIAN = 'technician'
 }
 
 export enum JobStatus {

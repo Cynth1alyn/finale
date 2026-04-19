@@ -6,7 +6,6 @@ var Role;
     Role["ADMIN"] = "admin";
     Role["MANAGER"] = "manager";
     Role["TECHNICIAN"] = "technician";
-    Role["USER"] = "user";
 })(Role || (exports.Role = Role = {}));
 var EquipmentStatus;
 (function (EquipmentStatus) {

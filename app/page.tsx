@@ -50,7 +50,7 @@ export default function Home() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <ThemeToggle />
           <Link href="/login" className="btn btn-ghost">เข้าสู่ระบบ</Link>
-          <Link href="/dashboard" className="btn btn-primary" style={{
+          <Link href="/home" className="btn btn-primary" style={{
             background: 'linear-gradient(135deg, #3B82F6, #8B5CF6)',
             border: 'none',
             boxShadow: '0 4px 14px rgba(139, 92, 246, 0.4)'
@@ -102,7 +102,7 @@ export default function Home() {
           </p>
 
           <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/dashboard" className="btn btn-primary" style={{
+            <Link href="/home" className="btn btn-primary" style={{
               fontSize: 18,
               padding: '16px 32px',
               borderRadius: 30,

@@ -25,10 +25,21 @@ class JobService {
         }
         return job;
     }
-    static async createJob(data) {
+    static async createJob(data, role) {
+        if (role.toLowerCase() !== 'admin') {
+            throw new Error('Forbidden: Only administrators can create new jobs');
+        }
         return await JobRepository_1.JobRepository.create(data);
     }
-    static async updateJob(id, data) {
+    static async updateJob(id, data, role, userId) {
+        const job = await JobRepository_1.JobRepository.findById(id);
+        if (!job)
+            throw new Error('Job not found');
+        const r = role.toLowerCase();
+        const isAuthorized = r === 'admin' || job.assigned_lead_id === userId;
+        if (!isAuthorized) {
+            throw new Error('Forbidden: You are not authorized to update this job');
+        }
         await JobRepository_1.JobRepository.update(id, data);
         return await JobRepository_1.JobRepository.findById(id);
     }
