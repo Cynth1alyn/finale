@@ -362,9 +362,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppContext.Provider value={{
-      jobs: currentUser?.role?.toLowerCase() === 'admin' || currentUser?.role?.toLowerCase() === 'manager' 
-        ? jobs 
-        : jobs.filter(j => j.assigned_user_ids?.includes(currentUser?.user_id || '') || j.assigned_lead_id === currentUser?.user_id),
+      jobs,
       users, departments, issues, requests, equipment, units, notifications,
       currentUser, isLoading,
       login, logout,

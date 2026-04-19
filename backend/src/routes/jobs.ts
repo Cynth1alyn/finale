@@ -1,26 +1,64 @@
 import { Router } from 'express';
 import { query, execute } from '../lib/db';
 
+import { AuthenticatedRequest } from '../middleware/auth';
+
 const router = Router();
 
 function jsonValue(value: unknown) {
   return value == null ? null : JSON.stringify(value);
 }
 
-router.get('/', async (req, res) => {
+router.get('/', async (req: AuthenticatedRequest, res) => {
   try {
-    const jobs = await query('SELECT * FROM jobs');
+    const user = req.user;
+    if (!user) return res.status(401).json({ success: false, error: 'Unauthorized' });
+
+    const role = user.role.toLowerCase();
+    let jobs;
+
+    if (role === 'admin' || role === 'manager') {
+      // Admin and Manager can see all jobs
+      jobs = await query('SELECT * FROM jobs');
+    } else {
+      // Technicians and others see only assigned jobs
+      // 1. Where they are the Lead (assigned_lead_id)
+      // 2. Where they are in the assigned_user_ids JSON array
+      jobs = await query(
+        'SELECT * FROM jobs WHERE assigned_lead_id = ? OR JSON_CONTAINS(assigned_user_ids, CAST(? AS JSON))',
+        [user.user_id, JSON.stringify(user.user_id)]
+      );
+    }
+    
     res.json({ success: true, data: jobs });
   } catch (error) {
     res.status(500).json({ success: false, error: String(error) });
   }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req: AuthenticatedRequest, res) => {
   try {
+    const user = req.user;
+    if (!user) return res.status(401).json({ success: false, error: 'Unauthorized' });
+
     const jobs = await query('SELECT * FROM jobs WHERE job_id = ?', [req.params.id]);
     if (jobs.length === 0) return res.status(404).json({ success: false, error: 'Job not found' });
-    res.json({ success: true, data: jobs[0] });
+
+    const job = jobs[0] as any;
+    const role = user.role.toLowerCase();
+
+    // IDOR Protection: Check if user is authorized to see this specific job
+    const isAuthorized = 
+      role === 'admin' || 
+      role === 'manager' || 
+      job.assigned_lead_id === user.user_id || 
+      (Array.isArray(job.assigned_user_ids) && job.assigned_user_ids.includes(user.user_id));
+
+    if (!isAuthorized) {
+      return res.status(403).json({ success: false, error: 'Forbidden: You do not have access to this job' });
+    }
+
+    res.json({ success: true, data: job });
   } catch (error) {
     res.status(500).json({ success: false, error: String(error) });
   }

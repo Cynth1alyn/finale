@@ -25,9 +25,9 @@ const pool = mysql.createPool({
   dateStrings: true,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   typeCast: (field: any, next: () => void) => {
-    if (field.type === 245) {
+    if (field.type === 245) { // JSON
       const value = field.string();
-      return value ? JSON.parse(value) : null;
+      return value ? JSON.parse(value) : [];
     }
     return next();
   }
