@@ -3,6 +3,28 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.JobRepository = void 0;
 const db_1 = require("../lib/db");
 class JobRepository {
+    static parseJob(row) {
+        if (!row)
+            return row;
+        const parsed = { ...row };
+        if (typeof parsed.assigned_user_ids === 'string') {
+            try {
+                parsed.assigned_user_ids = JSON.parse(parsed.assigned_user_ids);
+            }
+            catch (e) {
+                parsed.assigned_user_ids = [];
+            }
+        }
+        if (typeof parsed.equipment_requests === 'string') {
+            try {
+                parsed.equipment_requests = JSON.parse(parsed.equipment_requests);
+            }
+            catch (e) {
+                parsed.equipment_requests = [];
+            }
+        }
+        return parsed;
+    }
     static async findAll(params = {}) {
         const { limit = 100, offset = 0, status, priority } = params;
         let sql = 'SELECT * FROM jobs WHERE 1=1';
@@ -17,14 +39,16 @@ class JobRepository {
         }
         sql += ' LIMIT ? OFFSET ?';
         values.push(limit, offset);
-        return await (0, db_1.query)(sql, values);
+        const rows = await (0, db_1.query)(sql, values);
+        return rows.map(this.parseJob);
     }
     static async findById(id) {
         const results = await (0, db_1.query)('SELECT * FROM jobs WHERE job_id = ?', [id]);
-        return results.length > 0 ? results[0] : null;
+        return results.length > 0 ? this.parseJob(results[0]) : null;
     }
     static async findByUserId(userId, limit = 100, offset = 0) {
-        return await (0, db_1.query)('SELECT * FROM jobs WHERE assigned_lead_id = ? OR JSON_CONTAINS(IFNULL(assigned_user_ids, "[]"), CAST(? AS JSON)) LIMIT ? OFFSET ?', [userId, JSON.stringify(userId), limit, offset]);
+        const rows = await (0, db_1.query)('SELECT * FROM jobs WHERE assigned_lead_id = ? OR IFNULL(assigned_user_ids, "[]") LIKE CONCAT(\'%\"\', ?, \'\"%\') LIMIT ? OFFSET ?', [userId, userId, limit, offset]);
+        return rows.map(this.parseJob);
     }
     static async create(job) {
         const id = job.job_id || 'J' + Date.now();

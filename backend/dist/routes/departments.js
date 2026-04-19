@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const DepartmentService_1 = require("../services/DepartmentService");
+const authorize_1 = require("../middleware/authorize");
 const router = (0, express_1.Router)();
 router.get('/', async (req, res) => {
     try {
@@ -23,7 +24,7 @@ router.get('/:id', async (req, res) => {
         res.status(500).json({ success: false, error: String(error) });
     }
 });
-router.post('/', async (req, res) => {
+router.post('/', (0, authorize_1.authorizeRoles)('admin', 'manager'), async (req, res) => {
     try {
         const id = await DepartmentService_1.DepartmentService.createDepartment(req.body);
         res.status(201).json({ success: true, data: { ...req.body, dept_id: id } });
@@ -32,7 +33,7 @@ router.post('/', async (req, res) => {
         res.status(500).json({ success: false, error: String(error) });
     }
 });
-router.put('/:id', async (req, res) => {
+router.put('/:id', (0, authorize_1.authorizeRoles)('admin', 'manager'), async (req, res) => {
     try {
         const updated = await DepartmentService_1.DepartmentService.updateDepartment(req.params.id, req.body);
         res.json({ success: true, message: 'Updated successfully', data: updated });
@@ -42,7 +43,7 @@ router.put('/:id', async (req, res) => {
         res.status(status).json({ success: false, error: String(error) });
     }
 });
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', (0, authorize_1.authorizeRoles)('admin', 'manager'), async (req, res) => {
     try {
         const deleted = await DepartmentService_1.DepartmentService.deleteDepartment(req.params.id);
         if (!deleted)

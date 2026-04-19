@@ -35,12 +35,12 @@ export default function RequestsPage() {
     [RequestStatus.FULFILLED]: requests.filter(r => r.req_status === RequestStatus.FULFILLED).length,
     [RequestStatus.REJECTED]: requests.filter(r => r.req_status === RequestStatus.REJECTED).length,
   };
-  const statusTabs: Record<string, string> = { 
-    all: 'ทั้งหมด', 
-    [RequestStatus.PENDING]: 'รอพิจารณา', 
-    [RequestStatus.APPROVED]: 'อนุมัติ', 
-    [RequestStatus.FULFILLED]: 'จัดส่งแล้ว', 
-    [RequestStatus.REJECTED]: 'ปฏิเสธ' 
+  const statusTabs: Record<string, string> = {
+    all: 'ทั้งหมด',
+    [RequestStatus.PENDING]: 'รอพิจารณา',
+    [RequestStatus.APPROVED]: 'อนุมัติ',
+    [RequestStatus.FULFILLED]: 'จัดส่งแล้ว',
+    [RequestStatus.REJECTED]: 'ปฏิเสธ'
   };
 
   const columns = [

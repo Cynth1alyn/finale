@@ -16,7 +16,7 @@ export default function IssuesPage() {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingIssue, setEditingIssue] = useState<Issue | null>(null);
-  
+
   // Form State
   const [formData, setFormData] = useState<Partial<Issue>>({});
 
@@ -129,35 +129,35 @@ export default function IssuesPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
             <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>หัวข้อปัญหา</label>
-            <input type="text" className="input" value={formData.topic || ''} onChange={e => setFormData({...formData, topic: e.target.value})} style={{ width: '100%', padding: '8px 12px' }} />
+            <input type="text" className="input" value={formData.topic || ''} onChange={e => setFormData({ ...formData, topic: e.target.value })} style={{ width: '100%', padding: '8px 12px' }} />
           </div>
           <div>
             <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>รายละเอียด</label>
-            <textarea className="input" rows={3} value={formData.detail || ''} onChange={e => setFormData({...formData, detail: e.target.value})} style={{ width: '100%', padding: '8px 12px' }} />
+            <textarea className="input" rows={3} value={formData.detail || ''} onChange={e => setFormData({ ...formData, detail: e.target.value })} style={{ width: '100%', padding: '8px 12px' }} />
           </div>
-          
+
           <div>
             <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>พิกัดจุดเกิดเหตุ (คลิกบนแผนที่เพื่อปักหมุด)</label>
-            <MapComponent 
-              height="200px" 
+            <MapComponent
+              height="200px"
               selectedPos={formData.lat && formData.lng ? { lat: formData.lat, lng: formData.lng } : null}
-              onPositionSelect={(lat, lng) => setFormData({...formData, lat, lng})}
+              onPositionSelect={(lat, lng) => setFormData({ ...formData, lat, lng })}
             />
             {formData.lat && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>ละติจูด: {formData.lat.toFixed(6)}, ลองจิจูด: {formData.lng!.toFixed(6)}</div>}
           </div>
 
           <div>
             <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>วิธีแก้ไข (ถ้ามี)</label>
-            <textarea className="input" rows={2} value={formData.solution || ''} onChange={e => setFormData({...formData, solution: e.target.value})} style={{ width: '100%', padding: '8px 12px' }} />
+            <textarea className="input" rows={2} value={formData.solution || ''} onChange={e => setFormData({ ...formData, solution: e.target.value })} style={{ width: '100%', padding: '8px 12px' }} />
           </div>
           <div style={{ display: 'flex', gap: 16 }}>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>วันที่แจ้ง</label>
-              <input type="date" className="input" value={formData.report_date || ''} onChange={e => setFormData({...formData, report_date: e.target.value})} style={{ width: '100%', padding: '8px 12px' }} />
+              <input type="date" className="input" value={formData.report_date || ''} onChange={e => setFormData({ ...formData, report_date: e.target.value })} style={{ width: '100%', padding: '8px 12px' }} />
             </div>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>สถานะ</label>
-              <select className="input" value={formData.status || 'open'} onChange={e => setFormData({...formData, status: e.target.value as IssueStatus})} style={{ width: '100%', padding: '8px 12px' }}>
+              <select className="input" value={formData.status || 'open'} onChange={e => setFormData({ ...formData, status: e.target.value as IssueStatus })} style={{ width: '100%', padding: '8px 12px' }}>
                 <option value="open">เปิด</option>
                 <option value="in-progress">กำลังแก้ไข</option>
                 <option value="resolved">แก้ไขแล้ว</option>
@@ -167,7 +167,7 @@ export default function IssuesPage() {
           </div>
           <div>
             <label style={{ display: 'block', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>ผู้แจ้ง</label>
-            <select className="input" value={formData.reporter_id || ''} onChange={e => setFormData({...formData, reporter_id: e.target.value})} style={{ width: '100%', padding: '8px 12px' }}>
+            <select className="input" value={formData.reporter_id || ''} onChange={e => setFormData({ ...formData, reporter_id: e.target.value })} style={{ width: '100%', padding: '8px 12px' }}>
               {users.map(u => <option key={u.user_id} value={u.user_id}>{u.firstname} {u.lastname}</option>)}
             </select>
           </div>

@@ -218,4 +218,4 @@ export interface EquipmentHistory {
   user_id: string;
   action: 'check-out' | 'check-in' | 'maintenance' | 'repair' | 'retired' | string;
   notes: string;
-}
+}

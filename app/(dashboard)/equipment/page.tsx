@@ -129,10 +129,10 @@ export default function EquipmentPage() {
       align: 'right',
       render: (row: typeof tableData[0]) => (
         <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
-          <button 
-            className="btn btn-ghost btn-sm" 
-            style={{ padding: '6px', color: 'var(--accent-blue)' }} 
-            onClick={() => openCheckOut(row as unknown as Equipment)} 
+          <button
+            className="btn btn-ghost btn-sm"
+            style={{ padding: '6px', color: 'var(--accent-blue)' }}
+            onClick={() => openCheckOut(row as unknown as Equipment)}
             disabled={row.remain_qty === 0}
             title="เบิกอุปกรณ์"
           >
@@ -160,8 +160,8 @@ export default function EquipmentPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 22 }}>
         {[
           { label: 'รายการทั้งหมด', value: totalItems, color: '#3B82F6', icon: <Package size={20} color="#3B82F6" /> },
-          { label: 'สต็อกต่ำ (≤20%)', value: lowStock,   color: '#F59E0B', icon: <AlertTriangle size={20} color="#F59E0B" /> },
-          { label: 'หมดสต็อก',       value: outOfStock,  color: '#F43F5E', icon: <XCircle size={20} color="#F43F5E" /> },
+          { label: 'สต็อกต่ำ (≤20%)', value: lowStock, color: '#F59E0B', icon: <AlertTriangle size={20} color="#F59E0B" /> },
+          { label: 'หมดสต็อก', value: outOfStock, color: '#F43F5E', icon: <XCircle size={20} color="#F43F5E" /> },
         ].map(s => (
           <div key={s.label} className="card" style={{ padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{ width: 38, height: 38, background: `${s.color}18`, border: `1px solid ${s.color}35`, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{s.icon}</div>

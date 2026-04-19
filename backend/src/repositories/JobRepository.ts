@@ -3,6 +3,18 @@ import { Job } from '../lib/types';
 import { ResultSetHeader } from 'mysql2';
 
 export class JobRepository {
+  private static parseJob(row: any): Job {
+    if (!row) return row;
+    const parsed = { ...row };
+    if (typeof parsed.assigned_user_ids === 'string') {
+      try { parsed.assigned_user_ids = JSON.parse(parsed.assigned_user_ids); } catch (e) { parsed.assigned_user_ids = []; }
+    }
+    if (typeof parsed.equipment_requests === 'string') {
+      try { parsed.equipment_requests = JSON.parse(parsed.equipment_requests); } catch (e) { parsed.equipment_requests = []; }
+    }
+    return parsed as Job;
+  }
+
   static async findAll(params: { limit?: number; offset?: number; status?: string; priority?: string } = {}): Promise<Job[]> {
     const { limit = 100, offset = 0, status, priority } = params;
     let sql = 'SELECT * FROM jobs WHERE 1=1';
@@ -20,19 +32,21 @@ export class JobRepository {
     sql += ' LIMIT ? OFFSET ?';
     values.push(limit, offset);
 
-    return await query<Job>(sql, values);
+    const rows = await query<Job>(sql, values);
+    return rows.map(this.parseJob);
   }
 
   static async findById(id: string): Promise<Job | null> {
     const results = await query<Job>('SELECT * FROM jobs WHERE job_id = ?', [id]);
-    return results.length > 0 ? results[0] : null;
+    return results.length > 0 ? this.parseJob(results[0]) : null;
   }
 
   static async findByUserId(userId: string, limit: number = 100, offset: number = 0): Promise<Job[]> {
-    return await query<Job>(
-      'SELECT * FROM jobs WHERE assigned_lead_id = ? OR JSON_CONTAINS(IFNULL(assigned_user_ids, "[]"), CAST(? AS JSON)) LIMIT ? OFFSET ?',
-      [userId, JSON.stringify(userId), limit, offset]
+    const rows = await query<Job>(
+      'SELECT * FROM jobs WHERE assigned_lead_id = ? OR IFNULL(assigned_user_ids, "[]") LIKE CONCAT(\'%\"\', ?, \'\"%\') LIMIT ? OFFSET ?',
+      [userId, userId, limit, offset]
     );
+    return rows.map(this.parseJob);
   }
 
   static async create(job: Partial<Job>): Promise<string> {
