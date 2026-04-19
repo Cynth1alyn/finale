@@ -104,7 +104,7 @@ export const dashboardAPI = {
 
 // Users API
 export const usersAPI = {
-  getUsers: async (params?: { page?: number; limit?: number; search?: string }): Promise<User[]> => {
+  getUsers: async (params?: { page?: number; limit?: number; offset?: number; search?: string }): Promise<User[]> => {
     if (USE_MOCK) {
       let filtered = [...mockData.users]
       if (params?.search) {
@@ -121,6 +121,7 @@ export const usersAPI = {
     const query = new URLSearchParams()
     if (params?.page) query.append('page', params.page.toString())
     if (params?.limit) query.append('limit', params.limit.toString())
+    if (params?.offset !== undefined) query.append('offset', params.offset.toString())
     if (params?.search) query.append('search', params.search)
 
     const response = await apiRequest(`/users?${query}`)
@@ -222,6 +223,8 @@ export const equipmentAPI = {
     status?: EquipmentStatus
     dept_id?: string
     type?: string
+    limit?: number
+    offset?: number
   }): Promise<Equipment[]> => {
     if (USE_MOCK) {
       let filtered = [...mockData.equipment]
@@ -232,6 +235,8 @@ export const equipmentAPI = {
     if (params?.status) query.append('status', params.status)
     if (params?.dept_id) query.append('dept_id', params.dept_id)
     if (params?.type) query.append('type', params.type)
+    if (params?.limit) query.append('limit', params.limit.toString())
+    if (params?.offset !== undefined) query.append('offset', params.offset.toString())
 
     const response = await apiRequest(`/equipment?${query}`)
     return response.data
@@ -294,12 +299,16 @@ export const issuesAPI = {
     status?: IssueStatus
     priority?: Priority
     dept_id?: string
+    limit?: number
+    offset?: number
   }): Promise<Issue[]> => {
     if (USE_MOCK) return mockData.issues as Issue[]
     const query = new URLSearchParams()
     if (params?.status) query.append('status', params.status)
     if (params?.priority) query.append('priority', params.priority)
     if (params?.dept_id) query.append('dept_id', params.dept_id)
+    if (params?.limit) query.append('limit', params.limit.toString())
+    if (params?.offset !== undefined) query.append('offset', params.offset.toString())
 
     const response = await apiRequest(`/issues?${query}`)
     return response.data
@@ -347,12 +356,16 @@ export const jobsAPI = {
     status?: JobStatus
     priority?: Priority
     dept_id?: string
+    limit?: number
+    offset?: number
   }): Promise<Job[]> => {
     if (USE_MOCK) return mockData.jobs as Job[]
     const query = new URLSearchParams()
     if (params?.status) query.append('status', params.status)
     if (params?.priority) query.append('priority', params.priority)
     if (params?.dept_id) query.append('dept_id', params.dept_id)
+    if (params?.limit) query.append('limit', params.limit.toString())
+    if (params?.offset !== undefined) query.append('offset', params.offset.toString())
 
     const response = await apiRequest(`/jobs?${query}`)
     return response.data
@@ -399,11 +412,15 @@ export const requestsAPI = {
   getRequests: async (params?: {
     status?: RequestStatus
     dept_id?: string
+    limit?: number
+    offset?: number
   }): Promise<Request[]> => {
     if (USE_MOCK) return mockData.requests as Request[]
     const query = new URLSearchParams()
     if (params?.status) query.append('status', params.status)
     if (params?.dept_id) query.append('dept_id', params.dept_id)
+    if (params?.limit) query.append('limit', params.limit.toString())
+    if (params?.offset !== undefined) query.append('offset', params.offset.toString())
 
     const response = await apiRequest(`/requests?${query}`)
     return response.data

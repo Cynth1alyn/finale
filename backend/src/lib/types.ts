@@ -2,7 +2,7 @@ export enum Role {
   ADMIN = 'admin',
   MANAGER = 'manager',
   TECHNICIAN = 'technician',
-  STAFF = 'staff',
+  USER = 'user',
 }
 
 export enum EquipmentStatus {
@@ -50,11 +50,22 @@ export interface User {
   dept_id: string;
   password?: string;
   avatar_color?: string;
+  last_login?: string;
+  password_changed_at?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Department {
   dept_id: string;
   dept_name: string;
+  description?: string;
+}
+
+export interface Unit {
+  unit_id: string;
+  unit_name: string;
+  description?: string;
 }
 
 export interface Equipment {
@@ -121,4 +132,13 @@ export interface EquipmentHistory {
   user_id: string;
   action: 'check-out' | 'check-in' | 'maintenance' | 'repair' | 'retired' | string;
   notes: string;
+}
+
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  timestamp: string;
+  is_read: boolean;
+  related_link?: string;
 }

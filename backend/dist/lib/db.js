@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.connectDB = connectDB;
 exports.query = query;
 exports.execute = execute;
+exports.withTransaction = withTransaction;
 exports.initializeDatabase = initializeDatabase;
 const promise_1 = __importDefault(require("mysql2/promise"));
 const dotenv_1 = __importDefault(require("dotenv"));
@@ -24,9 +25,9 @@ const pool = promise_1.default.createPool({
     dateStrings: true,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     typeCast: (field, next) => {
-        if (field.type === 245) {
+        if (field.type === 245) { // JSON
             const value = field.string();
-            return value ? JSON.parse(value) : null;
+            return value ? JSON.parse(value) : [];
         }
         return next();
     }
@@ -51,24 +52,68 @@ async function execute(sql, params = []) {
     const [result] = await pool.execute(sql, params);
     return result;
 }
+async function withTransaction(callback) {
+    const connection = await pool.getConnection();
+    await connection.beginTransaction();
+    try {
+        const result = await callback(connection);
+        await connection.commit();
+        return result;
+    }
+    catch (error) {
+        await connection.rollback();
+        throw error;
+    }
+    finally {
+        connection.release();
+    }
+}
 async function createTables() {
-    await query(`CREATE TABLE IF NOT EXISTS departments (
-    dept_id VARCHAR(50) PRIMARY KEY,
-    dept_name VARCHAR(255) NOT NULL,
-    description TEXT NULL
+    // Drop tables in reverse order of dependencies
+    await query('DROP TABLE IF EXISTS notifications');
+    await query('DROP TABLE IF EXISTS requests');
+    await query('DROP TABLE IF EXISTS jobs');
+    await query('DROP TABLE IF EXISTS issues');
+    await query('DROP TABLE IF EXISTS equipment_history');
+    await query('DROP TABLE IF EXISTS equipment');
+    await query('DROP TABLE IF EXISTS units');
+    await query('DROP TABLE IF EXISTS users');
+    await query('DROP TABLE IF EXISTS departments');
+    // 1. Units
+    await query(`CREATE TABLE units (
+    unit_id VARCHAR(50) PRIMARY KEY,
+    unit_name VARCHAR(100) NOT NULL,
+    description TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )`);
-    await query(`CREATE TABLE IF NOT EXISTS users (
+    // 2. Departments
+    await query(`CREATE TABLE departments (
+    dept_id VARCHAR(50) PRIMARY KEY,
+    dept_name VARCHAR(255) NOT NULL UNIQUE,
+    description TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  )`);
+    // 3. Users
+    await query(`CREATE TABLE users (
     user_id VARCHAR(50) PRIMARY KEY,
     firstname VARCHAR(100) NOT NULL,
     lastname VARCHAR(100) NOT NULL,
-    email VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
     tel VARCHAR(50) NOT NULL,
-    role VARCHAR(50),
+    role VARCHAR(50) DEFAULT 'staff',
     password VARCHAR(255) NULL,
     dept_id VARCHAR(50) NULL,
-    avatar_color VARCHAR(50) NULL
+    avatar_color VARCHAR(50) DEFAULT '#3B82F6',
+    last_login DATETIME NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (dept_id) REFERENCES departments(dept_id) ON DELETE SET NULL,
+    INDEX (email),
+    INDEX (role)
   )`);
-    await query(`CREATE TABLE IF NOT EXISTS equipment (
+    // 4. Equipment
+    await query(`CREATE TABLE equipment (
     equip_id VARCHAR(50) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     type_category VARCHAR(100) NULL,
@@ -76,51 +121,87 @@ async function createTables() {
     remain_qty INT NOT NULL DEFAULT 0,
     unit_id VARCHAR(50) NULL,
     dept_id VARCHAR(50) NULL,
-    status VARCHAR(50) NULL
+    status VARCHAR(50) DEFAULT 'operational',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (dept_id) REFERENCES departments(dept_id) ON DELETE SET NULL,
+    FOREIGN KEY (unit_id) REFERENCES units(unit_id) ON DELETE SET NULL,
+    INDEX (status),
+    CONSTRAINT chk_qty CHECK (remain_qty <= total_qty)
   )`);
-    await query(`CREATE TABLE IF NOT EXISTS equipment_history (
+    // 5. Equipment History
+    await query(`CREATE TABLE equipment_history (
     id VARCHAR(50) PRIMARY KEY,
     equip_id VARCHAR(50) NOT NULL,
     date DATE NOT NULL,
     user_id VARCHAR(50) NOT NULL,
     action VARCHAR(50) NOT NULL,
-    notes TEXT NULL
+    notes TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (equip_id) REFERENCES equipment(equip_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
   )`);
-    await query(`CREATE TABLE IF NOT EXISTS issues (
+    // 6. Issues
+    await query(`CREATE TABLE issues (
     issue_id VARCHAR(50) PRIMARY KEY,
     topic VARCHAR(255) NOT NULL,
     detail TEXT NOT NULL,
     solution TEXT NOT NULL,
-    status VARCHAR(50) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'open',
     report_date DATE NOT NULL,
     reporter_id VARCHAR(50) NOT NULL,
-    lat DOUBLE NULL,
-    lng DOUBLE NULL
+    lat DECIMAL(10, 8) NULL,
+    lng DECIMAL(11, 8) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (reporter_id) REFERENCES users(user_id),
+    INDEX (status)
   )`);
-    await query(`CREATE TABLE IF NOT EXISTS jobs (
+    // 7. Jobs
+    await query(`CREATE TABLE jobs (
     job_id VARCHAR(50) PRIMARY KEY,
     job_title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     start_date DATE NOT NULL,
     due_date DATE NOT NULL,
-    job_priority VARCHAR(50) NOT NULL,
-    job_status VARCHAR(50) NOT NULL,
+    job_priority VARCHAR(50) NOT NULL DEFAULT 'medium',
+    job_status VARCHAR(50) NOT NULL DEFAULT 'pending',
     assigned_user_ids JSON NULL,
-    lat DOUBLE NULL,
-    lng DOUBLE NULL,
+    lat DECIMAL(10, 8) NULL,
+    lng DECIMAL(11, 8) NULL,
     customer_name VARCHAR(255) NULL,
     contact_number VARCHAR(50) NULL,
     address TEXT NULL,
     landmark TEXT NULL,
     assigned_lead_id VARCHAR(50) NULL,
-    equipment_requests JSON NULL
+    equipment_requests JSON NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (assigned_lead_id) REFERENCES users(user_id) ON DELETE SET NULL,
+    INDEX (job_status),
+    INDEX (job_priority)
   )`);
-    await query(`CREATE TABLE IF NOT EXISTS requests (
+    // 8. Requests
+    await query(`CREATE TABLE requests (
     req_id VARCHAR(50) PRIMARY KEY,
     req_date DATE NOT NULL,
-    req_status VARCHAR(50) NOT NULL,
+    req_status VARCHAR(50) NOT NULL DEFAULT 'pending',
     user_id VARCHAR(50) NOT NULL,
-    items JSON NULL
+    items JSON NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    INDEX (req_status)
+  )`);
+    // 9. Notifications
+    await query(`CREATE TABLE notifications (
+    id VARCHAR(50) PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    timestamp DATETIME NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    related_link VARCHAR(255) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )`);
 }
 function jsonValue(value) {
@@ -133,7 +214,10 @@ async function seedTableIfEmpty(table, countQuery, rows) {
     if (count > 0)
         return;
     for (const row of rows) {
-        if (table === 'departments') {
+        if (table === 'units') {
+            await query('INSERT INTO units (unit_id, unit_name, description) VALUES (?, ?, ?)', [row.unit_id, row.unit_name, row.description || null]);
+        }
+        else if (table === 'departments') {
             await query('INSERT INTO departments (dept_id, dept_name, description) VALUES (?, ?, ?)', [row.dept_id, row.dept_name, row.description || null]);
         }
         else if (table === 'users') {
@@ -158,6 +242,8 @@ async function seedTableIfEmpty(table, countQuery, rows) {
 }
 async function initializeDatabase() {
     await createTables();
+    console.log('✅ Tables created/refreshed');
+    await seedTableIfEmpty('units', 'SELECT COUNT(*) AS count FROM units', data_1.units);
     await seedTableIfEmpty('departments', 'SELECT COUNT(*) AS count FROM departments', data_1.departments);
     await seedTableIfEmpty('users', 'SELECT COUNT(*) AS count FROM users', data_1.users);
     await seedTableIfEmpty('equipment', 'SELECT COUNT(*) AS count FROM equipment', data_1.equipment);
@@ -165,4 +251,5 @@ async function initializeDatabase() {
     await seedTableIfEmpty('issues', 'SELECT COUNT(*) AS count FROM issues', data_1.issues);
     await seedTableIfEmpty('jobs', 'SELECT COUNT(*) AS count FROM jobs', data_1.jobs);
     await seedTableIfEmpty('requests', 'SELECT COUNT(*) AS count FROM requests', data_1.requests);
+    console.log('✅ Database seeded successfully');
 }

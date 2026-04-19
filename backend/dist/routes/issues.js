@@ -1,17 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const db_1 = require("../lib/db");
+const IssueService_1 = require("../services/IssueService");
 const router = (0, express_1.Router)();
-/**
- * @swagger
- * tags:
- *   name: Issues
- *   description: จัดการปัญหา (Issues)
- */
 router.get('/', async (req, res) => {
     try {
-        const issues = await (0, db_1.query)('SELECT * FROM issues');
+        const user = req.user;
+        if (!user)
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
+        const limit = parseInt(req.query.limit) || 1000;
+        const offset = parseInt(req.query.offset) || 0;
+        const { status, priority } = req.query;
+        const issues = await IssueService_1.IssueService.getAllIssues(user.role, user.user_id, { limit, offset, status, priority });
         res.json({ success: true, data: issues });
     }
     catch (error) {
@@ -20,10 +20,10 @@ router.get('/', async (req, res) => {
 });
 router.get('/:id', async (req, res) => {
     try {
-        const issues = await (0, db_1.query)('SELECT * FROM issues WHERE issue_id = ?', [req.params.id]);
-        if (issues.length === 0)
+        const issue = await IssueService_1.IssueService.getIssueById(req.params.id);
+        if (!issue)
             return res.status(404).json({ success: false, error: 'Issue not found' });
-        res.json({ success: true, data: issues[0] });
+        res.json({ success: true, data: issue });
     }
     catch (error) {
         res.status(500).json({ success: false, error: String(error) });
@@ -31,22 +31,8 @@ router.get('/:id', async (req, res) => {
 });
 router.post('/', async (req, res) => {
     try {
-        const newIssue = { ...req.body };
-        if (!newIssue.issue_id) {
-            newIssue.issue_id = 'I' + Date.now();
-        }
-        await (0, db_1.query)('INSERT INTO issues (issue_id, topic, detail, solution, status, report_date, reporter_id, lat, lng) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [
-            newIssue.issue_id,
-            newIssue.topic || '',
-            newIssue.detail || '',
-            newIssue.solution || '',
-            newIssue.status || '',
-            newIssue.report_date || new Date().toISOString().slice(0, 10),
-            newIssue.reporter_id || '',
-            newIssue.lat ?? null,
-            newIssue.lng ?? null
-        ]);
-        res.status(201).json({ success: true, data: newIssue });
+        const issueId = await IssueService_1.IssueService.createIssue(req.body);
+        res.status(201).json({ success: true, data: { ...req.body, issue_id: issueId } });
     }
     catch (error) {
         res.status(500).json({ success: false, error: String(error) });
@@ -54,34 +40,20 @@ router.post('/', async (req, res) => {
 });
 router.put('/:id', async (req, res) => {
     try {
-        const issues = await (0, db_1.query)('SELECT * FROM issues WHERE issue_id = ?', [req.params.id]);
-        if (issues.length === 0)
-            return res.status(404).json({ success: false, error: 'Issue not found' });
-        const existing = issues[0];
-        const updated = { ...existing, ...req.body };
-        await (0, db_1.query)('UPDATE issues SET topic = ?, detail = ?, solution = ?, status = ?, report_date = ?, reporter_id = ?, lat = ?, lng = ? WHERE issue_id = ?', [
-            updated.topic || '',
-            updated.detail || '',
-            updated.solution || '',
-            updated.status || '',
-            updated.report_date || new Date().toISOString().slice(0, 10),
-            updated.reporter_id || '',
-            updated.lat ?? null,
-            updated.lng ?? null,
-            req.params.id
-        ]);
-        res.json({ success: true, data: updated });
+        const updated = await IssueService_1.IssueService.updateIssue(req.params.id, req.body);
+        res.json({ success: true, message: 'Updated successfully', data: updated });
     }
     catch (error) {
-        res.status(500).json({ success: false, error: String(error) });
+        const status = error.message.includes('not found') ? 404 : 500;
+        res.status(status).json({ success: false, error: String(error) });
     }
 });
 router.delete('/:id', async (req, res) => {
     try {
-        const result = await (0, db_1.execute)('DELETE FROM issues WHERE issue_id = ?', [req.params.id]);
-        if (result.affectedRows === 0)
+        const deleted = await IssueService_1.IssueService.deleteIssue(req.params.id);
+        if (!deleted)
             return res.status(404).json({ success: false, error: 'Issue not found' });
-        res.json({ success: true, message: 'Deleted' });
+        res.json({ success: true, message: 'Deleted successfully' });
     }
     catch (error) {
         res.status(500).json({ success: false, error: String(error) });

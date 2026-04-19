@@ -1,19 +1,26 @@
-import { User, Department, Equipment, Issue, Job, Request, Role, EquipmentStatus, IssueStatus, JobStatus, RequestStatus, Priority, EquipmentHistory } from './types';
+import { User, Department, Equipment, Issue, Job, Request, Role, EquipmentStatus, IssueStatus, JobStatus, RequestStatus, Priority, EquipmentHistory, Unit } from './types';
 
 export const departments: Department[] = [
   { dept_id: "D001", dept_name: "IT Infrastructure" },
   { dept_id: "D002", dept_name: "Software Development" },
   { dept_id: "D003", dept_name: "Network & Security" },
-  { dept_id: "D004", dept_name: "Technical Support" },
-  { dept_id: "D005", dept_name: "Database Administration" },
+  { dept_id: "D004", dept_name: "Technical Support", description: "Technical support and hardware maintenance" },
+  { dept_id: "D005", dept_name: "Database Administration", description: "Database design and optimization" },
+];
+
+export const units: Unit[] = [
+  { unit_id: "UN01", unit_name: "ชิ้น", description: "หน่วยนับเป็นชิ้น" },
+  { unit_id: "UN02", unit_name: "เครื่อง", description: "หน่วยนับเป็นเครื่อง" },
+  { unit_id: "UN03", unit_name: "ชุด", description: "หน่วยนับเป็นชุด" },
+  { unit_id: "UN04", unit_name: "อัน", description: "หน่วยนับเป็นอัน" },
 ];
 
 export const users: User[] = [
   { user_id: "U001", firstname: "Admin", lastname: "System", email: "admin@techjob.th", tel: "080-000-0000", role: Role.ADMIN, password: "$2a$10$TWz9N3Io1I/bkQq2Oic.f.gvUYMJ2/gtUsWuY.sN4znm5I63p2nKO", dept_id: "D001", avatar_color: "#3B82F6" },
-  { user_id: "U002", firstname: "ธนาวุฒิ", lastname: "แสงจันทร์", email: "thanawut@techjob.th", tel: "081-234-5678", role: Role.ADMIN, password: "$2a$10$TWz9N3Io1I/bkQq2Oic.f.gvUYMJ2/gtUsWuY.sN4znm5I63p2nKO", dept_id: "D001", avatar_color: "#3B82F6" },
-  { user_id: "U003", firstname: "สุภาพร", lastname: "วงศ์ตระกูล", email: "supaporn@techjob.th", tel: "082-345-6789", role: Role.MANAGER, password: "$2a$10$TWz9N3Io1I/bkQq2Oic.f.gvUYMJ2/gtUsWuY.sN4znm5I63p2nKO", dept_id: "D002", avatar_color: "#8B5CF6" },
-  { user_id: "U004", firstname: "สมชาย", lastname: "ใจดี", email: "technician@techjob.th", tel: "083-456-7890", role: Role.TECHNICIAN, password: "$2a$10$TWz9N3Io1I/bkQq2Oic.f.gvUYMJ2/gtUsWuY.sN4znm5I63p2nKO", dept_id: "D004", avatar_color: "#F59E0B" },
-  { user_id: "U005", firstname: "มานี", lastname: "มีนา", email: "staff@techjob.th", tel: "084-567-8901", role: Role.STAFF, password: "$2a$10$TWz9N3Io1I/bkQq2Oic.f.gvUYMJ2/gtUsWuY.sN4znm5I63p2nKO", dept_id: "D005", avatar_color: "#10B981" },
+  { user_id: "U002", firstname: "สุภาพร", lastname: "วงศ์ตระกูล", email: "manager@techjob.th", tel: "082-345-6789", role: Role.MANAGER, password: "$2a$10$TWz9N3Io1I/bkQq2Oic.f.gvUYMJ2/gtUsWuY.sN4znm5I63p2nKO", dept_id: "D002", avatar_color: "#8B5CF6" },
+  { user_id: "U003", firstname: "ธนาวุฒิ", lastname: "แสงจันทร์", email: "technician1@techjob.th", tel: "081-234-5678", role: Role.TECHNICIAN, password: "$2a$10$TWz9N3Io1I/bkQq2Oic.f.gvUYMJ2/gtUsWuY.sN4znm5I63p2nKO", dept_id: "D003", avatar_color: "#F59E0B" },
+  { user_id: "U004", firstname: "สมชาย", lastname: "ใจดี", email: "technician2@techjob.th", tel: "083-456-7890", role: Role.TECHNICIAN, password: "$2a$10$TWz9N3Io1I/bkQq2Oic.f.gvUYMJ2/gtUsWuY.sN4znm5I63p2nKO", dept_id: "D004", avatar_color: "#10B981" },
+  { user_id: "U005", firstname: "มานี", lastname: "มีนา", email: "user@techjob.th", tel: "084-567-8901", role: Role.USER, password: "$2a$10$TWz9N3Io1I/bkQq2Oic.f.gvUYMJ2/gtUsWuY.sN4znm5I63p2nKO", dept_id: "D005", avatar_color: "#F43F5E" },
 ];
 
 export const equipment: Equipment[] = [
@@ -26,7 +33,39 @@ export const issues: Issue[] = [
 ];
 
 export const jobs: Job[] = [
-  { job_id: "J001", job_title: "ติดตั้งระบบ Network ชั้น 3", description: "วางสาย LAN และตั้งค่า Switch", start_date: "2026-03-01", due_date: "2026-03-15", job_priority: Priority.HIGH, job_status: JobStatus.DONE, assigned_user_ids: ["U001"] },
+  { 
+    job_id: "J001", 
+    job_title: "ติดตั้งระบบ Network ชั้น 3 (Manager A Lead)", 
+    description: "วางสาย LAN และตั้งค่า Switch อาคาร A", 
+    start_date: "2026-03-01", 
+    due_date: "2026-03-15", 
+    job_priority: Priority.HIGH, 
+    job_status: JobStatus.DONE, 
+    assigned_lead_id: "U002",
+    assigned_user_ids: ["U003"] 
+  },
+  { 
+    job_id: "J002", 
+    job_title: "ซ่อมแซม Server ห้อง Data Center", 
+    description: "ตรวจสอบระบบระบายความร้อน และเปลี่ยน HDD", 
+    start_date: "2026-04-01", 
+    due_date: "2026-04-05", 
+    job_priority: Priority.URGENT, 
+    job_status: JobStatus.IN_PROGRESS, 
+    assigned_lead_id: "U002",
+    assigned_user_ids: ["U004"] 
+  },
+  { 
+    job_id: "J003", 
+    job_title: "ตรวจสอบความปลอดภัยประตู (Admin Lead)", 
+    description: "ทดสอบการเข้าถึงด้วย Keycard", 
+    start_date: "2026-04-10", 
+    due_date: "2026-04-12", 
+    job_priority: Priority.LOW, 
+    job_status: JobStatus.PENDING, 
+    assigned_lead_id: "U001",
+    assigned_user_ids: ["U003"] 
+  },
 ];
 
 export const requests: Request[] = [

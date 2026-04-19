@@ -14,6 +14,7 @@ const users_1 = __importDefault(require("./routes/users"));
 const equipment_1 = __importDefault(require("./routes/equipment"));
 const departments_1 = __importDefault(require("./routes/departments"));
 const requests_1 = __importDefault(require("./routes/requests"));
+const notifications_1 = __importDefault(require("./routes/notifications"));
 const db_1 = require("./lib/db");
 const auth_2 = require("./middleware/auth");
 const authorize_1 = require("./middleware/authorize");
@@ -38,6 +39,7 @@ app.use('/api/users', auth_2.authenticateJWT, (0, authorize_1.authorizeRoles)('a
 app.use('/api/equipment', auth_2.authenticateJWT, equipment_1.default);
 app.use('/api/departments', auth_2.authenticateJWT, (0, authorize_1.authorizeRoles)('admin', 'manager'), departments_1.default);
 app.use('/api/requests', auth_2.authenticateJWT, requests_1.default);
+app.use('/api/notifications', auth_2.authenticateJWT, notifications_1.default);
 // Base route
 app.get('/', (req, res) => {
     res.send('TechJob API is running...');

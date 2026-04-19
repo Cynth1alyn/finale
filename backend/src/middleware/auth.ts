@@ -24,7 +24,7 @@ export const authenticateJWT = (req: AuthenticatedRequest, res: Response, next: 
         return res.status(403).json({ success: false, error: 'Token is invalid or expired' });
       }
 
-      req.user = user;
+      req.user = user as UserPayload;
       next();
     });
   } else {

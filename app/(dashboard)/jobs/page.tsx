@@ -9,6 +9,7 @@ import PriorityBadge from '@/app/components/PriorityBadge';
 import DataTable from '@/app/components/DataTable';
 import Modal from '@/app/components/Modal';
 import MapComponent from '@/app/components/MapComponent';
+import Pagination from '@/app/components/Pagination';
 
 import { Search, AlertTriangle, X, User, Pencil } from 'lucide-react';
 
@@ -18,6 +19,10 @@ export default function JobsPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -69,7 +74,10 @@ export default function JobsPage() {
     return true;
   });
 
-  const tableData = filtered.map(j => ({
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginatedData = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+  const tableData = paginatedData.map(j => ({
     ...j,
     _assignees: getUserName(j.assigned_user_ids),
     _due: j.due_date,
@@ -168,6 +176,11 @@ export default function JobsPage() {
           data={tableData as unknown as Record<string, unknown>[]}
           columns={columns as Parameters<typeof DataTable>[0]['columns']}
           rowHref={(row) => `/jobs/${(row as typeof tableData[0]).job_id}`}
+        />
+        <Pagination 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
         />
       </div>
 

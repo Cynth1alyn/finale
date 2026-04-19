@@ -6,6 +6,7 @@ import { User, Role } from '@/app/lib/types';
 import Modal from '@/app/components/Modal';
 import { Search, X, Edit2, Building2, Phone, Fingerprint } from 'lucide-react';
 import RoleGuard from '@/app/components/RoleGuard';
+import Pagination from '@/app/components/Pagination';
 
 const roleColors: Record<string, string> = {
   admin: '#F43F5E', manager: '#8B5CF6', technician: '#3B82F6', user: '#10B981',
@@ -26,6 +27,10 @@ function UsersPageContent() {
   const { users, departments, addUser, updateUser, deleteUser } = useAppContext();
   const [roleFilter, setRoleFilter] = useState('all');
   const [search, setSearch] = useState('');
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 8;
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -95,6 +100,9 @@ function UsersPageContent() {
   const roles = ['all', 'admin', 'manager', 'technician', 'user'];
   const roleCount = (r: string) => r === 'all' ? users.length : users.filter(u => u.role === r).length;
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const paginatedData = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
   return (
     <>
       <div className="page-header">
@@ -116,12 +124,12 @@ function UsersPageContent() {
 
       <div className="search-box" style={{ maxWidth: 340, marginBottom: 20 }}>
         <span style={{ color: 'var(--text-muted)', display: 'flex' }}><Search size={16} /></span>
-        <input placeholder="ค้นหาชื่อ อีเมล เบอร์โทร..." value={search} onChange={e => setSearch(e.target.value)} />
-        {search && <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex' }}><X size={16} /></button>}
+        <input placeholder="ค้นหาชื่อ อีเมล เบอร์โทร..." value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} />
+        {search && <button onClick={() => { setSearch(''); setCurrentPage(1); }} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex' }}><X size={16} /></button>}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
-        {filtered.map((u, i) => {
+        {paginatedData.map((u, i) => {
           const dept = departments.find(d => d.dept_id === u.dept_id);
           return (
             <div key={u.user_id} className="card animate-fade-in" style={{ padding: '18px 20px', position: 'relative' }}>
@@ -139,8 +147,8 @@ function UsersPageContent() {
                 </div>
               </div>
               <div style={{ marginBottom: 12 }}>
-                <span className="badge" style={{ background: `${roleColors[u.role]}18`, color: roleColors[u.role], border: `1px solid ${roleColors[u.role]}35`, fontSize: 10 }}>
-                  {roleLabels[u.role]}
+                <span className="badge" style={{ background: `${roleColors[u.role] || '#6B7280'}18`, color: roleColors[u.role] || '#6B7280', border: `1px solid ${roleColors[u.role] || '#6B7280'}35`, fontSize: 10 }}>
+                  {roleLabels[u.role] || u.role}
                 </span>
               </div>
               <div className="divider" style={{ marginBottom: 12 }} />
@@ -158,10 +166,18 @@ function UsersPageContent() {
             </div>
           );
         })}
-        {filtered.length === 0 && (
+        {paginatedData.length === 0 && (
           <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)' }}>ไม่พบผู้ใช้งาน</div>
         )}
       </div>
+
+      {totalPages > 1 && (
+        <Pagination 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingUser ? 'แก้ไขผู้ใช้' : 'เพิ่มผู้ใช้ใหม่'}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

@@ -9,6 +9,7 @@ import usersRoutes from './routes/users';
 import equipmentRoutes from './routes/equipment';
 import departmentRoutes from './routes/departments';
 import requestsRoutes from './routes/requests';
+import notificationsRoutes from './routes/notifications';
 import { connectDB, initializeDatabase } from './lib/db';
 
 import { authenticateJWT } from './middleware/auth';
@@ -40,6 +41,7 @@ app.use('/api/users', authenticateJWT, authorizeRoles('admin'), usersRoutes);
 app.use('/api/equipment', authenticateJWT, equipmentRoutes);
 app.use('/api/departments', authenticateJWT, authorizeRoles('admin', 'manager'), departmentRoutes);
 app.use('/api/requests', authenticateJWT, requestsRoutes);
+app.use('/api/notifications', authenticateJWT, notificationsRoutes);
 
 // Base route
 app.get('/', (req, res) => {

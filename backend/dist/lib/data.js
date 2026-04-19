@@ -1,7 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.equipmentHistory = exports.requests = exports.jobs = exports.issues = exports.equipment = exports.users = exports.departments = void 0;
+exports.equipmentHistory = exports.requests = exports.jobs = exports.issues = exports.equipment = exports.users = exports.departments = exports.units = void 0;
 const types_1 = require("./types");
+exports.units = [
+    { unit_id: "UN01", unit_name: "เครื่อง", description: "เครื่องคอมพิวเตอร์/อุปกรณ์หลัก" },
+    { unit_id: "UN02", unit_name: "ชิ้น", description: "อุปกรณ์ย่อย/อะไหล่" },
+    { unit_id: "UN03", unit_name: "แผ่น", description: "ซอฟต์แวร์/หน้าจอ" },
+    { unit_id: "UN04", unit_name: "ชุด", description: "อุปกรณ์ที่มาเป็นเซ็ต" },
+];
 exports.departments = [
     { dept_id: "D001", dept_name: "IT Infrastructure" },
     { dept_id: "D002", dept_name: "Software Development" },
@@ -10,11 +16,11 @@ exports.departments = [
     { dept_id: "D005", dept_name: "Database Administration" },
 ];
 exports.users = [
-    { user_id: "U001", firstname: "Admin", lastname: "System", email: "admin@techjob.th", tel: "080-000-0000", role: types_1.Role.ADMIN, password: "$2a$10$clhoDogFFFe57/BqNENCaeBACtz9j25TCrU5CBK3lgt888Wzfp1wG", dept_id: "D001", avatar_color: "#3B82F6" },
-    { user_id: "U002", firstname: "ธนาวุฒิ", lastname: "แสงจันทร์", email: "thanawut@techjob.th", tel: "081-234-5678", role: types_1.Role.ADMIN, password: "$2a$10$clhoDogFFFe57/BqNENCaeBACtz9j25TCrU5CBK3lgt888Wzfp1wG", dept_id: "D001", avatar_color: "#3B82F6" },
-    { user_id: "U003", firstname: "สุภาพร", lastname: "วงศ์ตระกูล", email: "supaporn@techjob.th", tel: "082-345-6789", role: types_1.Role.MANAGER, password: "$2a$10$clhoDogFFFe57/BqNENCaeBACtz9j25TCrU5CBK3lgt888Wzfp1wG", dept_id: "D002", avatar_color: "#8B5CF6" },
-    { user_id: "U004", firstname: "สมชาย", lastname: "ใจดี", email: "technician@techjob.th", tel: "083-456-7890", role: types_1.Role.TECHNICIAN, password: "$2a$10$clhoDogFFFe57/BqNENCaeBACtz9j25TCrU5CBK3lgt888Wzfp1wG", dept_id: "D004", avatar_color: "#F59E0B" },
-    { user_id: "U005", firstname: "มานี", lastname: "มีนา", email: "staff@techjob.th", tel: "084-567-8901", role: types_1.Role.STAFF, password: "$2a$10$clhoDogFFFe57/BqNENCaeBACtz9j25TCrU5CBK3lgt888Wzfp1wG", dept_id: "D005", avatar_color: "#10B981" },
+    { user_id: "U001", firstname: "Admin", lastname: "System", email: "admin@techjob.th", tel: "080-000-0000", role: types_1.Role.ADMIN, password: "$2a$10$TWz9N3Io1I/bkQq2Oic.f.gvUYMJ2/gtUsWuY.sN4znm5I63p2nKO", dept_id: "D001", avatar_color: "#3B82F6" },
+    { user_id: "U002", firstname: "ธนาวุฒิ", lastname: "แสงจันทร์", email: "thanawut@techjob.th", tel: "081-234-5678", role: types_1.Role.ADMIN, password: "$2a$10$TWz9N3Io1I/bkQq2Oic.f.gvUYMJ2/gtUsWuY.sN4znm5I63p2nKO", dept_id: "D001", avatar_color: "#3B82F6" },
+    { user_id: "U003", firstname: "สุภาพร", lastname: "วงศ์ตระกูล", email: "supaporn@techjob.th", tel: "082-345-6789", role: types_1.Role.MANAGER, password: "$2a$10$TWz9N3Io1I/bkQq2Oic.f.gvUYMJ2/gtUsWuY.sN4znm5I63p2nKO", dept_id: "D002", avatar_color: "#8B5CF6" },
+    { user_id: "U004", firstname: "สมชาย", lastname: "ใจดี", email: "technician@techjob.th", tel: "083-456-7890", role: types_1.Role.TECHNICIAN, password: "$2a$10$TWz9N3Io1I/bkQq2Oic.f.gvUYMJ2/gtUsWuY.sN4znm5I63p2nKO", dept_id: "D004", avatar_color: "#F59E0B" },
+    { user_id: "U005", firstname: "มานี", lastname: "มีนา", email: "staff@techjob.th", tel: "084-567-8901", role: types_1.Role.STAFF, password: "$2a$10$TWz9N3Io1I/bkQq2Oic.f.gvUYMJ2/gtUsWuY.sN4znm5I63p2nKO", dept_id: "D005", avatar_color: "#10B981" },
 ];
 exports.equipment = [
     { equip_id: "E001", name: "MacBook Pro 14", type_category: "Laptop", total_qty: 10, remain_qty: 5, unit_id: "UN01", dept_id: "D002", status: types_1.EquipmentStatus.OPERATIONAL },

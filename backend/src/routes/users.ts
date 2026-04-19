@@ -1,18 +1,13 @@
 import { Router } from 'express';
-import { query, execute } from '../lib/db';
+import { UserService } from '../services/UserService';
 
 const router = Router();
 
-/**
- * @swagger
- * tags:
- *   name: Users
- *   description: จัดการผู้ใช้งาน
- */
-
 router.get('/', async (req, res) => {
   try {
-    const users = await query('SELECT * FROM users');
+    const limit = parseInt(req.query.limit as string) || 1000;
+    const offset = parseInt(req.query.offset as string) || 0;
+    const users = await UserService.getAllUsers(limit, offset);
     res.json({ success: true, data: users });
   } catch (error) {
     res.status(500).json({ success: false, error: String(error) });
@@ -21,9 +16,9 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
-    const users = await query('SELECT * FROM users WHERE user_id = ?', [req.params.id]);
-    if (users.length === 0) return res.status(404).json({ success: false, error: 'User not found' });
-    res.json({ success: true, data: users[0] });
+    const user = await UserService.getUserById(req.params.id);
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' });
+    res.json({ success: true, data: user });
   } catch (error) {
     res.status(500).json({ success: false, error: String(error) });
   }
@@ -31,27 +26,8 @@ router.get('/:id', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const newUser = req.body;
-    if (!newUser.user_id) {
-      newUser.user_id = 'U' + Date.now();
-    }
-
-    await query(
-      'INSERT INTO users (user_id, firstname, lastname, email, tel, role, dept_id, avatar_color, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [
-        newUser.user_id,
-        newUser.firstname || '',
-        newUser.lastname || '',
-        newUser.email || '',
-        newUser.tel || '',
-        newUser.role || '',
-        newUser.dept_id || null,
-        newUser.avatar_color || null,
-        newUser.password || '$2a$10$TWz9N3Io1I/bkQq2Oic.f.gvUYMJ2/gtUsWuY.sN4znm5I63p2nKO'
-      ]
-    );
-
-    res.status(201).json({ success: true, data: newUser });
+    const id = await UserService.createUser(req.body);
+    res.status(201).json({ success: true, data: { ...req.body, user_id: id } });
   } catch (error) {
     res.status(500).json({ success: false, error: String(error) });
   }
@@ -59,37 +35,19 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
-    const users = await query('SELECT * FROM users WHERE user_id = ?', [req.params.id]);
-    if (users.length === 0) return res.status(404).json({ success: false, error: 'User not found' });
-
-    const existing = users[0] as Record<string, unknown>;
-    const updated = { ...existing, ...req.body };
-
-    await query(
-      'UPDATE users SET firstname = ?, lastname = ?, email = ?, tel = ?, role = ?, dept_id = ?, avatar_color = ? WHERE user_id = ?',
-      [
-        updated.firstname || '',
-        updated.lastname || '',
-        updated.email || '',
-        updated.tel || '',
-        updated.role || '',
-        updated.dept_id || null,
-        updated.avatar_color || null,
-        req.params.id
-      ]
-    );
-
-    res.json({ success: true, data: updated });
+    const updated = await UserService.updateUser(req.params.id, req.body);
+    res.json({ success: true, message: 'Updated successfully', data: updated });
   } catch (error) {
-    res.status(500).json({ success: false, error: String(error) });
+    const status = (error as Error).message.includes('not found') ? 404 : 500;
+    res.status(status).json({ success: false, error: String(error) });
   }
 });
 
 router.delete('/:id', async (req, res) => {
   try {
-    const result = await execute('DELETE FROM users WHERE user_id = ?', [req.params.id]);
-    if (result.affectedRows === 0) return res.status(404).json({ success: false, error: 'User not found' });
-    res.json({ success: true, message: 'Deleted' });
+    const deleted = await UserService.deleteUser(req.params.id);
+    if (!deleted) return res.status(404).json({ success: false, error: 'User not found' });
+    res.json({ success: true, message: 'Deleted successfully' });
   } catch (error) {
     res.status(500).json({ success: false, error: String(error) });
   }

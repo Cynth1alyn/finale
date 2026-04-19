@@ -88,12 +88,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         fetchedRequests,
         fetchedEquip
       ] = await Promise.all([
-        api.jobs.getJobs(),
-        api.users.getUsers(),
+        api.jobs.getJobs({ limit: 5000 }),
+        api.users.getUsers({ limit: 5000 }),
         api.departments.getDepartments(),
-        api.issues.getIssues(),
-        api.requests.getRequests(),
-        api.equipment.getEquipment(),
+        api.issues.getIssues({ limit: 5000 }),
+        api.requests.getRequests({ limit: 5000 }),
+        api.equipment.getEquipment({ limit: 5000 }),
       ]);
 
       setJobs(fetchedJobs);

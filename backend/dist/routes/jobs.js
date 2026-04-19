@@ -1,14 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const db_1 = require("../lib/db");
+const JobService_1 = require("../services/JobService");
 const router = (0, express_1.Router)();
-function jsonValue(value) {
-    return value == null ? null : JSON.stringify(value);
-}
 router.get('/', async (req, res) => {
     try {
-        const jobs = await (0, db_1.query)('SELECT * FROM jobs');
+        const user = req.user;
+        if (!user)
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
+        const limit = parseInt(req.query.limit) || 1000;
+        const offset = parseInt(req.query.offset) || 0;
+        const { status, priority } = req.query;
+        const jobs = await JobService_1.JobService.getAllJobs(user.role, user.user_id, { limit, offset, status, priority });
         res.json({ success: true, data: jobs });
     }
     catch (error) {
@@ -17,40 +20,23 @@ router.get('/', async (req, res) => {
 });
 router.get('/:id', async (req, res) => {
     try {
-        const jobs = await (0, db_1.query)('SELECT * FROM jobs WHERE job_id = ?', [req.params.id]);
-        if (jobs.length === 0)
+        const user = req.user;
+        if (!user)
+            return res.status(401).json({ success: false, error: 'Unauthorized' });
+        const job = await JobService_1.JobService.getJobById(req.params.id, user.role, user.user_id);
+        if (!job)
             return res.status(404).json({ success: false, error: 'Job not found' });
-        res.json({ success: true, data: jobs[0] });
+        res.json({ success: true, data: job });
     }
     catch (error) {
-        res.status(500).json({ success: false, error: String(error) });
+        const status = error.message.includes('Forbidden') ? 403 : 500;
+        res.status(status).json({ success: false, error: String(error) });
     }
 });
 router.post('/', async (req, res) => {
     try {
-        const newJob = { ...req.body };
-        if (!newJob.job_id) {
-            newJob.job_id = 'J' + Date.now();
-        }
-        await (0, db_1.query)('INSERT INTO jobs (job_id, job_title, description, start_date, due_date, job_priority, job_status, assigned_user_ids, lat, lng, customer_name, contact_number, address, landmark, assigned_lead_id, equipment_requests) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
-            newJob.job_id,
-            newJob.job_title || '',
-            newJob.description || '',
-            newJob.start_date || new Date().toISOString().slice(0, 10),
-            newJob.due_date || new Date().toISOString().slice(0, 10),
-            newJob.job_priority || '',
-            newJob.job_status || '',
-            jsonValue(newJob.assigned_user_ids),
-            newJob.lat ?? null,
-            newJob.lng ?? null,
-            newJob.customer_name || null,
-            newJob.contact_number || null,
-            newJob.address || null,
-            newJob.landmark || null,
-            newJob.assigned_lead_id || null,
-            jsonValue(newJob.equipment_requests)
-        ]);
-        res.status(201).json({ success: true, data: newJob });
+        const jobId = await JobService_1.JobService.createJob(req.body);
+        res.status(201).json({ success: true, data: { ...req.body, job_id: jobId } });
     }
     catch (error) {
         res.status(500).json({ success: false, error: String(error) });
@@ -58,41 +44,20 @@ router.post('/', async (req, res) => {
 });
 router.put('/:id', async (req, res) => {
     try {
-        const jobs = await (0, db_1.query)('SELECT * FROM jobs WHERE job_id = ?', [req.params.id]);
-        if (jobs.length === 0)
-            return res.status(404).json({ success: false, error: 'Job not found' });
-        const existing = jobs[0];
-        const updated = { ...existing, ...req.body };
-        await (0, db_1.query)('UPDATE jobs SET job_title = ?, description = ?, start_date = ?, due_date = ?, job_priority = ?, job_status = ?, assigned_user_ids = ?, lat = ?, lng = ?, customer_name = ?, contact_number = ?, address = ?, landmark = ?, assigned_lead_id = ?, equipment_requests = ? WHERE job_id = ?', [
-            updated.job_title || '',
-            updated.description || '',
-            updated.start_date || new Date().toISOString().slice(0, 10),
-            updated.due_date || new Date().toISOString().slice(0, 10),
-            updated.job_priority || '',
-            updated.job_status || '',
-            jsonValue(updated.assigned_user_ids),
-            updated.lat ?? null,
-            updated.lng ?? null,
-            updated.customer_name || null,
-            updated.contact_number || null,
-            updated.address || null,
-            updated.landmark || null,
-            updated.assigned_lead_id || null,
-            jsonValue(updated.equipment_requests),
-            req.params.id
-        ]);
-        res.json({ success: true, data: updated });
+        const updated = await JobService_1.JobService.updateJob(req.params.id, req.body);
+        res.json({ success: true, message: 'Updated successfully', data: updated });
     }
     catch (error) {
-        res.status(500).json({ success: false, error: String(error) });
+        const status = error.message.includes('not found') ? 404 : 500;
+        res.status(status).json({ success: false, error: String(error) });
     }
 });
 router.delete('/:id', async (req, res) => {
     try {
-        const result = await (0, db_1.execute)('DELETE FROM jobs WHERE job_id = ?', [req.params.id]);
-        if (result.affectedRows === 0)
+        const deleted = await JobService_1.JobService.deleteJob(req.params.id);
+        if (!deleted)
             return res.status(404).json({ success: false, error: 'Job not found' });
-        res.json({ success: true, message: 'Deleted' });
+        res.json({ success: true, message: 'Deleted successfully' });
     }
     catch (error) {
         res.status(500).json({ success: false, error: String(error) });

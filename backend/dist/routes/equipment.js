@@ -1,17 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const db_1 = require("../lib/db");
+const EquipmentService_1 = require("../services/EquipmentService");
 const router = (0, express_1.Router)();
-/**
- * @swagger
- * tags:
- *   name: Equipment
- *   description: จัดการอุปกรณ์
- */
 router.get('/', async (req, res) => {
     try {
-        const equipment = await (0, db_1.query)('SELECT * FROM equipment');
+        const limit = parseInt(req.query.limit) || 1000;
+        const offset = parseInt(req.query.offset) || 0;
+        const { status, dept_id } = req.query;
+        const equipment = await EquipmentService_1.EquipmentService.getAllEquipment({ limit, offset, status, dept_id });
         res.json({ success: true, data: equipment });
     }
     catch (error) {
@@ -20,7 +17,9 @@ router.get('/', async (req, res) => {
 });
 router.get('/:id/history', async (req, res) => {
     try {
-        const history = await (0, db_1.query)('SELECT * FROM equipment_history WHERE equip_id = ? ORDER BY date DESC', [req.params.id]);
+        const limit = parseInt(req.query.limit) || 100;
+        const offset = parseInt(req.query.offset) || 0;
+        const history = await EquipmentService_1.EquipmentService.getEquipmentHistory(req.params.id, limit, offset);
         res.json({ success: true, data: history });
     }
     catch (error) {
@@ -29,10 +28,10 @@ router.get('/:id/history', async (req, res) => {
 });
 router.get('/:id', async (req, res) => {
     try {
-        const rows = await (0, db_1.query)('SELECT * FROM equipment WHERE equip_id = ?', [req.params.id]);
-        if (rows.length === 0)
+        const item = await EquipmentService_1.EquipmentService.getEquipmentById(req.params.id);
+        if (!item)
             return res.status(404).json({ success: false, error: 'Equipment not found' });
-        res.json({ success: true, data: rows[0] });
+        res.json({ success: true, data: item });
     }
     catch (error) {
         res.status(500).json({ success: false, error: String(error) });
@@ -40,21 +39,8 @@ router.get('/:id', async (req, res) => {
 });
 router.post('/', async (req, res) => {
     try {
-        const newItem = req.body;
-        if (!newItem.equip_id) {
-            newItem.equip_id = 'E' + Date.now();
-        }
-        await (0, db_1.query)('INSERT INTO equipment (equip_id, name, type_category, total_qty, remain_qty, unit_id, dept_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [
-            newItem.equip_id,
-            newItem.name || '',
-            newItem.type_category || null,
-            newItem.total_qty || 0,
-            newItem.remain_qty || 0,
-            newItem.unit_id || null,
-            newItem.dept_id || null,
-            newItem.status || null
-        ]);
-        res.status(201).json({ success: true, data: newItem });
+        const id = await EquipmentService_1.EquipmentService.createEquipment(req.body);
+        res.status(201).json({ success: true, data: { ...req.body, equip_id: id } });
     }
     catch (error) {
         res.status(500).json({ success: false, error: String(error) });
@@ -62,57 +48,35 @@ router.post('/', async (req, res) => {
 });
 router.put('/:id', async (req, res) => {
     try {
-        const rows = await (0, db_1.query)('SELECT * FROM equipment WHERE equip_id = ?', [req.params.id]);
-        if (rows.length === 0)
-            return res.status(404).json({ success: false, error: 'Equipment not found' });
-        const existing = rows[0];
-        const updated = { ...existing, ...req.body };
-        await (0, db_1.query)('UPDATE equipment SET name = ?, type_category = ?, total_qty = ?, remain_qty = ?, unit_id = ?, dept_id = ?, status = ? WHERE equip_id = ?', [
-            updated.name || '',
-            updated.type_category || null,
-            updated.total_qty || 0,
-            updated.remain_qty || 0,
-            updated.unit_id || null,
-            updated.dept_id || null,
-            updated.status || null,
-            req.params.id
-        ]);
-        res.json({ success: true, data: updated });
+        const updated = await EquipmentService_1.EquipmentService.updateEquipment(req.params.id, req.body);
+        res.json({ success: true, message: 'Updated successfully', data: updated });
     }
     catch (error) {
-        res.status(500).json({ success: false, error: String(error) });
+        const status = error.message.includes('not found') ? 404 : 500;
+        res.status(status).json({ success: false, error: String(error) });
     }
 });
 router.post('/:id/checkout', async (req, res) => {
     try {
-        const { user_id, qty, notes } = req.body;
-        const equip_id = req.params.id;
+        const { qty, notes } = req.body;
+        const user_id = req.user?.user_id;
         if (!user_id || !qty) {
-            return res.status(400).json({ success: false, error: 'Missing user_id or qty' });
+            return res.status(400).json({ success: false, error: 'Missing user context or qty' });
         }
-        const rows = await (0, db_1.query)('SELECT * FROM equipment WHERE equip_id = ?', [equip_id]);
-        if (rows.length === 0)
-            return res.status(404).json({ success: false, error: 'Equipment not found' });
-        const equip = rows[0];
-        if (equip.remain_qty < qty) {
-            return res.status(400).json({ success: false, error: 'จำนวนอุปกรณ์ในสต็อกไม่เพียงพอ' });
-        }
-        const newRemainQty = equip.remain_qty - qty;
-        await (0, db_1.query)('UPDATE equipment SET remain_qty = ? WHERE equip_id = ?', [newRemainQty, equip_id]);
-        const historyId = 'H' + Date.now();
-        await (0, db_1.query)('INSERT INTO equipment_history (id, equip_id, date, user_id, action, notes) VALUES (?, ?, ?, ?, ?, ?)', [historyId, equip_id, new Date().toISOString().slice(0, 10), user_id, 'check-out', notes || `เบิกออก ${qty} ชิ้น`]);
-        res.json({ success: true, message: 'Check-out successful', data: { ...equip, remain_qty: newRemainQty } });
+        const updated = await EquipmentService_1.EquipmentService.checkoutEquipment(req.params.id, user_id, qty, notes);
+        res.json({ success: true, message: 'Check-out successful', data: updated });
     }
     catch (error) {
-        res.status(500).json({ success: false, error: String(error) });
+        const status = error.message.includes('not found') ? 404 : 400;
+        res.status(status).json({ success: false, error: String(error) });
     }
 });
 router.delete('/:id', async (req, res) => {
     try {
-        const result = await (0, db_1.execute)('DELETE FROM equipment WHERE equip_id = ?', [req.params.id]);
-        if (result.affectedRows === 0)
+        const deleted = await EquipmentService_1.EquipmentService.deleteEquipment(req.params.id);
+        if (!deleted)
             return res.status(404).json({ success: false, error: 'Equipment not found' });
-        res.json({ success: true, message: 'Deleted' });
+        res.json({ success: true, message: 'Deleted successfully' });
     }
     catch (error) {
         res.status(500).json({ success: false, error: String(error) });

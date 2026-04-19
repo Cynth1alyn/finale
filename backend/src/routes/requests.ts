@@ -1,15 +1,13 @@
 import { Router } from 'express';
-import { query, execute } from '../lib/db';
+import { RequestService } from '../services/RequestService';
 
 const router = Router();
 
-function jsonValue(value: unknown) {
-  return value == null ? null : JSON.stringify(value);
-}
-
 router.get('/', async (req, res) => {
   try {
-    const requests = await query('SELECT * FROM requests');
+    const limit = parseInt(req.query.limit as string) || 1000;
+    const offset = parseInt(req.query.offset as string) || 0;
+    const requests = await RequestService.getAllRequests(limit, offset);
     res.json({ success: true, data: requests });
   } catch (error) {
     res.status(500).json({ success: false, error: String(error) });
@@ -18,9 +16,9 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
-    const rows = await query('SELECT * FROM requests WHERE req_id = ?', [req.params.id]);
-    if (rows.length === 0) return res.status(404).json({ success: false, error: 'Request not found' });
-    res.json({ success: true, data: rows[0] });
+    const request = await RequestService.getRequestById(req.params.id);
+    if (!request) return res.status(404).json({ success: false, error: 'Request not found' });
+    res.json({ success: true, data: request });
   } catch (error) {
     res.status(500).json({ success: false, error: String(error) });
   }
@@ -28,23 +26,8 @@ router.get('/:id', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const newReq = { ...req.body };
-    if (!newReq.req_id) {
-      newReq.req_id = 'R' + Date.now();
-    }
-
-    await query(
-      'INSERT INTO requests (req_id, req_date, req_status, user_id, items) VALUES (?, ?, ?, ?, ?)',
-      [
-        newReq.req_id,
-        newReq.req_date || new Date().toISOString().slice(0, 10),
-        newReq.req_status || '',
-        newReq.user_id || '',
-        jsonValue(newReq.items)
-      ]
-    );
-
-    res.status(201).json({ success: true, data: newReq });
+    const id = await RequestService.createRequest(req.body);
+    res.status(201).json({ success: true, data: { ...req.body, req_id: id } });
   } catch (error) {
     res.status(500).json({ success: false, error: String(error) });
   }
@@ -52,34 +35,19 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
-    const rows = await query('SELECT * FROM requests WHERE req_id = ?', [req.params.id]);
-    if (rows.length === 0) return res.status(404).json({ success: false, error: 'Request not found' });
-
-    const existing = rows[0] as Record<string, unknown>;
-    const updated = { ...existing, ...req.body };
-
-    await query(
-      'UPDATE requests SET req_date = ?, req_status = ?, user_id = ?, items = ? WHERE req_id = ?',
-      [
-        updated.req_date || new Date().toISOString().slice(0, 10),
-        updated.req_status || '',
-        updated.user_id || '',
-        jsonValue(updated.items),
-        req.params.id
-      ]
-    );
-
-    res.json({ success: true, data: updated });
+    const updated = await RequestService.updateRequest(req.params.id, req.body);
+    res.json({ success: true, message: 'Updated successfully', data: updated });
   } catch (error) {
-    res.status(500).json({ success: false, error: String(error) });
+    const status = (error as Error).message.includes('not found') ? 404 : 500;
+    res.status(status).json({ success: false, error: String(error) });
   }
 });
 
 router.delete('/:id', async (req, res) => {
   try {
-    const result = await execute('DELETE FROM requests WHERE req_id = ?', [req.params.id]);
-    if (result.affectedRows === 0) return res.status(404).json({ success: false, error: 'Request not found' });
-    res.json({ success: true, message: 'Deleted' });
+    const deleted = await RequestService.deleteRequest(req.params.id);
+    if (!deleted) return res.status(404).json({ success: false, error: 'Request not found' });
+    res.json({ success: true, message: 'Deleted successfully' });
   } catch (error) {
     res.status(500).json({ success: false, error: String(error) });
   }
