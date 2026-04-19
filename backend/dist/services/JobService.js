@@ -5,10 +5,10 @@ const JobRepository_1 = require("../repositories/JobRepository");
 class JobService {
     static async getAllJobs(role, userId, params = {}) {
         const r = role.toLowerCase();
-        if (r === 'admin' || r === 'manager') {
+        if (r === 'admin') {
             return await JobRepository_1.JobRepository.findAll(params);
         }
-        // For specific user, we still use findByUserId for now as it's more restricted
+        // Managers and others will now only see jobs they are involved in
         return await JobRepository_1.JobRepository.findByUserId(userId, params.limit, params.offset);
     }
     static async getJobById(id, role, userId) {

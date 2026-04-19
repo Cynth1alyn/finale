@@ -7,7 +7,7 @@ class IssueRepository {
         const { limit = 100, offset = 0, status, priority } = params;
         let sql = 'SELECT * FROM issues WHERE 1=1';
         const values = [];
-        if (status && status !== 'all') {
+        if (status) {
             sql += ' AND status = ?';
             values.push(status);
         }

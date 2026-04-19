@@ -7,11 +7,11 @@ class JobRepository {
         const { limit = 100, offset = 0, status, priority } = params;
         let sql = 'SELECT * FROM jobs WHERE 1=1';
         const values = [];
-        if (status && status !== 'all') {
+        if (status) {
             sql += ' AND job_status = ?';
             values.push(status);
         }
-        if (priority && priority !== 'all') {
+        if (priority) {
             sql += ' AND job_priority = ?';
             values.push(priority);
         }
@@ -24,7 +24,7 @@ class JobRepository {
         return results.length > 0 ? results[0] : null;
     }
     static async findByUserId(userId, limit = 100, offset = 0) {
-        return await (0, db_1.query)('SELECT * FROM jobs WHERE assigned_lead_id = ? OR JSON_CONTAINS(assigned_user_ids, CAST(? AS JSON)) LIMIT ? OFFSET ?', [userId, JSON.stringify(userId), limit, offset]);
+        return await (0, db_1.query)('SELECT * FROM jobs WHERE assigned_lead_id = ? OR JSON_CONTAINS(IFNULL(assigned_user_ids, "[]"), CAST(? AS JSON)) LIMIT ? OFFSET ?', [userId, JSON.stringify(userId), limit, offset]);
     }
     static async create(job) {
         const id = job.job_id || 'J' + Date.now();

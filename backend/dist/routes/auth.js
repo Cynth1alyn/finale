@@ -37,8 +37,6 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ success: false, error: 'Account not set up with password' });
         }
         const token = jsonwebtoken_1.default.sign({ user_id: user.user_id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '24h' });
-        // Update last login
-        await (0, db_1.query)('UPDATE users SET last_login = NOW() WHERE user_id = ?', [user.user_id]);
         // Remove password from response
         const { password: _, ...userWithoutPassword } = user;
         res.json({

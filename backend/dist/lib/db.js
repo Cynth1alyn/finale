@@ -68,52 +68,64 @@ async function withTransaction(callback) {
         connection.release();
     }
 }
+async function dropTables() {
+    await query('SET FOREIGN_KEY_CHECKS = 0');
+    const tables = [
+        'notifications',
+        'requests',
+        'jobs',
+        'issues',
+        'equipment_history',
+        'equipment',
+        'users',
+        'units',
+        'departments'
+    ];
+    for (const table of tables) {
+        await query(`DROP TABLE IF EXISTS ${table}`);
+    }
+    await query('SET FOREIGN_KEY_CHECKS = 1');
+}
 async function createTables() {
-    // Drop tables in reverse order of dependencies
-    await query('DROP TABLE IF EXISTS notifications');
-    await query('DROP TABLE IF EXISTS requests');
-    await query('DROP TABLE IF EXISTS jobs');
-    await query('DROP TABLE IF EXISTS issues');
-    await query('DROP TABLE IF EXISTS equipment_history');
-    await query('DROP TABLE IF EXISTS equipment');
-    await query('DROP TABLE IF EXISTS units');
-    await query('DROP TABLE IF EXISTS users');
-    await query('DROP TABLE IF EXISTS departments');
-    // 1. Units
-    await query(`CREATE TABLE units (
+    // 1. Departments
+    await query(`CREATE TABLE IF NOT EXISTS departments (
+    dept_id VARCHAR(50) PRIMARY KEY,
+    dept_name VARCHAR(255) NOT NULL,
+    description TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE INDEX idx_dept_name (dept_name)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+    // 2. Units
+    await query(`CREATE TABLE IF NOT EXISTS units (
     unit_id VARCHAR(50) PRIMARY KEY,
     unit_name VARCHAR(100) NOT NULL,
     description TEXT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  )`);
-    // 2. Departments
-    await query(`CREATE TABLE departments (
-    dept_id VARCHAR(50) PRIMARY KEY,
-    dept_name VARCHAR(255) NOT NULL UNIQUE,
-    description TEXT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-  )`);
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE INDEX idx_unit_name (unit_name)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
     // 3. Users
-    await query(`CREATE TABLE users (
+    await query(`CREATE TABLE IF NOT EXISTS users (
     user_id VARCHAR(50) PRIMARY KEY,
     firstname VARCHAR(100) NOT NULL,
     lastname VARCHAR(100) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
+    email VARCHAR(255) NOT NULL,
     tel VARCHAR(50) NOT NULL,
     role VARCHAR(50) DEFAULT 'staff',
     password VARCHAR(255) NULL,
     dept_id VARCHAR(50) NULL,
     avatar_color VARCHAR(50) DEFAULT '#3B82F6',
-    last_login DATETIME NULL,
+    last_login TIMESTAMP NULL,
+    password_changed_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (dept_id) REFERENCES departments(dept_id) ON DELETE SET NULL,
-    INDEX (email),
-    INDEX (role)
-  )`);
+    UNIQUE INDEX idx_user_email (email),
+    INDEX idx_user_role (role),
+    CONSTRAINT fk_user_dept FOREIGN KEY (dept_id) REFERENCES departments(dept_id) ON DELETE SET NULL
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
     // 4. Equipment
-    await query(`CREATE TABLE equipment (
+    await query(`CREATE TABLE IF NOT EXISTS equipment (
     equip_id VARCHAR(50) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     type_category VARCHAR(100) NULL,
@@ -124,13 +136,12 @@ async function createTables() {
     status VARCHAR(50) DEFAULT 'operational',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (dept_id) REFERENCES departments(dept_id) ON DELETE SET NULL,
-    FOREIGN KEY (unit_id) REFERENCES units(unit_id) ON DELETE SET NULL,
-    INDEX (status),
-    CONSTRAINT chk_qty CHECK (remain_qty <= total_qty)
-  )`);
+    INDEX idx_equip_status (status),
+    CONSTRAINT fk_equip_unit FOREIGN KEY (unit_id) REFERENCES units(unit_id) ON DELETE SET NULL,
+    CONSTRAINT fk_equip_dept FOREIGN KEY (dept_id) REFERENCES departments(dept_id) ON DELETE SET NULL
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
     // 5. Equipment History
-    await query(`CREATE TABLE equipment_history (
+    await query(`CREATE TABLE IF NOT EXISTS equipment_history (
     id VARCHAR(50) PRIMARY KEY,
     equip_id VARCHAR(50) NOT NULL,
     date DATE NOT NULL,
@@ -138,34 +149,34 @@ async function createTables() {
     action VARCHAR(50) NOT NULL,
     notes TEXT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (equip_id) REFERENCES equipment(equip_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-  )`);
+    CONSTRAINT fk_hist_equip FOREIGN KEY (equip_id) REFERENCES equipment(equip_id) ON DELETE CASCADE,
+    CONSTRAINT fk_hist_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
     // 6. Issues
-    await query(`CREATE TABLE issues (
+    await query(`CREATE TABLE IF NOT EXISTS issues (
     issue_id VARCHAR(50) PRIMARY KEY,
     topic VARCHAR(255) NOT NULL,
     detail TEXT NOT NULL,
     solution TEXT NOT NULL,
-    status VARCHAR(50) NOT NULL DEFAULT 'open',
+    status VARCHAR(50) DEFAULT 'open',
     report_date DATE NOT NULL,
     reporter_id VARCHAR(50) NOT NULL,
     lat DECIMAL(10, 8) NULL,
     lng DECIMAL(11, 8) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (reporter_id) REFERENCES users(user_id),
-    INDEX (status)
-  )`);
+    INDEX idx_issue_status (status),
+    CONSTRAINT fk_issue_reporter FOREIGN KEY (reporter_id) REFERENCES users(user_id) ON DELETE RESTRICT
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
     // 7. Jobs
-    await query(`CREATE TABLE jobs (
+    await query(`CREATE TABLE IF NOT EXISTS jobs (
     job_id VARCHAR(50) PRIMARY KEY,
     job_title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     start_date DATE NOT NULL,
     due_date DATE NOT NULL,
-    job_priority VARCHAR(50) NOT NULL DEFAULT 'medium',
-    job_status VARCHAR(50) NOT NULL DEFAULT 'pending',
+    job_priority VARCHAR(50) DEFAULT 'medium',
+    job_status VARCHAR(50) DEFAULT 'pending',
     assigned_user_ids JSON NULL,
     lat DECIMAL(10, 8) NULL,
     lng DECIMAL(11, 8) NULL,
@@ -177,24 +188,24 @@ async function createTables() {
     equipment_requests JSON NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (assigned_lead_id) REFERENCES users(user_id) ON DELETE SET NULL,
-    INDEX (job_status),
-    INDEX (job_priority)
-  )`);
+    INDEX idx_job_status (job_status),
+    INDEX idx_job_priority (job_priority),
+    CONSTRAINT fk_job_lead FOREIGN KEY (assigned_lead_id) REFERENCES users(user_id) ON DELETE SET NULL
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
     // 8. Requests
-    await query(`CREATE TABLE requests (
+    await query(`CREATE TABLE IF NOT EXISTS requests (
     req_id VARCHAR(50) PRIMARY KEY,
     req_date DATE NOT NULL,
-    req_status VARCHAR(50) NOT NULL DEFAULT 'pending',
+    req_status VARCHAR(50) DEFAULT 'pending',
     user_id VARCHAR(50) NOT NULL,
     items JSON NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    INDEX (req_status)
-  )`);
+    INDEX idx_req_status (req_status),
+    CONSTRAINT fk_req_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
     // 9. Notifications
-    await query(`CREATE TABLE notifications (
+    await query(`CREATE TABLE IF NOT EXISTS notifications (
     id VARCHAR(50) PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,
@@ -202,7 +213,7 @@ async function createTables() {
     is_read BOOLEAN DEFAULT FALSE,
     related_link VARCHAR(255) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  )`);
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
 }
 function jsonValue(value) {
     return value == null ? null : JSON.stringify(value);
@@ -214,10 +225,7 @@ async function seedTableIfEmpty(table, countQuery, rows) {
     if (count > 0)
         return;
     for (const row of rows) {
-        if (table === 'units') {
-            await query('INSERT INTO units (unit_id, unit_name, description) VALUES (?, ?, ?)', [row.unit_id, row.unit_name, row.description || null]);
-        }
-        else if (table === 'departments') {
+        if (table === 'departments') {
             await query('INSERT INTO departments (dept_id, dept_name, description) VALUES (?, ?, ?)', [row.dept_id, row.dept_name, row.description || null]);
         }
         else if (table === 'users') {
@@ -235,21 +243,24 @@ async function seedTableIfEmpty(table, countQuery, rows) {
         else if (table === 'jobs') {
             await query('INSERT INTO jobs (job_id, job_title, description, start_date, due_date, job_priority, job_status, assigned_user_ids, lat, lng, customer_name, contact_number, address, landmark, assigned_lead_id, equipment_requests) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [row.job_id, row.job_title, row.description, row.start_date, row.due_date, row.job_priority, row.job_status, jsonValue(row.assigned_user_ids), row.lat ?? null, row.lng ?? null, row.customer_name || null, row.contact_number || null, row.address || null, row.landmark || null, row.assigned_lead_id || null, jsonValue(row.equipment_requests)]);
         }
+        else if (table === 'units') {
+            await query('INSERT INTO units (unit_id, unit_name, description) VALUES (?, ?, ?)', [row.unit_id, row.unit_name, row.description || null]);
+        }
         else if (table === 'requests') {
             await query('INSERT INTO requests (req_id, req_date, req_status, user_id, items) VALUES (?, ?, ?, ?, ?)', [row.req_id, row.req_date, row.req_status, row.user_id, jsonValue(row.items)]);
         }
     }
 }
 async function initializeDatabase() {
+    await dropTables(); // Always recreate for now as requested
     await createTables();
-    console.log('✅ Tables created/refreshed');
-    await seedTableIfEmpty('units', 'SELECT COUNT(*) AS count FROM units', data_1.units);
     await seedTableIfEmpty('departments', 'SELECT COUNT(*) AS count FROM departments', data_1.departments);
+    await seedTableIfEmpty('units', 'SELECT COUNT(*) AS count FROM units', data_1.units);
     await seedTableIfEmpty('users', 'SELECT COUNT(*) AS count FROM users', data_1.users);
     await seedTableIfEmpty('equipment', 'SELECT COUNT(*) AS count FROM equipment', data_1.equipment);
     await seedTableIfEmpty('equipment_history', 'SELECT COUNT(*) AS count FROM equipment_history', data_1.equipmentHistory);
     await seedTableIfEmpty('issues', 'SELECT COUNT(*) AS count FROM issues', data_1.issues);
     await seedTableIfEmpty('jobs', 'SELECT COUNT(*) AS count FROM jobs', data_1.jobs);
     await seedTableIfEmpty('requests', 'SELECT COUNT(*) AS count FROM requests', data_1.requests);
-    console.log('✅ Database seeded successfully');
+    console.log('✅ Database initialized and seeded successfully');
 }

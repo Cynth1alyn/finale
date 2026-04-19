@@ -11,11 +11,14 @@ import Modal from '@/app/components/Modal';
 import MapComponent from '@/app/components/MapComponent';
 import Pagination from '@/app/components/Pagination';
 
-import { Search, AlertTriangle, X, User, Pencil } from 'lucide-react';
+import SearchableSelect from '@/app/components/SearchableSelect';
+import { Search, AlertTriangle, X, User, Pencil, UserPlus } from 'lucide-react';
 
 export default function JobsPage() {
   const router = useRouter();
-  const { jobs, users, updateJob, deleteJob } = useAppContext();
+  const { jobs, users, updateJob, deleteJob, currentUser } = useAppContext();
+  const isAdmin = currentUser?.role === 'admin';
+  const isManager = currentUser?.role === 'manager';
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -267,10 +270,60 @@ export default function JobsPage() {
               </div>
             </div>
           </div>
+          {/* Assignment Section */}
+          <div style={{ border: '1px solid var(--border-color)', borderRadius: 12, padding: '16px 20px', background: 'var(--bg-secondary)', marginTop: 8 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <UserPlus size={16} color="var(--accent-blue)" /> การมอบหมายงาน
+            </h3>
 
+            {/* Lead Selection - Only for Admin */}
+            {(isAdmin || isAdmin === undefined) && (
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-primary)' }}>หัวหน้างาน (Lead)</label>
+                <SearchableSelect 
+                  options={users.filter(u => u.role === 'admin' || u.role === 'manager').map(u => ({ value: u.user_id, label: `${u.firstname} ${u.lastname}` }))}
+                  placeholder="เลือกหัวหน้างาน..."
+                  value={formData.assigned_lead_id || ''}
+                  onSelect={val => setFormData({...formData, assigned_lead_id: val})}
+                />
+              </div>
+            )}
 
-
-
+            {/* Assignees Selection - For Admin & Manager */}
+            {(isAdmin || isManager) && (
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-primary)' }}>พนักงานลูกทีม (Assignees)</label>
+                <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+                  <div style={{ flex: 1 }}>
+                    <SearchableSelect 
+                      options={users.filter(u => u.role === 'technician' || u.role === 'user').map(u => ({ value: u.user_id, label: `${u.firstname} ${u.lastname}` }))}
+                      placeholder="เลือกพนักงานเพิ่ม..."
+                      value=""
+                      resetOnSelect={true}
+                      onSelect={val => {
+                        if (val && !formData.assigned_user_ids?.includes(val)) {
+                          setFormData({...formData, assigned_user_ids: [...(formData.assigned_user_ids || []), val]});
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+                
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {(formData.assigned_user_ids || []).map(uid => {
+                    const u = users.find(x => x.user_id === uid);
+                    return u ? (
+                      <div key={uid} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 20, padding: '4px 10px', fontSize: 12 }}>
+                        <span>{u.firstname} {u.lastname}</span>
+                        <button onClick={() => setFormData({...formData, assigned_user_ids: formData.assigned_user_ids!.filter(id => id !== uid)})} style={{ background: 'none', border: 'none', color: 'var(--accent-rose)', cursor: 'pointer', display: 'flex', padding: 0 }}><X size={14} /></button>
+                      </div>
+                    ) : null;
+                  })}
+                  {(formData.assigned_user_ids || []).length === 0 && <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>ยังไม่มีการเลือกผู้รับผิดชอบ</span>}
+                </div>
+              </div>
+            )}
+          </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 10 }}>
             <button className="btn btn-ghost" onClick={() => setIsModalOpen(false)}>ยกเลิก</button>

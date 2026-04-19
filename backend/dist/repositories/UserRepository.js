@@ -25,17 +25,19 @@ class UserRepository {
         if (user.password) {
             hashedPassword = await bcryptjs_1.default.hash(user.password, 10);
         }
-        await (0, db_1.query)(`INSERT INTO users (user_id, firstname, lastname, email, tel, role, password, dept_id, avatar_color) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+        await (0, db_1.query)(`INSERT INTO users (user_id, firstname, lastname, email, tel, role, password, dept_id, avatar_color, last_login, password_changed_at) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
             id,
             user.firstname || '',
             user.lastname || '',
             user.email || '',
             user.tel || '',
-            user.role || types_1.Role.STAFF,
+            user.role || types_1.Role.USER,
             hashedPassword,
             user.dept_id || null,
-            user.avatar_color || '#3B82F6'
+            user.avatar_color || '#3B82F6',
+            user.last_login || null,
+            user.password_changed_at || null
         ]);
         return id;
     }
@@ -47,8 +49,9 @@ class UserRepository {
         let hashedPassword = updated.password;
         if (user.password && user.password !== existing.password) {
             hashedPassword = await bcryptjs_1.default.hash(user.password, 10);
+            updated.password_changed_at = new Date().toISOString().slice(0, 19).replace('T', ' ');
         }
-        await (0, db_1.query)(`UPDATE users SET firstname = ?, lastname = ?, email = ?, tel = ?, role = ?, password = ?, dept_id = ?, avatar_color = ? 
+        await (0, db_1.query)(`UPDATE users SET firstname = ?, lastname = ?, email = ?, tel = ?, role = ?, password = ?, dept_id = ?, avatar_color = ?, last_login = ?, password_changed_at = ?
        WHERE user_id = ?`, [
             updated.firstname,
             updated.lastname,
@@ -58,6 +61,8 @@ class UserRepository {
             hashedPassword,
             updated.dept_id,
             updated.avatar_color,
+            updated.last_login || null,
+            updated.password_changed_at || null,
             id
         ]);
     }

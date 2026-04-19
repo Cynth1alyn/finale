@@ -32,7 +32,7 @@ export class UserRepository {
         user.lastname || '',
         user.email || '',
         user.tel || '',
-        user.role || Role.STAFF,
+        user.role || Role.USER,
         hashedPassword,
         user.dept_id || null,
         user.avatar_color || '#3B82F6',

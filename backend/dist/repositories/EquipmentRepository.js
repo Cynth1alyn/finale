@@ -7,7 +7,7 @@ class EquipmentRepository {
         const { limit = 100, offset = 0, status, dept_id } = params;
         let sql = 'SELECT * FROM equipment WHERE 1=1';
         const values = [];
-        if (status && status !== 'all') {
+        if (status) {
             sql += ' AND status = ?';
             values.push(status);
         }
@@ -54,9 +54,9 @@ class EquipmentRepository {
             updated.type_category || null,
             updated.total_qty || 0,
             updated.remain_qty || 0,
-            updated.unit_id || null,
+            updated.unit_id || '',
             updated.dept_id || null,
-            updated.status || 'operational',
+            updated.status || null,
             id
         ];
         if (connection) {

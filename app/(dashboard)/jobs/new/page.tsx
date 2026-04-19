@@ -229,25 +229,19 @@ export default function NewJobPage() {
                   <UserPlus size={18} color="var(--accent-blue)" /> พนักงานลูกทีม
                 </h3>
                 <div style={{ width: 280 }}>
-                  {isAdmin ? (
-                    <div style={{ padding: '8px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 8, fontSize: 13, color: 'var(--text-muted)', textAlign: 'center' }}>
-                      Admin ไม่สามารถเพิ่มลูกทีมได้
-                    </div>
-                  ) : (
-                    <SearchableSelect
-                      options={teamOptions}
-                      placeholder="เพิ่มพนักงาน..."
-                      value=""
-                      resetOnSelect={true}
-                      onSelect={val => {
-                        if (val && !formData.assigned_user_ids?.includes(val)) {
-                          const newAssignees = [...(formData.assigned_user_ids || []), val];
-                          setFormData({...formData, assigned_user_ids: newAssignees});
-                          setAssigneePage(Math.ceil(newAssignees.length / ITEMS_PER_PAGE));
-                        }
-                      }}
-                    />
-                  )}
+                  <SearchableSelect
+                    options={teamOptions}
+                    placeholder="เพิ่มพนักงาน..."
+                    value=""
+                    resetOnSelect={true}
+                    onSelect={val => {
+                      if (val && !formData.assigned_user_ids?.includes(val)) {
+                        const newAssignees = [...(formData.assigned_user_ids || []), val];
+                        setFormData({...formData, assigned_user_ids: newAssignees});
+                        setAssigneePage(Math.ceil(newAssignees.length / ITEMS_PER_PAGE));
+                      }
+                    }}
+                  />
                 </div>
               </div>
               <div style={{ border: '1px solid var(--border-color)', borderRadius: 8, overflow: 'hidden' }}>
