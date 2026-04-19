@@ -37,7 +37,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', authenticateJWT, dashboardRoutes);
 app.use('/api/jobs', authenticateJWT, jobsRoutes);
 app.use('/api/issues', authenticateJWT, issuesRoutes);
-app.use('/api/users', authenticateJWT, authorizeRoles('admin'), usersRoutes);
+app.use('/api/users', authenticateJWT, usersRoutes);
 app.use('/api/equipment', authenticateJWT, equipmentRoutes);
 app.use('/api/departments', authenticateJWT, authorizeRoles('admin', 'manager'), departmentRoutes);
 app.use('/api/requests', authenticateJWT, requestsRoutes);

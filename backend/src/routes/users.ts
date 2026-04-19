@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { UserService } from '../services/UserService';
+import { authorizeRoles } from '../middleware/authorize';
 
 const router = Router();
 
@@ -24,7 +25,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', authorizeRoles('admin'), async (req, res) => {
   try {
     const id = await UserService.createUser(req.body);
     res.status(201).json({ success: true, data: { ...req.body, user_id: id } });
@@ -33,7 +34,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', authorizeRoles('admin'), async (req, res) => {
   try {
     const updated = await UserService.updateUser(req.params.id, req.body);
     res.json({ success: true, message: 'Updated successfully', data: updated });
@@ -43,7 +44,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authorizeRoles('admin'), async (req, res) => {
   try {
     const deleted = await UserService.deleteUser(req.params.id);
     if (!deleted) return res.status(404).json({ success: false, error: 'User not found' });

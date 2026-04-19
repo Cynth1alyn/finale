@@ -64,7 +64,14 @@ export default function JobsPage() {
     return u ? `${u.firstname}` : '—';
   }).join(', ');
 
-  const filtered = jobs.filter(j => {
+  const visibleJobs = jobs.filter(j => {
+    if (currentUser?.role === 'admin') return true;
+    const isLead = j.assigned_lead_id === currentUser?.user_id;
+    const isAssignee = j.assigned_user_ids?.includes(currentUser?.user_id || '');
+    return isLead || isAssignee;
+  });
+
+  const filtered = visibleJobs.filter(j => {
     if (statusFilter !== 'all' && j.job_status !== statusFilter) return false;
     if (priorityFilter !== 'all' && j.job_priority !== priorityFilter) return false;
     if (searchQuery) {
@@ -118,11 +125,11 @@ export default function JobsPage() {
   ];
 
   const statusCounts = {
-    all: jobs.length,
-    pending: jobs.filter(j => j.job_status === 'pending').length,
-    'in-progress': jobs.filter(j => j.job_status === 'in-progress').length,
-    done: jobs.filter(j => j.job_status === 'done').length,
-    cancelled: jobs.filter(j => j.job_status === 'cancelled').length,
+    all: visibleJobs.length,
+    pending: visibleJobs.filter(j => j.job_status === 'pending').length,
+    'in-progress': visibleJobs.filter(j => j.job_status === 'in-progress').length,
+    done: visibleJobs.filter(j => j.job_status === 'done').length,
+    cancelled: visibleJobs.filter(j => j.job_status === 'cancelled').length,
   };
 
   return (
@@ -130,7 +137,7 @@ export default function JobsPage() {
       <div className="page-header" style={{ alignItems: 'flex-start' }}>
         <div>
           <div className="page-title">จัดการงาน</div>
-          <div className="page-subtitle">ทั้งหมด {jobs.length} รายการ</div>
+          <div className="page-subtitle">ทั้งหมด {visibleJobs.length} รายการ</div>
         </div>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <div className="search-box" style={{ width: '300px', maxWidth: '100%' }}>
@@ -281,7 +288,7 @@ export default function JobsPage() {
               <div style={{ marginBottom: 16 }}>
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-primary)' }}>หัวหน้างาน (Lead)</label>
                 <SearchableSelect 
-                  options={users.filter(u => u.role === 'admin' || u.role === 'manager').map(u => ({ value: u.user_id, label: `${u.firstname} ${u.lastname}` }))}
+                  options={users.filter(u => u.role === 'manager').map(u => ({ value: u.user_id, label: `${u.firstname} ${u.lastname}` }))}
                   placeholder="เลือกหัวหน้างาน..."
                   value={formData.assigned_lead_id || ''}
                   onSelect={val => setFormData({...formData, assigned_lead_id: val})}

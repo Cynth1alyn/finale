@@ -16,15 +16,22 @@ import {
 } from 'lucide-react';
 
 export default function DashboardPage() {
-  const { jobs, issues, users, requests, equipment, units } = useAppContext();
+  const { jobs: allJobs, issues, users, requests, equipment, units, currentUser } = useAppContext();
 
-  const totalJobs       = jobs.length;
-  const activeJobs      = jobs.filter(j => j.job_status === 'in-progress').length;
+  const visibleJobs = allJobs.filter(j => {
+    if (currentUser?.role === 'admin') return true;
+    const isLead = j.assigned_lead_id === currentUser?.user_id;
+    const isAssignee = j.assigned_user_ids?.includes(currentUser?.user_id || '');
+    return isLead || isAssignee;
+  });
+
+  const totalJobs       = visibleJobs.length;
+  const activeJobs      = visibleJobs.filter(j => j.job_status === 'in-progress').length;
   const openIssues      = issues.filter(i => i.status === 'open' || i.status === 'in-progress').length;
   const pendingRequests = requests.filter(r => r.req_status === 'pending').length;
   const totalUsers      = users.length;
 
-  const recentJobs      = [...jobs].sort((a, b) => b.start_date.localeCompare(a.start_date)).slice(0, 5);
+  const recentJobs      = [...visibleJobs].sort((a, b) => b.start_date.localeCompare(a.start_date)).slice(0, 5);
   const recentIssues    = [...issues].sort((a, b) => b.report_date.localeCompare(a.report_date)).slice(0, 5);
   const recentRequests  = [...requests].sort((a, b) => b.req_date.localeCompare(a.req_date)).slice(0, 5);
   
@@ -50,7 +57,7 @@ export default function DashboardPage() {
     });
   };
 
-  const jobChartData = getChartData(jobs, 'start_date');
+  const jobChartData = getChartData(visibleJobs, 'start_date');
   const issueChartData = getChartData(issues, 'report_date');
 
   const getUserName = (ids: string[] | null | undefined) => (ids || []).map(id => {

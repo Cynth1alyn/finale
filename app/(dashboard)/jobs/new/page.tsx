@@ -192,7 +192,7 @@ export default function NewJobPage() {
                 <label style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>หัวหน้างาน</label>
                 <div style={{ width: 280 }}>
                   <SearchableSelect 
-                    options={users.filter(u => u.role === 'admin' || u.role === 'manager').map(u => ({ value: u.user_id, label: `${u.firstname} ${u.lastname}` }))}
+                    options={users.filter(u => u.role === 'manager').map(u => ({ value: u.user_id, label: `${u.firstname} ${u.lastname}` }))}
                     placeholder="เลือกหัวหน้างาน..."
                     value={formData.assigned_lead_id || ''}
                     onSelect={val => setFormData({...formData, assigned_lead_id: val})}

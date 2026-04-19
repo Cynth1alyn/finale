@@ -8,17 +8,24 @@ import Link from 'next/link';
 import { Search, X, AlertTriangle, MapPin, Calendar, Briefcase } from 'lucide-react';
 
 export default function JobsViewPage() {
-  const { jobs, users } = useAppContext();
+  const { jobs: allJobs, users, currentUser } = useAppContext();
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const visibleJobs = allJobs.filter(j => {
+    if (currentUser?.role === 'admin') return true;
+    const isLead = j.assigned_lead_id === currentUser?.user_id;
+    const isAssignee = j.assigned_user_ids?.includes(currentUser?.user_id || '');
+    return isLead || isAssignee;
+  });
 
   const getUserName = (ids: string[] | null | undefined) => (ids || []).map(id => {
     const u = users.find(u => u.user_id === id);
     return u ? `${u.firstname}` : '—';
   }).join(', ');
 
-  const filtered = jobs.filter(j => {
+  const filtered = visibleJobs.filter(j => {
     if (statusFilter !== 'all' && j.job_status !== statusFilter) return false;
     if (priorityFilter !== 'all' && j.job_priority !== priorityFilter) return false;
     if (searchQuery) {
@@ -34,11 +41,11 @@ export default function JobsViewPage() {
   // Columns & mapped table data removed in favor of Card Grid
 
   const statusCounts = {
-    all: jobs.length,
-    pending: jobs.filter(j => j.job_status === 'pending').length,
-    'in-progress': jobs.filter(j => j.job_status === 'in-progress').length,
-    done: jobs.filter(j => j.job_status === 'done').length,
-    cancelled: jobs.filter(j => j.job_status === 'cancelled').length,
+    all: visibleJobs.length,
+    pending: visibleJobs.filter(j => j.job_status === 'pending').length,
+    'in-progress': visibleJobs.filter(j => j.job_status === 'in-progress').length,
+    done: visibleJobs.filter(j => j.job_status === 'done').length,
+    cancelled: visibleJobs.filter(j => j.job_status === 'cancelled').length,
   };
 
   return (
@@ -141,7 +148,9 @@ export default function JobsViewPage() {
                 </div>
                 
                 <div style={{ display: 'flex', flexDirection: 'row-reverse', alignItems: 'center' }}>
-                  {assignees.length === 0 && <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>ยังไม่มอบหมาย</span>}
+                  {assignees.length === 0 && !job.assigned_lead_id && <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>ยังไม่มอบหมาย</span>}
+                  
+                  {/* Display assignees */}
                   {assignees.slice(0, 3).map((u) => u ? (
                     <div key={u.user_id} className="avatar avatar-sm" style={{ background: u.avatar_color, color: '#fff', fontSize: 11, fontWeight: 600, marginLeft: -8, border: '2px solid var(--bg-card)' }} title={`${u.firstname} ${u.lastname}`}>
                       {u.firstname[0]}{u.lastname[0]}
@@ -152,6 +161,16 @@ export default function JobsViewPage() {
                       +{assignees.length - 3}
                     </div>
                   )}
+
+                  {/* Display Lead Manager separately if exists */}
+                  {job.assigned_lead_id && (() => {
+                    const lead = users.find(u => u.user_id === job.assigned_lead_id);
+                    return lead ? (
+                      <div key={lead.user_id} className="avatar avatar-sm" style={{ background: lead.avatar_color || 'var(--accent-blue)', color: '#fff', fontSize: 11, fontWeight: 600, marginLeft: -8, border: '2px solid var(--accent-blue)' }} title={`หัวหน้างาน: ${lead.firstname} ${lead.lastname}`}>
+                        {lead.firstname[0]}{lead.lastname[0]}
+                      </div>
+                    ) : null;
+                  })()}
                 </div>
               </div>
             </div>
