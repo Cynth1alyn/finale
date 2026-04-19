@@ -122,22 +122,39 @@ export default function EquipmentDetailPage({ params }: { params: Promise<{ id: 
                     style={{ width: '100%', padding: '8px 10px', fontSize: 13 }}
                   />
                 </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-secondary)' }}>ประเภท</label>
-                  <select
-                    className="input"
-                    value={formData.type_category || ''}
-                    onChange={e => setFormData({...formData, type_category: e.target.value})}
-                    style={{ width: '100%', padding: '8px 10px', fontSize: 13 }}
-                  >
-                    <option value="hardware">ฮาร์ดแวร์</option>
-                    <option value="software">ซอฟต์แวร์</option>
-                    <option value="networking">เครือข่าย</option>
-                    <option value="peripherals">อุปกรณ์เสริม</option>
-                    <option value="storage">การเก็บข้อมูล</option>
-                    <option value="tools">เครื่องมือ</option>
-                    <option value="consumables">วัสดุสิ้นเปลืองใช้</option>
-                  </select>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-secondary)' }}>ประเภท</label>
+                    <select
+                      className="input"
+                      value={formData.type_category || ''}
+                      onChange={e => setFormData({...formData, type_category: e.target.value})}
+                      style={{ width: '100%', padding: '8px 10px', fontSize: 13 }}
+                    >
+                      <option value="hardware">ฮาร์ดแวร์</option>
+                      <option value="software">ซอฟต์แวร์</option>
+                      <option value="networking">เครือข่าย</option>
+                      <option value="peripherals">อุปกรณ์เสริม</option>
+                      <option value="storage">การเก็บข้อมูล</option>
+                      <option value="tools">เครื่องมือ</option>
+                      <option value="consumables">วัสดุสิ้นเปลืองใช้</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6, color: 'var(--text-secondary)' }}>หน่วยนับ</label>
+                    <select
+                      className="input"
+                      value={formData.unit_id || ''}
+                      onChange={e => setFormData({...formData, unit_id: e.target.value})}
+                      style={{ width: '100%', padding: '8px 10px', fontSize: 13 }}
+                    >
+                      {units.map(u => (
+                        <option key={u.unit_id} value={u.unit_id}>
+                          {u.unit_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                   <div>

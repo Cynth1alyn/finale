@@ -6,18 +6,24 @@ import { useAppContext } from '@/app/lib/AppContext';
 import SearchableSelect from '@/app/components/SearchableSelect';
 import StatusBadge from '@/app/components/StatusBadge';
 import PriorityBadge from '@/app/components/PriorityBadge';
-import { ArrowLeft, UserPlus, Package, Save, MapPin, Calendar, Briefcase, AlertTriangle, Loader2, X } from 'lucide-react';
+import Modal from '@/app/components/Modal';
+import { ArrowLeft, UserPlus, Package, Save, MapPin, Calendar, Briefcase, AlertTriangle, Loader2, X, CheckCircle, Ban } from 'lucide-react';
 
 export default function JobsViewDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { jobs, users, equipment, updateJob, updateEquipment } = useAppContext();
+  const { jobs, users, equipment, updateJob, updateEquipment, currentUser } = useAppContext();
 
   const job = jobs.find(j => j.job_id === id);
+  const isTeamMember = currentUser?.role === 'technician' || currentUser?.role === 'user';
+  const isReadOnly = isTeamMember || job?.job_status === 'done' || job?.job_status === 'cancelled';
 
   const [assignedUserIds, setAssignedUserIds] = useState<string[]>(job?.assigned_user_ids || []);
   const [equipRequests, setEquipRequests] = useState<{ equip_id: string; qty: number }[]>(job?.equipment_requests || []);
   const [isSaving, setIsSaving] = useState(false);
+  
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
 
   if (!job) {
     return (
@@ -68,6 +74,37 @@ export default function JobsViewDetailPage({ params }: { params: Promise<{ id: s
       disabledReason: e.remain_qty <= 0 ? 'อุปกรณ์หมดคลัง' : undefined
     }));
 
+  const handleMarkAsDone = async () => {
+    if (!job) return;
+    if (confirm('ยืนยันว่างานนี้เสร็จสิ้นแล้วใช่หรือไม่? (หลังจากนี้จะไม่สามารถแก้ไขได้อีก)')) {
+      try {
+        setIsSaving(true);
+        await updateJob({ ...job, job_status: 'done' });
+        router.push('/jobs-view');
+      } catch (error) {
+        alert('เกิดข้อผิดพลาด: ' + String(error));
+      } finally {
+        setIsSaving(false);
+      }
+    }
+  };
+
+  const handleCancelJob = async () => {
+    if (!job) return;
+    if (!cancelReason.trim()) return alert('กรุณาระบุเหตุผลการยกเลิก');
+    try {
+      setIsSaving(true);
+      const newDesc = job.description ? `${job.description}\n\n[ยกเลิกเมื่อ ${new Date().toLocaleDateString('th-TH')}]: ${cancelReason}` : `[ยกเลิกเมื่อ ${new Date().toLocaleDateString('th-TH')}]: ${cancelReason}`;
+      await updateJob({ ...job, job_status: 'cancelled', description: newDesc });
+      setIsCancelModalOpen(false);
+      router.push('/jobs-view');
+    } catch (error) {
+      alert('เกิดข้อผิดพลาด: ' + String(error));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleSave = async () => {
     try {
       setIsSaving(true);
@@ -80,7 +117,8 @@ export default function JobsViewDetailPage({ params }: { params: Promise<{ id: s
           }
         }
       }
-      await updateJob({ ...job, assigned_user_ids: assignedUserIds, equipment_requests: equipRequests });
+      const newStatus = job.job_status === 'pending' ? 'in-progress' : job.job_status;
+      await updateJob({ ...job, job_status: newStatus, assigned_user_ids: assignedUserIds, equipment_requests: equipRequests });
       router.push('/jobs-view');
     } catch (error) {
       alert('เกิดข้อผิดพลาด: ' + String(error));
@@ -221,6 +259,7 @@ export default function JobsViewDetailPage({ params }: { params: Promise<{ id: s
                 options={teamOptions}
                 placeholder="เพิ่มพนักงาน..."
                 value=""
+                disabled={isReadOnly}
                 resetOnSelect={true}
                 onSelect={val => {
                   if (val && !assignedUserIds.includes(val)) {
@@ -239,12 +278,12 @@ export default function JobsViewDetailPage({ params }: { params: Promise<{ id: s
                   <th style={{ width: 80 }}>รหัส</th>
                   <th>ชื่อ-นามสกุล</th>
                   <th>ตำแหน่ง</th>
-                  <th style={{ width: 52, textAlign: 'center' }}>ลบ</th>
+                  {!isReadOnly && <th style={{ width: 52, textAlign: 'center' }}>ลบ</th>}
                 </tr>
               </thead>
               <tbody>
                 {assignedUserIds.length === 0 && (
-                  <tr><td colSpan={5} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>— ยังไม่มีพนักงาน —</td></tr>
+                  <tr><td colSpan={isReadOnly ? 4 : 5} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>— ยังไม่มีพนักงาน —</td></tr>
                 )}
                 {assignedUserIds.map((uid, i) => {
                   const u = users.find(x => x.user_id === uid);
@@ -258,6 +297,7 @@ export default function JobsViewDetailPage({ params }: { params: Promise<{ id: s
                         {u.firstname} {u.lastname}
                       </td>
                       <td>{roleLabel(u.role)}</td>
+                      {!isReadOnly && (
                       <td style={{ textAlign: 'center' }}>
                         <button
                           onClick={() => setAssignedUserIds(prev => prev.filter(x => x !== uid))}
@@ -266,6 +306,7 @@ export default function JobsViewDetailPage({ params }: { params: Promise<{ id: s
                           <X size={14} strokeWidth={3} />
                         </button>
                       </td>
+                      )}
                     </tr>
                   ) : null;
                 })}
@@ -285,6 +326,7 @@ export default function JobsViewDetailPage({ params }: { params: Promise<{ id: s
                 options={availableEquipOptions}
                 placeholder="เลือกอุปกรณ์..."
                 value=""
+                disabled={isReadOnly}
                 resetOnSelect={true}
                 onSelect={val => {
                   if (val && !equipRequests.find(r => r.equip_id === val)) {
@@ -302,12 +344,12 @@ export default function JobsViewDetailPage({ params }: { params: Promise<{ id: s
                   <th style={{ width: 48 }}>ลำดับ</th>
                   <th>ชื่ออุปกรณ์</th>
                   <th style={{ width: 120, textAlign: 'center' }}>จำนวนเบิก</th>
-                  <th style={{ width: 52, textAlign: 'center' }}>ลบ</th>
+                  {!isReadOnly && <th style={{ width: 52, textAlign: 'center' }}>ลบ</th>}
                 </tr>
               </thead>
               <tbody>
                 {equipRequests.length === 0 && (
-                  <tr><td colSpan={4} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>— ยังไม่มีรายการเบิก —</td></tr>
+                  <tr><td colSpan={isReadOnly ? 3 : 4} style={{ textAlign: 'center', padding: 24, color: 'var(--text-muted)' }}>— ยังไม่มีรายการเบิก —</td></tr>
                 )}
                 {equipRequests.map((req, i) => {
                   const item = equipment.find(e => e.equip_id === req.equip_id);
@@ -324,12 +366,14 @@ export default function JobsViewDetailPage({ params }: { params: Promise<{ id: s
                           className="input"
                           style={{ width: 72, padding: '4px 8px', textAlign: 'center' }}
                           value={req.qty}
+                          disabled={isReadOnly}
                           onChange={e => {
                             const qty = Math.min(parseInt(e.target.value) || 1, item.remain_qty);
                             setEquipRequests(prev => prev.map(r => r.equip_id === req.equip_id ? { ...r, qty } : r));
                           }}
                         />
                       </td>
+                      {!isReadOnly && (
                       <td style={{ textAlign: 'center' }}>
                         <button
                           onClick={() => setEquipRequests(prev => prev.filter(r => r.equip_id !== req.equip_id))}
@@ -338,6 +382,7 @@ export default function JobsViewDetailPage({ params }: { params: Promise<{ id: s
                           <X size={14} strokeWidth={3} />
                         </button>
                       </td>
+                      )}
                     </tr>
                   ) : null;
                 })}
@@ -347,24 +392,80 @@ export default function JobsViewDetailPage({ params }: { params: Promise<{ id: s
         </div>
 
         {/* ── Save ── */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
-          <button className="btn btn-ghost" onClick={() => router.push('/jobs-view')} disabled={isSaving}>
-            ยกเลิก
-          </button>
-          <button
-            className="btn btn-primary"
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 28px' }}
-            onClick={handleSave}
-            disabled={isSaving}
-          >
-            {isSaving
-              ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> กำลังบันทึก...</>
-              : <><Save size={16} /> บันทึกการเปลี่ยนแปลง</>
-            }
-          </button>
-        </div>
+        {!isReadOnly && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+            <button className="btn btn-ghost" onClick={() => router.push('/jobs-view')} disabled={isSaving}>
+              ยกเลิก
+            </button>
+            {job.job_status === 'in-progress' && (currentUser?.role === 'manager' || currentUser?.role === 'admin') && (
+              <>
+                <button
+                  className="btn btn-primary"
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 28px', background: 'var(--accent-rose)', borderColor: 'var(--accent-rose)' }}
+                  onClick={() => setIsCancelModalOpen(true)}
+                  disabled={isSaving}
+                >
+                  <Ban size={16} /> ยกเลิกงาน
+                </button>
+                <button
+                  className="btn btn-primary"
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 28px', background: 'var(--accent-emerald)', borderColor: 'var(--accent-emerald)' }}
+                  onClick={handleMarkAsDone}
+                  disabled={isSaving}
+                >
+                  {isSaving ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={16} />} งานเสร็จสิ้น
+                </button>
+              </>
+            )}
+            <button
+              className="btn btn-primary"
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 28px' }}
+              onClick={handleSave}
+              disabled={isSaving}
+            >
+              {isSaving
+                ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> กำลังบันทึก...</>
+                : <><Save size={16} /> บันทึกการเปลี่ยนแปลง</>
+              }
+            </button>
+          </div>
+        )}
 
       </div>
+
+      <Modal isOpen={isCancelModalOpen} onClose={() => setIsCancelModalOpen(false)} title="ยกเลิกงาน" maxWidth={500}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 13, marginBottom: 8, fontWeight: 600 }}>เหตุผลการยกเลิกงาน</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+              {['ลูกค้าปฏิเสธงาน', 'ข้อมูล/เอกสารไม่ครบถ้วน', 'ติดต่อลูกค้าไม่ได้', 'ไม่มีอะไหล่/อุปกรณ์ชั่วคราว', 'ซ้ำซ้อนกับงานอื่น'].map(reason => (
+                <button
+                  key={reason}
+                  onClick={() => setCancelReason(reason)}
+                  className={`btn btn-sm ${cancelReason === reason ? 'btn-primary' : 'btn-ghost'}`}
+                  style={{ fontSize: 12 }}
+                >
+                  {reason}
+                </button>
+              ))}
+            </div>
+            <textarea
+              className="input"
+              rows={3}
+              placeholder="หรือ กรอกเหตุผลอื่นๆ..."
+              value={cancelReason}
+              onChange={e => setCancelReason(e.target.value)}
+              style={{ width: '100%', padding: '10px 14px' }}
+            />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 8 }}>
+            <button className="btn btn-ghost" onClick={() => setIsCancelModalOpen(false)}>ปิด</button>
+            <button className="btn btn-primary" style={{ background: 'var(--accent-rose)', borderColor: 'var(--accent-rose)' }} onClick={handleCancelJob}>
+              ยืนยันการยกเลิก
+            </button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }

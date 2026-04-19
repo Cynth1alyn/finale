@@ -5,18 +5,37 @@ import { useAppContext } from '@/app/lib/AppContext';
 import StatusBadge from '@/app/components/StatusBadge';
 import PriorityBadge from '@/app/components/PriorityBadge';
 import Link from 'next/link';
-import { Search, X, AlertTriangle, MapPin, Calendar, Briefcase } from 'lucide-react';
+import { Search, X, AlertTriangle, MapPin, Calendar, Briefcase, CheckCircle } from 'lucide-react';
 
 export default function JobsViewPage() {
-  const { jobs: allJobs, users, currentUser } = useAppContext();
+  const { jobs: allJobs, users, currentUser, updateJob } = useAppContext();
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
+  const handleMarkAsDone = async (e: React.MouseEvent, job: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (confirm('ยืนยันว่างานนี้เสร็จสิ้นแล้วใช่หรือไม่?')) {
+      try {
+        await updateJob({ ...job, job_status: 'done' });
+      } catch (err) {
+        alert('เกิดข้อผิดพลาด: ' + String(err));
+      }
+    }
+  };
+
   const visibleJobs = allJobs.filter(j => {
     if (currentUser?.role === 'admin') return true;
+    
     const isLead = j.assigned_lead_id === currentUser?.user_id;
     const isAssignee = j.assigned_user_ids?.includes(currentUser?.user_id || '');
+
+    // พนักงานลูกทีมจะไม่เห็นงานที่สถานะรอดำเนินการ
+    if (currentUser?.role === 'technician' || currentUser?.role === 'user') {
+      if (j.job_status === 'pending') return false;
+    }
+
     return isLead || isAssignee;
   });
 
@@ -145,6 +164,15 @@ export default function JobsViewPage() {
                   <div style={{ fontSize: 11, color: overdue ? 'var(--accent-rose)' : 'var(--text-muted)', fontWeight: overdue ? 600 : 500, display: 'flex', alignItems: 'center', gap: 4 }}>
                     <Calendar size={12} /> {job.due_date} {overdue && '(เกินกำหนด)'}
                   </div>
+                  {job.job_status === 'in-progress' && (currentUser?.role === 'manager' || currentUser?.role === 'admin') && (
+                    <button 
+                      onClick={(e) => handleMarkAsDone(e, job)}
+                      className="btn btn-sm"
+                      style={{ background: 'var(--accent-emerald)', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', marginTop: 4 }}
+                    >
+                      <CheckCircle size={14} /> เสร็จสิ้น
+                    </button>
+                  )}
                 </div>
                 
                 <div style={{ display: 'flex', flexDirection: 'row-reverse', alignItems: 'center' }}>

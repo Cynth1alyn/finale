@@ -13,7 +13,8 @@ const api = {
   requests: baseApi.requestsAPI,
   equipment: baseApi.equipmentAPI,
   notifications: baseApi.notificationsAPI,
-  auth: baseApi.authAPI
+  auth: baseApi.authAPI,
+  units: baseApi.unitsAPI
 };
 
 interface AppContextType {
@@ -72,7 +73,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [requests, setRequests] = useState<Request[]>([]);
   const [equipment, setEquipment] = useState<Equipment[]>([]);
-  const [units] = useState<Unit[]>([]);
+  const [units, setUnits] = useState<Unit[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -86,7 +87,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         fetchedDepts,
         fetchedIssues,
         fetchedRequests,
-        fetchedEquip
+        fetchedEquip,
+        fetchedUnits
       ] = await Promise.all([
         api.jobs.getJobs({ limit: 5000 }),
         api.users.getUsers({ limit: 5000 }),
@@ -94,6 +96,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         api.issues.getIssues({ limit: 5000 }),
         api.requests.getRequests({ limit: 5000 }),
         api.equipment.getEquipment({ limit: 5000 }),
+        api.units.getUnits(),
       ]);
 
       setJobs(fetchedJobs);
@@ -102,6 +105,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setIssues(fetchedIssues);
       setRequests(fetchedRequests);
       setEquipment(fetchedEquip);
+      setUnits(fetchedUnits);
     } catch (error) {
       console.error('Failed to load initial data:', error);
     }

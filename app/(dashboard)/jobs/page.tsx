@@ -69,8 +69,15 @@ export default function JobsPage() {
 
   const visibleJobs = jobs.filter(j => {
     if (currentUser?.role === 'admin') return true;
+    
     const isLead = j.assigned_lead_id === currentUser?.user_id;
     const isAssignee = j.assigned_user_ids?.includes(currentUser?.user_id || '');
+
+    // พนักงานลูกทีมจะไม่เห็นงานที่สถานะรอดำเนินการ
+    if (currentUser?.role === 'technician' || currentUser?.role === 'user') {
+      if (j.job_status === 'pending') return false;
+    }
+
     return isLead || isAssignee;
   });
 

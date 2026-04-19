@@ -30,6 +30,7 @@ let mockDepartments = [...mockData.departments];
 let mockIssues = [...mockData.issues];
 let mockRequests = [...mockData.requests];
 let mockNotifications = [...mockData.notifications];
+let mockUnits = [...mockData.units];
 
 // Helper function for API requests
 async function apiRequest(endpoint: string, options: RequestInit = {}) {
@@ -529,6 +530,21 @@ export const notificationsAPI = {
   },
 }
 
+// Units API
+export const unitsAPI = {
+  getUnits: async (): Promise<Unit[]> => {
+    if (USE_MOCK) return mockUnits as Unit[]
+    try {
+      const response = await apiRequest('/units')
+      return response.data
+    } catch (e) {
+      // Fallback if backend doesn't have units endpoint yet
+      if (typeof window !== 'undefined') console.warn('Units API failed, using mock');
+      return mockUnits as Unit[];
+    }
+  }
+}
+
 // Export all APIs
 export const api = {
   auth: authAPI,
@@ -540,4 +556,5 @@ export const api = {
   jobs: jobsAPI,
   requests: requestsAPI,
   notifications: notificationsAPI,
+  units: unitsAPI,
 }

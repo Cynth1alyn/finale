@@ -5,7 +5,15 @@ import { useAppContext } from '@/app/lib/AppContext';
 import { Briefcase, AlertTriangle, Package, CheckCircle, Activity, Map as MapIcon, Settings, Users, Building2, FileText, ClipboardList, Monitor } from 'lucide-react';
 
 export default function HomePage() {
-  const { currentUser, jobs, issues, equipment } = useAppContext();
+  const { currentUser, jobs: allJobs, issues, equipment } = useAppContext();
+
+  const jobs = allJobs.filter(j => {
+    if (currentUser?.role === 'admin') return true;
+    const isLead = j.assigned_lead_id === currentUser?.user_id;
+    const isAssignee = j.assigned_user_ids?.includes(currentUser?.user_id || '');
+    if ((currentUser?.role === 'technician' || currentUser?.role === 'user') && j.job_status === 'pending') return false;
+    return isLead || isAssignee;
+  });
 
   const stats = [
     {

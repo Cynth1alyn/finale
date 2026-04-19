@@ -31,7 +31,7 @@ export default function MapDashboard() {
   };
 
   const jobMarkers: MarkerData[] = jobs
-    .filter(j => j.lat && j.lng && j.job_status !== 'cancelled')
+    .filter(j => j.lat && j.lng && j.job_status !== 'cancelled' && j.job_status !== 'done')
     .map(j => ({
       id: j.job_id,
       lat: j.lat!,
