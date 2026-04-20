@@ -21,7 +21,7 @@ import {
 
 const navItems: { href: string; label: string; icon: LucideIcon; roles?: string[] }[] = [
   { href: '/home', label: 'หน้าแรก', icon: Home },
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin'] },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: [] },
   { href: '/map', label: 'แผนที่งาน', icon: Map, roles: ['admin', 'manager', 'technician'] },
   { href: '/jobs-view', label: 'ติดตามงาน', icon: Briefcase, roles: ['manager', 'technician'] },
   { href: '/jobs', label: 'จัดการงาน', icon: Settings, roles: ['admin'] },

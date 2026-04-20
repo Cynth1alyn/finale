@@ -67,7 +67,7 @@ export default function RequestsPage() {
           <div className="page-title">คำขออุปกรณ์</div>
           <div className="page-subtitle">ทั้งหมด {requests.length} รายการ · รอพิจารณา {statusCounts.pending} รายการ</div>
         </div>
-        <button className="btn btn-primary" onClick={() => router.push('/requests/new')}>+ สร้างคำขอใหม่</button>
+        {/* <button className="btn btn-primary" onClick={() => router.push('/requests/new')}>+ สร้างคำขอใหม่</button> */}
       </div>
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 20, flexWrap: 'wrap' }}>
