@@ -1,16 +1,36 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAppContext } from '@/app/lib/AppContext';
+import { RequestStatus } from '@/app/lib/types';
 import StatusBadge from '@/app/components/StatusBadge';
 
 export default function RequestDetailPage(props: { params: Promise<{ id: string }> }) {
   const params = use(props.params);
   const { id } = params;
+  const router = useRouter();
 
-  const { requests, users, equipment: equipmentList } = useAppContext();
+  const { requests, users, equipment: equipmentList, updateRequest } = useAppContext();
   const request = requests.find(r => r.req_id === id);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleStatusChange = async (newStatus: RequestStatus) => {
+    if (!request) return;
+    const action = newStatus === RequestStatus.APPROVED ? 'อนุมัติ' : 'ปฏิเสธ';
+    if (!confirm(`ยืนยันการ${action}คำขอนี้?`)) return;
+    setIsSubmitting(true);
+    try {
+      await updateRequest({ ...request, req_status: newStatus });
+      router.refresh();
+    } catch (err) {
+      console.error('Failed to update request status:', err);
+      alert(`เกิดข้อผิดพลาดในการ${action}คำขอ`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (!request) {
     return (
@@ -23,6 +43,7 @@ export default function RequestDetailPage(props: { params: Promise<{ id: string 
 
   const requester = request ? users.find(u => u.user_id === request.user_id) : null;
   const items = request.items ?? [];
+  const isPending = request.req_status === RequestStatus.PENDING;
 
   return (
     <>
@@ -34,10 +55,26 @@ export default function RequestDetailPage(props: { params: Promise<{ id: string 
             <div className="page-subtitle">วันที่ขอ: {request.req_date}</div>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <StatusBadge status={request.req_status} />
-          <button className="btn btn-primary btn-sm">อนุมัติ</button>
-          <button className="btn btn-danger btn-sm">ปฏิเสธ</button>
+          {isPending && (
+            <>
+              <button
+                className="btn btn-primary btn-sm"
+                disabled={isSubmitting}
+                onClick={() => handleStatusChange(RequestStatus.APPROVED)}
+              >
+                {isSubmitting ? '...' : '✓ อนุมัติ'}
+              </button>
+              <button
+                className="btn btn-danger btn-sm"
+                disabled={isSubmitting}
+                onClick={() => handleStatusChange(RequestStatus.REJECTED)}
+              >
+                {isSubmitting ? '...' : '✕ ปฏิเสธ'}
+              </button>
+            </>
+          )}
         </div>
       </div>
 

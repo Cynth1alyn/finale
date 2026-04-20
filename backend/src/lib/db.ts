@@ -260,7 +260,7 @@ async function seedTableIfEmpty(table: string, countQuery: string, rows: any[]) 
 }
 
 export async function initializeDatabase() {
-  await dropTables(); // Always recreate for now as requested
+  // Tables are preserved across restarts — data persists in the DB
   await createTables();
   await seedTableIfEmpty('departments', 'SELECT COUNT(*) AS count FROM departments', departments);
   await seedTableIfEmpty('units', 'SELECT COUNT(*) AS count FROM units', units);
