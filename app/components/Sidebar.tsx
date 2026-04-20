@@ -22,13 +22,13 @@ import {
 const navItems: { href: string; label: string; icon: LucideIcon; roles?: string[] }[] = [
   { href: '/home', label: 'หน้าแรก', icon: Home },
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin'] },
-  { href: '/map', label: 'แผนที่งาน', icon: Map, roles: ['admin', 'manager', 'technician', 'user'] },
-  { href: '/jobs-view', label: 'ติดตามงาน', icon: Briefcase, roles: ['admin', 'manager', 'technician', 'user'] },
+  { href: '/map', label: 'แผนที่งาน', icon: Map, roles: ['admin', 'manager', 'technician'] },
+  { href: '/jobs-view', label: 'ติดตามงาน', icon: Briefcase, roles: ['manager', 'technician'] },
   { href: '/jobs', label: 'จัดการงาน', icon: Settings, roles: ['admin'] },
   { href: '/users', label: 'ผู้ใช้งาน', icon: Users, roles: ['admin'] },
   { href: '/departments', label: 'แผนก', icon: Building2, roles: ['admin', 'manager'] },
   { href: '/issues', label: 'รายงานปัญหา', icon: FileText, roles: ['admin'] },
-  { href: '/issues/new', label: 'แจ้งปัญหา', icon: AlertTriangle, roles: ['admin', 'technician', 'user', 'manager'] },
+  { href: '/issues/new', label: 'แจ้งปัญหา', icon: AlertTriangle, roles: ['admin', 'technician', 'manager'] },
   { href: '/requests', label: 'คำขอ', icon: ClipboardList, roles: ['admin'] },
   { href: '/equipment', label: 'อุปกรณ์', icon: Monitor, roles: ['admin'] },
 ];
