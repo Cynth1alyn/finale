@@ -22,7 +22,7 @@ import {
 const navItems: { href: string; label: string; icon: LucideIcon; roles?: string[] }[] = [
   { href: '/home', label: 'หน้าแรก', icon: Home },
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin'] },
-  { href: '/map', label: 'แผนที่งาน', icon: Map, roles: ['admin', 'technician', 'user'] },
+  { href: '/map', label: 'แผนที่งาน', icon: Map, roles: ['admin', 'manager', 'technician', 'user'] },
   { href: '/jobs-view', label: 'ติดตามงาน', icon: Briefcase, roles: ['admin', 'manager', 'technician', 'user'] },
   { href: '/jobs', label: 'จัดการงาน', icon: Settings, roles: ['admin'] },
   { href: '/users', label: 'ผู้ใช้งาน', icon: Users, roles: ['admin'] },

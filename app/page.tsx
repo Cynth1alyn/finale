@@ -50,11 +50,11 @@ export default function Home() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <ThemeToggle />
           <Link href="/login" className="btn btn-ghost">เข้าสู่ระบบ</Link>
-          <Link href="/home" className="btn btn-primary" style={{
+          {/* <Link href="/home" className="btn btn-primary" style={{
             background: 'linear-gradient(135deg, #3B82F6, #8B5CF6)',
             border: 'none',
             boxShadow: '0 4px 14px rgba(139, 92, 246, 0.4)'
-          }}>แดชบอร์ด →</Link>
+          }}>แดชบอร์ด →</Link> */}
         </div>
       </nav>
 
@@ -102,7 +102,7 @@ export default function Home() {
           </p>
 
           <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/home" className="btn btn-primary" style={{
+            <Link href="/login" className="btn btn-primary" style={{
               fontSize: 18,
               padding: '16px 32px',
               borderRadius: 30,
@@ -114,7 +114,7 @@ export default function Home() {
             onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
             onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
             >
-              เริ่มต้นใช้งานฟรี
+              เริ่มต้นเข้าสู่ระบบ
             </Link>
           </div>
         </div>
