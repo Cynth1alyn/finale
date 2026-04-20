@@ -233,28 +233,33 @@ function jsonValue(value: unknown) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 async function seedTableIfEmpty(table: string, countQuery: string, rows: any[]) {
   const [countRows] = await pool.query<RowDataPacket[]>(countQuery);
   const count = countRows[0]?.count || 0;
-  if (count > 0) return;
+  if (count >= rows.length) return;
 
   for (const row of rows) {
-    if (table === 'departments') {
-      await query('INSERT INTO departments (dept_id, dept_name, description) VALUES (?, ?, ?)', [row.dept_id, row.dept_name, row.description || null]);
-    } else if (table === 'users') {
-      await query('INSERT INTO users (user_id, firstname, lastname, email, tel, role, password, dept_id, avatar_color) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [row.user_id, row.firstname, row.lastname, row.email, row.tel, row.role, row.password || null, row.dept_id || null, row.avatar_color || null]);
-    } else if (table === 'equipment') {
-      await query('INSERT INTO equipment (equip_id, name, type_category, total_qty, remain_qty, unit_id, dept_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [row.equip_id, row.name, row.type_category || null, row.total_qty, row.remain_qty, row.unit_id || null, row.dept_id || null, row.status || null]);
-    } else if (table === 'equipment_history') {
-      await query('INSERT INTO equipment_history (id, equip_id, date, user_id, action, notes) VALUES (?, ?, ?, ?, ?, ?)', [row.id, row.equip_id, row.date, row.user_id, row.action, row.notes || null]);
-    } else if (table === 'issues') {
-      await query('INSERT INTO issues (issue_id, topic, detail, solution, status, report_date, reporter_id, lat, lng) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [row.issue_id, row.topic, row.detail, row.solution, row.status, row.report_date, row.reporter_id, row.lat ?? null, row.lng ?? null]);
-    } else if (table === 'jobs') {
-      await query('INSERT INTO jobs (job_id, job_title, description, start_date, due_date, job_priority, job_status, assigned_user_ids, lat, lng, customer_name, contact_number, address, landmark, assigned_lead_id, equipment_requests) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [row.job_id, row.job_title, row.description, row.start_date, row.due_date, row.job_priority, row.job_status, jsonValue(row.assigned_user_ids), row.lat ?? null, row.lng ?? null, row.customer_name || null, row.contact_number || null, row.address || null, row.landmark || null, row.assigned_lead_id || null, jsonValue(row.equipment_requests)]);
-    } else if (table === 'units') {
-      await query('INSERT INTO units (unit_id, unit_name, description) VALUES (?, ?, ?)', [row.unit_id, row.unit_name, row.description || null]);
-    } else if (table === 'requests') {
-      await query('INSERT INTO requests (req_id, req_date, req_status, user_id, items) VALUES (?, ?, ?, ?, ?)', [row.req_id, row.req_date, row.req_status, row.user_id, jsonValue(row.items)]);
+    try {
+      if (table === 'departments') {
+        await query('INSERT IGNORE INTO departments (dept_id, dept_name, description) VALUES (?, ?, ?)', [row.dept_id, row.dept_name, row.description || null]);
+      } else if (table === 'users') {
+        await query('INSERT IGNORE INTO users (user_id, firstname, lastname, email, tel, role, password, dept_id, avatar_color) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [row.user_id, row.firstname, row.lastname, row.email, row.tel, row.role, row.password || null, row.dept_id || null, row.avatar_color || null]);
+      } else if (table === 'equipment') {
+        await query('INSERT IGNORE INTO equipment (equip_id, name, type_category, total_qty, remain_qty, unit_id, dept_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [row.equip_id, row.name, row.type_category || null, row.total_qty, row.remain_qty, row.unit_id || null, row.dept_id || null, row.status || null]);
+      } else if (table === 'equipment_history') {
+        await query('INSERT IGNORE INTO equipment_history (id, equip_id, date, user_id, action, notes) VALUES (?, ?, ?, ?, ?, ?)', [row.id, row.equip_id, row.date, row.user_id, row.action, row.notes || null]);
+      } else if (table === 'issues') {
+        await query('INSERT IGNORE INTO issues (issue_id, topic, detail, solution, status, report_date, reporter_id, lat, lng) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [row.issue_id, row.topic, row.detail, row.solution, row.status, row.report_date, row.reporter_id, row.lat ?? null, row.lng ?? null]);
+      } else if (table === 'jobs') {
+        await query('INSERT IGNORE INTO jobs (job_id, job_title, description, start_date, due_date, job_priority, job_status, assigned_user_ids, lat, lng, customer_name, contact_number, address, landmark, assigned_lead_id, equipment_requests) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [row.job_id, row.job_title, row.description, row.start_date, row.due_date, row.job_priority, row.job_status, jsonValue(row.assigned_user_ids), row.lat ?? null, row.lng ?? null, row.customer_name || null, row.contact_number || null, row.address || null, row.landmark || null, row.assigned_lead_id || null, jsonValue(row.equipment_requests)]);
+      } else if (table === 'units') {
+        await query('INSERT IGNORE INTO units (unit_id, unit_name, description) VALUES (?, ?, ?)', [row.unit_id, row.unit_name, row.description || null]);
+      } else if (table === 'requests') {
+        await query('INSERT IGNORE INTO requests (req_id, req_date, req_status, user_id, items) VALUES (?, ?, ?, ?, ?)', [row.req_id, row.req_date, row.req_status, row.user_id, jsonValue(row.items)]);
+      }
+    } catch (error) {
+      console.warn(`Failed to seed record in ${table}:`, error);
     }
   }
 }
